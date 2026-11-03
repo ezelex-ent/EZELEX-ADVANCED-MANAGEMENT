@@ -1,0 +1,12 @@
+{
+  "name": "EZELEX Enterprise Management Centre",
+  "short_name": "EZELEX Admin",
+  "description": "Secure EZELEX Enterprise administration and business analytics",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f6fa",
+  "theme_color": "#10243e",
+  "orientation": "any",
+  "icons": [{"src":"./ezelex-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

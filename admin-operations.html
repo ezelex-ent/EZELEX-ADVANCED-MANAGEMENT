@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EZELEX Enterprise — Admin Command Centre</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#f4f7fb;color:#17202a}
+header{background:linear-gradient(135deg,#081426,#142b4a);color:#fff;padding:18px 4%;display:flex;justify-content:space-between;align-items:center;gap:15px;position:sticky;top:0;z-index:10}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:12px;background:#d9a441;display:grid;place-items:center;color:#081426;font-weight:900}.brand h1{margin:0;font-size:20px}.brand small{opacity:.7}
+button{border:0;border-radius:9px;padding:11px 15px;cursor:pointer;font-weight:700}.primary{background:#12355b;color:#fff}.gold{background:#d9a441;color:#081426}.danger{background:#b42318;color:#fff}.soft{background:#e9eef5;color:#17202a}.success{background:#087443;color:#fff}.reject{background:#b42318;color:#fff}
+.hidden{display:none!important}.wrap{max-width:1320px;margin:28px auto;padding:0 18px}.login{max-width:430px;margin:70px auto;background:#fff;padding:30px;border-radius:16px;box-shadow:0 12px 40px #102a430d}
+input,select,textarea{width:100%;padding:12px;margin:6px 0 13px;border:1px solid #d5dce5;border-radius:9px;font-size:15px;background:#fff}.msg{padding:11px;border-radius:9px;margin:12px 0;background:#fff3cd}.error{background:#fee4e2;color:#912018}.ok{background:#dcfae6;color:#067647}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.nav button.active{background:#12355b;color:#fff}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.card{background:#fff;padding:19px;border-radius:14px;box-shadow:0 4px 18px #102a430b}.label{color:#667085;font-size:13px}.value{font-size:25px;font-weight:850;margin-top:8px}
+.section{background:#fff;padding:20px;border-radius:14px;margin-top:20px;box-shadow:0 4px 18px #102a430b}.section h2{margin:0 0 15px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}.tablebox{overflow:auto;border:1px solid #edf0f3;border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:1050px}th,td{padding:11px;border-bottom:1px solid #edf0f3;text-align:left;font-size:13px;vertical-align:top}th{background:#f8fafc}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800}.pending{background:#fff3cd;color:#8a5b00}.approved{background:#dcfae6;color:#067647}.rejected{background:#fee4e2;color:#b42318}.profit{color:#087443;font-weight:800}.loss{color:#b42318;font-weight:800}
+.profile{display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:center}.avatar{width:92px;height:92px;border-radius:50%;background:linear-gradient(135deg,#12355b,#d9a441);display:grid;place-items:center;color:#fff;font-size:30px;font-weight:900}.muted{color:#667085}.empty{text-align:center;padding:30px;color:#667085}
+@media(max-width:1050px){.cards{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}.profile{grid-template-columns:1fr;text-align:center}.avatar{margin:auto}}@media(max-width:650px){.cards,.grid2{grid-template-columns:1fr}.wrap{padding:0 11px}.brand h1{font-size:16px}}
+
+.daily-chart-wrap{width:100%;min-height:300px;position:relative;padding:12px;border:1px solid #edf0f3;border-radius:12px;background:#fff}
+.daily-chart-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:#475467;margin:4px 0 12px}
+.daily-chart-legend span{display:inline-flex;align-items:center;gap:7px}
+.legend-dot{display:inline-block;width:11px;height:11px;border-radius:3px}
+#adminDailyPerformanceChart{display:block;width:100%;height:300px}
+.daily-chart-note{font-size:12px;color:#667085;margin-top:8px}
+@media(max-width:650px){.daily-chart-wrap{padding:7px}#adminDailyPerformanceChart{height:260px}}
+.tri-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:12px 0}.tri-cal-head{font-weight:800;text-align:center;padding:8px 2px;color:#475569}.tri-cal-day{min-height:76px;border:1px solid #dbe3ee;border-radius:10px;background:#fff;padding:7px;text-align:left;cursor:pointer;color:#0f172a}.tri-cal-day:hover,.tri-cal-day.selected{outline:2px solid #2563eb;background:#eff6ff}.tri-cal-day .daynum{font-weight:800}.tri-cal-day .daypay{display:block;font-size:12px;margin-top:5px;color:#047857}.tri-cal-day .dayowing{display:block;font-size:11px;color:#b91c1c}.tri-cal-day.outside{opacity:.35}.tri-cal-day.empty{background:#f8fafc;cursor:default}.tri-calendar-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:#475569}@media(max-width:650px){.tri-calendar{gap:3px}.tri-cal-day{min-height:62px;padding:4px;border-radius:7px;font-size:12px}.tri-cal-day .daypay,.tri-cal-day .dayowing{font-size:10px}.tri-calendar .tri-cal-head{font-size:11px;padding:4px 0}}
+
+.header-actions{position:relative;display:flex;align-items:center;gap:8px}.menu-toggle{background:#f2c66d;color:#152238;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;min-height:42px}.admin-menu{position:absolute;right:0;top:calc(100% + 10px);width:min(310px,calc(100vw - 28px));max-height:calc(100vh - 110px);overflow-y:auto;background:#fff;color:#17202a;border:1px solid #e3e8ef;border-radius:14px;padding:8px;box-shadow:0 18px 45px #06172a35;z-index:100}.admin-menu button{display:block;width:100%;text-align:left;background:#fff;color:#17202a;padding:13px 14px;border-radius:8px;font-size:14px}.admin-menu button:hover,.admin-menu button:focus{background:#f3f6fa;outline:2px solid #e9c16b}.admin-menu .menu-logout{color:#b42318;font-weight:800;border-top:1px solid #edf0f4;margin-top:5px}.dashboard-nav{margin-bottom:18px}.page .section{min-width:0}.tablebox{max-width:100%;overflow-x:auto}button,input,select,textarea{max-width:100%}
+@media(max-width:650px){header{padding:12px 14px;align-items:flex-start}.brand{gap:8px}.brand h1{font-size:15px}.brand small{font-size:11px}.logo{width:38px;height:38px;flex:0 0 38px}.header-actions{margin-left:auto;align-items:flex-end;flex-direction:column}.menu-toggle{font-size:13px;padding:10px 11px}.admin-menu{right:0;position:fixed;top:74px;right:10px;width:min(320px,calc(100vw - 20px));max-height:calc(100vh - 88px)}.wrap{margin:16px auto;padding:0 10px}.section{padding:14px!important}.cards{grid-template-columns:1fr!important}.grid2,.grid3{grid-template-columns:1fr!important}.tablebox table{min-width:680px}.login{margin:28px 12px;padding:22px}}
+
+
+.employee-submenu{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 18px}
+.employee-action{background:#f3f6fa;color:#17202a;border:1px solid #d9e1ea}
+.employee-action.active{background:#172b46;color:#fff;box-shadow:0 0 0 2px #f2c66d}
+.employee-form{border:1px solid #e3e8ef;border-radius:12px;padding:16px;margin:12px 0;background:#fff}
+.employee-form h3{margin-top:0}
+@media(max-width:650px){.employee-submenu{display:grid;grid-template-columns:1fr}.employee-form{padding:12px}}
+
+/* Tricycle Contract / Database Management menu additions */
+.menu-group{margin:2px 0;border-bottom:1px solid #edf0f4;padding-bottom:3px}
+.admin-menu .menu-group-toggle{display:flex;align-items:center;justify-content:space-between;background:#f7f9fc;font-weight:800;color:#12355b;border:1px solid #e4eaf2;margin:3px 0}
+.admin-menu .menu-group-toggle:hover{background:#eef3f9}
+.menu-chevron{font-size:12px;transition:transform .15s ease}
+.menu-group-toggle[aria-expanded="true"] .menu-chevron{transform:rotate(180deg)}
+.admin-menu .menu-subgroup{padding:2px 0 5px 10px}
+.admin-menu .menu-subgroup button{font-weight:600;font-size:13px;border-left:3px solid #d9a441;margin:2px 0;padding:10px 11px 10px 13px}
+.admin-menu .menu-subgroup button.tri-menu-active{background:#eaf1f9;color:#12355b;border-left-color:#12355b}
+.tri-panel-selected{outline:1px solid #e3eaf3}
+
+
+/* EZELEX Admin Command Centre — visual-only professional refresh.
+   Intentionally limited to presentation: no HTML IDs, data attributes, Supabase calls,
+   event handlers, authentication, or business logic are changed. */
+:root{
+  --ez-ink:#172b4d;
+  --ez-ink-soft:#344563;
+  --ez-muted:#66758a;
+  --ez-line:#e2e8f0;
+  --ez-canvas:#f3f6fa;
+  --ez-card:#ffffff;
+  --ez-primary:#174a7e;
+  --ez-primary-hover:#10385f;
+  --ez-accent:#0f766e;
+  --ez-accent-soft:#e6f5f2;
+  --ez-gold:#d7ad55;
+  --ez-danger:#b42332;
+  --ez-radius:16px;
+  --ez-shadow:0 8px 24px rgba(21,39,64,.065);
+}
+html{scroll-behavior:smooth;scroll-padding-top:100px}
+body{font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif!important;background:var(--ez-canvas)!important;color:var(--ez-ink)!important;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+header{background:linear-gradient(120deg,#10243e 0%,#173d62 62%,#185b70 100%)!important;padding:16px clamp(16px,4vw,54px)!important;box-shadow:0 4px 18px rgba(12,31,53,.18);border-bottom:1px solid rgba(255,255,255,.12)}
+.brand{gap:13px!important}.logo{width:46px!important;height:46px!important;border-radius:14px!important;background:linear-gradient(145deg,#f0d18a,#d5a847)!important;color:#132944!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 10px rgba(0,0,0,.12);letter-spacing:-.04em}
+.brand h1{font-size:clamp(17px,2vw,21px)!important;font-weight:750;letter-spacing:-.025em}.brand small{display:block;margin-top:2px;color:#d4dfeb;opacity:1!important;font-size:12px;letter-spacing:.025em}
+.wrap{max-width:1440px!important;margin:28px auto!important;padding:0 clamp(14px,2.6vw,34px)!important}
+button{font-family:inherit;font-size:13px;font-weight:650!important;letter-spacing:.005em;border-radius:10px!important;padding:10px 15px!important;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(35,119,171,.22)!important;outline-offset:2px}
+button:hover{filter:brightness(.98)}button:active{transform:translateY(1px)}
+.primary,.nav button.active{background:var(--ez-primary)!important;color:#fff!important;box-shadow:0 3px 8px rgba(23,74,126,.16)}
+.primary:hover,.nav button.active:hover{background:var(--ez-primary-hover)!important}
+.gold,.menu-toggle{background:var(--ez-gold)!important;color:#142944!important}
+.danger,.reject{background:var(--ez-danger)!important;color:#fff!important}
+.success{background:#147d64!important;color:#fff!important}
+.soft{background:#edf2f7!important;color:#273b53!important;border:1px solid #dfe6ee!important}
+.hidden{display:none!important}
+.login{max-width:450px!important;margin:clamp(32px,8vh,82px) auto!important;padding:34px!important;border:1px solid var(--ez-line);border-radius:20px!important;box-shadow:0 20px 55px rgba(20,43,77,.10)!important}
+.login h2{margin:0 0 8px;font-size:25px;letter-spacing:-.035em;color:var(--ez-ink)}
+.login p{margin:0 0 22px}
+label{display:block;font-size:12px;font-weight:750;letter-spacing:.035em;color:#43536a;margin:8px 0 3px}
+input,select,textarea{font:inherit!important;color:var(--ez-ink)!important;background:#fff!important;border:1px solid #d5deea!important;border-radius:10px!important;padding:12px 13px!important;box-shadow:0 1px 2px rgba(16,36,62,.025);transition:border-color .15s ease,box-shadow .15s ease}
+input:focus,select:focus,textarea:focus{border-color:#5c93bc!important;box-shadow:0 0 0 3px rgba(39,113,164,.10)!important;outline:none!important}
+input::placeholder,textarea::placeholder{color:#9aa7b7}
+.nav{gap:8px!important;margin-bottom:22px!important;padding:6px;background:#e8eef5;border:1px solid #e0e7ef;border-radius:13px;width:fit-content;max-width:100%}
+.nav button{background:transparent;color:#40516a;border:1px solid transparent;padding:10px 16px!important}
+.nav button:hover{background:#fff;border-color:#dce5ee}
+.cards{gap:16px!important;align-items:stretch}
+.card{padding:21px!important;border:1px solid #e7edf3;border-radius:var(--ez-radius)!important;box-shadow:var(--ez-shadow)!important;min-width:0;transition:box-shadow .18s ease,border-color .18s ease}
+.card:hover{box-shadow:0 11px 28px rgba(21,39,64,.09)!important;border-color:#d7e1ec}
+.label{font-size:12px!important;font-weight:700;letter-spacing:.035em;text-transform:uppercase;color:#718096!important;line-height:1.45}
+.value{font-size:clamp(22px,2vw,29px)!important;line-height:1.2;color:var(--ez-ink);letter-spacing:-.035em;overflow-wrap:anywhere}
+.section{padding:25px!important;margin-top:22px!important;border:1px solid #e5ebf2;border-radius:var(--ez-radius)!important;box-shadow:var(--ez-shadow)!important;min-width:0}
+.section h2{font-size:clamp(18px,2vw,23px);font-weight:750;letter-spacing:-.025em;line-height:1.3;color:var(--ez-ink);margin-bottom:16px!important}
+.section h3{font-size:16px;font-weight:720;color:#253b57;letter-spacing:-.015em}
+.section p{line-height:1.65}
+.muted,.label{color:var(--ez-muted)}
+.grid2,.grid3{gap:18px!important;align-items:start}
+.toolbar{gap:9px!important;margin:0 0 17px!important;align-items:center}
+.tablebox{border:1px solid #e1e8f0!important;border-radius:12px!important;background:#fff;box-shadow:0 1px 2px rgba(20,43,77,.025)}
+table{border-collapse:separate!important;border-spacing:0!important;min-width:900px}
+th,td{padding:13px 14px!important;border-bottom:1px solid #e9eef4!important;font-size:13px!important;line-height:1.5}
+th{background:#f2f6fa!important;color:#40516a!important;font-size:11px!important;text-transform:uppercase;letter-spacing:.045em;font-weight:800;white-space:nowrap}
+tbody tr:nth-child(even) td{background:#fbfcfe}tbody tr:hover td{background:#f3f8fc}
+tbody tr:last-child td{border-bottom:0!important}
+.badge{padding:5px 10px!important;font-size:11px!important;letter-spacing:.015em}
+.pending{background:#fff4d6!important;color:#875c09!important}.approved{background:#e2f6ed!important;color:#11684d!important}.rejected{background:#fde8e9!important;color:#a51e2a!important}
+.msg{border:1px solid #f2d58b;background:#fff8e7!important;color:#7a5410;padding:13px 15px!important;border-radius:11px!important}
+.error{border-color:#f4c7cb!important;background:#fff0f1!important;color:#9c2630!important}.ok{border:1px solid #b7e4d0!important;background:#eaf8f1!important;color:#126746!important}
+.profile{gap:22px!important;padding:18px;background:#f8fafc;border:1px solid #e6edf4;border-radius:14px}
+.avatar{background:linear-gradient(145deg,#174a7e,#0f766e)!important;box-shadow:0 5px 14px rgba(23,74,126,.18);border:4px solid #fff}
+.empty{padding:38px 20px!important;color:#718096!important}
+.admin-menu{padding:9px!important;border:1px solid #dce5ee!important;border-radius:16px!important;box-shadow:0 22px 55px rgba(10,27,49,.24)!important}
+.admin-menu>button{margin:2px 0!important;padding:12px 13px!important;border:1px solid transparent!important;border-radius:9px!important;font-size:13px!important;font-weight:650!important}
+.admin-menu>button:hover,.admin-menu>button:focus{background:#f0f5fa!important;border-color:#dce6ef!important;outline:none!important}
+.admin-menu .menu-group{padding:5px 0 7px!important;margin:2px 0 5px!important;border-bottom:1px solid #e8edf3!important}
+.admin-menu .menu-group-toggle{padding:12px 13px!important;background:#f2f6fa!important;color:#183c60!important;border:1px solid #e0e8f1!important;border-radius:10px!important;font-size:13px!important}
+.admin-menu .menu-group-toggle:hover{background:#eaf1f7!important}
+.admin-menu .menu-subgroup{padding:5px 0 4px 10px!important}
+.admin-menu .menu-subgroup button{border-left:3px solid #d8e3ee!important;border-radius:7px!important;margin:3px 0!important;padding:10px 10px 10px 12px!important;font-size:12px!important;line-height:1.4}
+.admin-menu .menu-subgroup button.tri-menu-active{background:#e8f2fb!important;color:#174a7e!important;border-left-color:#174a7e!important}
+.admin-menu .menu-logout{border-top:1px solid #e5ebf2!important;margin-top:8px!important;padding-top:14px!important}
+.employee-submenu{gap:9px!important;margin:16px 0 20px!important}
+.employee-action{background:#f2f6fa!important;color:#31465f!important;border:1px solid #dce5ee!important}
+.employee-action.active{background:#174a7e!important;color:#fff!important;box-shadow:0 0 0 3px rgba(23,74,126,.12)!important;border-color:#174a7e!important}
+.employee-form{padding:20px!important;border:1px solid #e2e9f1!important;border-radius:13px!important;background:#fbfcfe!important;box-shadow:0 2px 7px rgba(20,43,77,.025)}
+.daily-chart-wrap{border:1px solid #e1e8f0!important;border-radius:13px!important;background:#fbfcfe!important;padding:16px!important}
+.tri-cal-head{font-size:11px!important;text-transform:uppercase;letter-spacing:.04em;color:#64748b!important}
+.tri-cal-day{border:1px solid #e0e7ef!important;border-radius:10px!important;transition:background .15s ease,border-color .15s ease;box-shadow:0 1px 2px rgba(20,43,77,.025)}
+.tri-cal-day:hover,.tri-cal-day.selected{outline:2px solid rgba(23,74,126,.15)!important;border-color:#7da5c5!important;background:#eff6fc!important}
+.tri-panel-selected{outline:2px solid #dce8f3!important;border-radius:12px}
+@media(max-width:1050px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}.grid3{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:650px){
+ header{padding:12px 14px!important;align-items:center!important;gap:10px!important}
+ .brand{min-width:0}.brand h1{font-size:15px!important}.brand small{font-size:10px}.logo{width:36px!important;height:36px!important;flex:0 0 36px}
+ .header-actions{gap:6px}.menu-toggle{min-height:38px;font-size:12px!important;padding:9px 10px!important}
+ .wrap{margin:16px auto!important;padding:0 10px!important}.login{margin:28px 12px!important;padding:23px!important;border-radius:16px!important}
+ .section{padding:17px!important;margin-top:15px!important}.section h2{font-size:19px!important}
+ .cards,.cards[style]{grid-template-columns:1fr!important;gap:11px!important}.grid2,.grid3{grid-template-columns:1fr!important;gap:12px!important}
+ .card{padding:17px!important}.value{font-size:24px!important}
+ .nav{width:100%;border-radius:11px;gap:4px!important}.nav button{flex:1;padding:9px 10px!important}
+ .toolbar{align-items:stretch}.toolbar button{flex:0 1 auto}
+ .tablebox table{min-width:700px}
+ .profile{grid-template-columns:1fr!important;text-align:left!important;padding:15px!important}.avatar{margin:0!important}
+ .admin-menu{top:66px!important;right:8px!important;width:min(340px,calc(100vw - 16px))!important;max-height:calc(100vh - 78px)!important}
+ .employee-submenu{grid-template-columns:1fr!important}.employee-form{padding:14px!important}
+ .tri-calendar{gap:3px!important}.tri-cal-day{min-height:58px!important;padding:4px!important}
+}
+
+
+/* Embedded operational workspace: match the new Management Centre visual system.
+   Existing Supabase queries, Edge Functions, forms, event handlers and IDs remain intact. */
+:root{--ez-ink:#172b45;--ez-muted:#6b7b90;--ez-line:#e3eaf2;--ez-bg:#f3f6fa;--ez-white:#fff;--ez-blue:#2366a8;--ez-teal:#138477;--ez-gold:#d7ad55;--ez-shadow:0 10px 28px rgba(16,36,62,.07)}
+html{scroll-behavior:smooth}
+body{margin:0!important;background:transparent!important;color:var(--ez-ink)!important;font:14px/1.55 Inter,"Segoe UI",Arial,sans-serif!important}
+body>header{display:none!important}
+#loginSection{display:none!important}
+#dashboard.wrap{display:block!important;max-width:none!important;margin:0!important;padding:0!important}
+#dashboard.wrap.hidden{display:none!important}
+.dashboard-nav,#menuToggle,#adminMenu,#logoutBtn{display:none!important}
+.section{background:#fff!important;border:1px solid var(--ez-line)!important;border-radius:17px!important;padding:clamp(16px,2.4vw,25px)!important;margin:0 0 17px!important;box-shadow:var(--ez-shadow)!important;min-width:0}
+.section h2{color:var(--ez-ink)!important;font-size:clamp(18px,2vw,22px)!important;letter-spacing:-.35px!important;margin:0 0 12px!important}
+.section h3{color:#28445f!important;font-size:16px!important}
+.card{background:#fff!important;border:1px solid var(--ez-line)!important;border-radius:14px!important;box-shadow:0 4px 14px rgba(16,36,62,.045)!important}
+.label{color:var(--ez-muted)!important;font-size:10px!important;letter-spacing:1px!important;text-transform:uppercase!important;font-weight:850!important}
+.value{color:var(--ez-ink)!important;font-size:clamp(21px,2vw,27px)!important;overflow-wrap:anywhere}
+button{font:inherit!important;border-radius:10px!important;min-height:38px}
+.primary{background:var(--ez-blue)!important;color:#fff!important}
+.gold{background:linear-gradient(135deg,#f0d18b,#d6aa4d)!important;color:#172b45!important}
+.soft{background:#edf3f8!important;color:#28445f!important;border:1px solid #dfe8f0!important}
+.danger,.reject{background:#b42332!important;color:#fff!important}
+.success{background:#138477!important;color:#fff!important}
+input,select,textarea{border:1px solid #d9e3ed!important;border-radius:10px!important;background:#fff!important;color:var(--ez-ink)!important;font:inherit!important;padding:11px 12px!important}
+input:focus,select:focus,textarea:focus{outline:3px solid #2366a826!important;border-color:#6fa2c8!important}
+.tablebox{border:1px solid var(--ez-line)!important;border-radius:12px!important;background:#fff!important;max-width:100%;overflow-x:auto!important}
+table{min-width:760px!important;border-collapse:separate!important;border-spacing:0!important}
+th{background:#f0f5f9!important;color:#50657b!important;font-size:10px!important;letter-spacing:.7px!important;text-transform:uppercase!important}
+th,td{padding:12px 13px!important;border-bottom:1px solid #eaf0f5!important;font-size:12px!important}
+tbody tr:nth-child(even) td{background:#fbfcfe!important}
+.badge{border-radius:30px!important}
+.employee-submenu{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+.employee-action{background:#edf3f8!important;color:#28445f!important;border:1px solid #dfe8f0!important}
+.employee-action.active{background:#173d62!important;color:#fff!important;box-shadow:0 0 0 3px #2366a81c!important}
+.employee-form{background:#f8fafc!important;border:1px solid #e3eaf2!important;border-radius:13px!important;padding:17px!important}
+.tri-cal-day{border-color:#dce6ef!important}
+.tri-cal-day.selected,.tri-cal-day:hover{background:#eef6fb!important;outline:2px solid #2366a826!important}
+.daily-chart-wrap{border-color:#e3eaf2!important;border-radius:13px!important}
+.msg{border-radius:11px!important}
+@media(max-width:680px){
+ #dashboard.wrap{padding:0!important}
+ .section{padding:15px!important;margin-bottom:13px!important}
+ .cards,.grid2,.grid3{grid-template-columns:1fr!important}
+ .employee-submenu{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .employee-action{font-size:12px!important;padding:10px 8px!important}
+ .tablebox table{min-width:700px!important}
+ .tri-calendar{gap:3px!important}
+ .tri-cal-day{min-height:56px!important;padding:4px!important}
+}
+
+</style>
+<style>#loginSection{display:none!important}#logoutBtn{display:none!important}</style></head>
+<body>
+<header><div class="brand"><div class="logo">EZ</div><div><h1>Ezelex Enterprise</h1><small>Administrator Dashboard</small></div></div><div class="header-actions"><button id="menuToggle" class="menu-toggle hidden" aria-expanded="false" aria-controls="adminMenu">☰ Open Menu</button><button id="logoutBtn" class="danger hidden">Log out</button><div id="adminMenu" class="admin-menu hidden" role="menu">
+<button data-section="capital">Business Capital</button>
+<div class="menu-group"><button type="button" class="menu-group-toggle" data-menu-group="tricycleGroup" aria-expanded="false" aria-controls="tricycleGroup"><span>Tricycle Contract</span><span class="menu-chevron">▾</span></button><div id="tricycleGroup" class="menu-subgroup hidden"><button type="button" data-tri-panel="triCreatePanel">Create Tricycle Contract</button><button type="button" data-tri-panel="triHistoricalPanel">Record Historical Payment</button><button type="button" data-tri-panel="triCalendarPanel">Payment Ledger Calendar</button></div></div>
+<div class="menu-group"><button type="button" class="menu-group-toggle" data-menu-group="databaseGroup" aria-expanded="false" aria-controls="databaseGroup"><span>Database Management</span><span class="menu-chevron">▾</span></button><div id="databaseGroup" class="menu-subgroup hidden"><button type="button" data-tri-panel="triManagementPanel">Tricycle Contract Management</button><button type="button" data-tri-panel="triPrivateProfitSection">Private Tricycle Profit (Admin Only)</button><button type="button" data-tri-panel="triRegisterPanel">Contract Register &amp; Balances</button><button type="button" data-tri-panel="triReportsPanel">Weekly Report — Review &amp; Approval</button><button type="button" data-tri-panel="triOwingPanel">Owing / Weekly Shortfalls</button><button type="button" data-tri-panel="triLedgerPanel">Full Payment Ledger</button></div></div>
+<button data-section="stock">Stock and Profit</button><button data-section="credits">On-Credit Sales</button><button data-section="stockHistory">Edit History</button><button data-section="sales">Legacy Sales Cleanup</button><button data-section="workers">Create Employee Accounts</button><button data-section="communication">Communication Centre</button><button data-section="profile">Admin Profile</button><button data-section="security">Change Password</button><button id="menuLogout" class="menu-logout">Log Out</button><button data-section="overview">Back to Dashboard</button></div></div></header>
+
+<section id="loginSection" class="login">
+<h2>Admin Login</h2><p class="muted">Sign in with your EZELEX administrator account.</p><div id="loginMsg"></div>
+<label>Email</label><input id="email" type="email" placeholder="Admin email"><label>Password</label><input id="password" type="password" placeholder="Password">
+<button id="loginBtn" class="primary" style="width:100%">Sign in</button><button id="forgotBtn" class="soft" style="width:100%;margin-top:8px">Forgot password?</button>
+</section>
+
+<main id="dashboard" class="wrap hidden"><div id="dashMsg"></div>
+<div class="nav dashboard-nav"><button class="soft active" data-section="overview">Dashboard</button></div>
+
+<section id="capital" class="page hidden">
+<div class="section"><h2>🔒 Private Business Capital</h2><p class="muted">Admin-only financial overview. Original investment is kept separate from weekly stock books. Enter the actual cash currently held by the business; stock and outstanding credit are calculated from saved records.</p><div id="capitalMsg"></div>
+<div class="cards" style="grid-template-columns:repeat(3,1fr)">
+<div class="card"><div class="label">Original Business Capital</div><div class="value" id="originalCapitalValue">GH₵20,000.00</div><div class="muted">Editable by admin when additional capital is invested</div></div>
+<div class="card"><div class="label">Cash In Hand (admin-confirmed)</div><div class="value" id="currentCashValue">GH₵0.00</div><div class="muted">Enter the actual cash held</div></div>
+<div class="card"><div class="label">Remaining Stock Value</div><div class="value" id="capitalStockValue">GH₵0.00</div><div class="muted">Estimated at recorded unit cost</div></div>
+<div class="card"><div class="label">Outstanding Customer Credit</div><div class="value" id="capitalCreditValue">GH₵0.00</div><div class="muted">Unpaid balances only</div></div>
+<div class="card"><div class="label">Total Current Assets</div><div class="value" id="capitalAssetsValue">GH₵0.00</div><div class="muted">Cash + stock value + outstanding credit</div></div>
+<div class="card"><div class="label">Assets Compared With Original Capital</div><div class="value" id="capitalDifferenceValue">GH₵0.00</div><div class="muted">Current assets minus GH₵20,000; not a profit calculation</div></div>
+</div>
+<div class="section" style="margin-top:16px"><h3>Update business capital</h3><p class="muted">When you add more capital to the business, enter the new total capital invested and save it. This does not change weekly stock or Profit/Loss calculations.</p><div class="grid2"><div><label>Original / Total Capital Invested (GH₵)</label><input id="originalCapitalInput" type="number" min="0" step="0.01" placeholder="Enter total capital invested"></div><div style="display:flex;align-items:end"><button id="saveOriginalCapitalBtn" class="primary" type="button">Save Business Capital</button></div></div></div><div class="section" style="margin-top:16px"><h3>Update actual cash held</h3><p class="muted">Enter the total cash physically available to the business now. This is a cash-count input, not sales revenue, so updating it will not change Profit/Loss.</p><div class="grid2"><div><label>Actual Cash In Hand (GH₵)</label><input id="currentCashInput" type="number" min="0" step="0.01" placeholder="Enter cash currently held"></div><div style="display:flex;align-items:end"><button id="saveCapitalCashBtn" class="primary" type="button">Save Cash Balance</button></div></div></div>
+</div></section>
+
+<section id="overview" class="page">
+<div class="cards">
+<div class="card"><div class="label">Active Workers</div><div class="value" id="activeWorkers">0</div></div><div class="card"><div class="label">Pending Workers</div><div class="value" id="pendingWorkers">0</div></div>
+<div class="card"><div class="label">Tricycle Contracts</div><div class="value" id="overviewTriCount">0</div></div><button type="button" class="card dashboard-alert-card" id="overviewReportsCard" aria-label="Open weekly reports awaiting review" style="text-align:left;width:100%;cursor:pointer;color:inherit"><div class="label">Reports Awaiting Review</div><div class="value" id="overviewTriPending">0</div><div class="dashboard-alert-hint">Click to review weekly reports</div></button><div class="card"><div class="label">Outstanding Contract Balance</div><div class="value" id="overviewTriBalance">GH₵0.00</div></div><button type="button" class="card dashboard-alert-card" id="overviewShortfallsCard" aria-label="Open owing and weekly shortfalls" style="text-align:left;width:100%;cursor:pointer;color:inherit"><div class="label">Shortfalls</div><div class="value" id="overviewTriShortfalls">GH₵0.00</div><div class="dashboard-alert-hint">Click to review owing and extend a contract if needed</div></button>
+</div>
+<div style="display:none!important" aria-hidden="true"><span id="today">GH₵0.00</span><span id="week">GH₵0.00</span><span id="month">GH₵0.00</span><span id="alltime">GH₵0.00</span><span id="pendingCount">0</span><span id="approvedCount">0</span><span id="rejectedCount">0</span></div>
+<div class="section"><h2>Business Stock Overview</h2><div class="grid3">
+<div class="card"><div class="label">Stock Remaining</div><div class="value" id="stockRemaining">0</div></div>
+<div class="card"><div class="label">Damage / Loss Value</div><div class="value" id="damageValue">GH₵0.00</div></div>
+<div class="card"><div class="label">Profit / Loss</div><div class="value" id="profitValue">GH₵0.00</div></div>
+</div></div>
+</section>
+
+<section id="sales" class="page hidden"><div class="section"><h2>Central Sales Management</h2><p class="muted">Pending worker sales appear below with <b>Approve</b> and <b>Disapprove</b> buttons.</p>
+<div class="toolbar"><select id="statusFilter" style="max-width:180px"><option value="">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select><select id="workerFilter" style="max-width:240px"><option value="">All workers</option></select><input id="fromDate" type="date" style="max-width:170px"><input id="toDate" type="date" style="max-width:170px"><button id="applyFilters" class="primary">Apply</button><button id="refreshBtn" class="soft">Refresh</button><button id="pdfBtn" class="gold">PDF Report</button><button id="csvBtn" class="soft">CSV</button></div>
+<div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Product/Service</th><th>Qty</th><th>Amount</th><th>Payment</th><th>Status</th><th>Approval</th></tr></thead><tbody id="salesBody"></tbody></table></div></div></section>
+
+<section id="stock" class="page hidden"><div class="section"><h2>Central Stock, Profit, Loss & Damage</h2><p class="muted">Every worker stock batch is sent here automatically. Figures are calculated from the quantities and values entered by workers.</p>
+<div class="cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+<div class="card"><div class="label">Total Units Bought</div><div class="value" id="invTotal">0</div></div><div class="card"><div class="label">Units Remaining</div><div class="value" id="invRemain">0</div></div><div class="card"><div class="label">Damage Value</div><div class="value" id="invDamage">GH₵0.00</div></div><div class="card"><div class="label">Profit / Loss</div><div class="value" id="invProfit">GH₵0.00</div></div>
+</div>
+<div class="toolbar"><select id="invWorkerFilter" style="max-width:240px"><option value="">All workers</option></select><input id="invFromDate" type="date" style="max-width:170px"><input id="invToDate" type="date" style="max-width:170px"><button id="applyInvFilters" class="primary">Apply</button><button id="refreshInventory" class="soft">Refresh</button><button id="invCsvBtn" class="gold">CSV</button></div>
+<div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Product</th><th>Total</th><th>Sold</th><th>Damaged</th><th>Remaining</th><th>Purchase</th><th>Revenue</th><th>Damage Value</th><th>Profit/Loss</th></tr></thead><tbody id="inventoryBody"></tbody></table></div>
+</div>
+<div class="section" style="margin-top:18px"><h2>All-Time Purchase, Sales & Profit Review</h2><p class="muted">Business-wide totals calculated from stock records. Total Purchase is the sum of Total Quantity Bought; Total Sold is the sum of sold quantities. These review totals do not change stock calculations.</p><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="label">All-Time Purchase (Units)</div><div class="value" id="reviewPurchase">0</div></div><div class="card"><div class="label">All-Time Sold (Units)</div><div class="value" id="reviewSold">0</div></div><div class="card"><div class="label">All-Time Profit / Loss</div><div class="value" id="reviewProfit">GH₵0.00</div></div></div></div>
+</section>
+
+<section id="credits" class="page hidden"><div class="section"><h2>On-Credit Sales & Outstanding Balances</h2><p class="muted">Track crates supplied before payment. Outstanding amounts are excluded from cash-in-hand totals in the worker stock record until payment is marked received.</p><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="label">Outstanding Amount</div><div class="value" id="adminCreditAmount">GH₵0.00</div></div><div class="card"><div class="label">Crates Outstanding</div><div class="value" id="adminCreditUnits">0</div></div><div class="card"><div class="label">Customers Owing</div><div class="value" id="adminCreditCustomers">0</div></div></div><div class="tablebox" style="margin-top:14px"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Customer</th><th>Stock</th><th>Crates</th><th>Amount Due</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody id="adminCreditBody"><tr><td colspan="10" class="empty">Loading credit records...</td></tr></tbody></table></div></div></section>
+
+<section id="stockHistory" class="page hidden"><div class="section"><h2>Stock Edit History & Daily Sales</h2><p class="muted">Audit trail for stock edits only, including date/time edited, sold quantity changes, and damage changes. Deleted stock records are removed from stock lists and are not shown in this edit history.</p><div class="toolbar"><select id="historyWorkerFilter" style="max-width:240px"><option value="">All workers</option></select><input id="historyFromDate" type="date" style="max-width:170px"><input id="historyToDate" type="date" style="max-width:170px"><button id="applyHistoryFilters" class="primary">Apply</button><button id="refreshStockHistory" class="soft">Refresh</button></div><h3>Daily Sales Performance</h3><div class="daily-chart-wrap"><div class="daily-chart-legend"><span><i class="legend-dot" style="background:#2463eb"></i>Units sold</span><span><i class="legend-dot" style="background:#15945b"></i>Estimated sales value (GH₵)</span></div><canvas id="adminDailyPerformanceChart" role="img" aria-label="Daily stock sales performance chart"></canvas><div id="adminDailyChartNote" class="daily-chart-note">Loading history...</div></div><h3 style="margin-top:22px">Full Edit History</h3><div class="tablebox"><table><thead><tr><th>Date & Time</th><th>Worker</th><th>Worker ID</th><th>Stock Item</th><th>Action</th><th>Sold Change</th><th>Sold Total</th><th>Damage Total</th><th>Remaining</th><th>Notes</th></tr></thead><tbody id="adminStockHistoryBody"><tr><td colspan="10" class="empty">Loading history...</td></tr></tbody></table></div></div></section>
+
+<section id="workers" class="page hidden">
+<div class="section">
+<h2>Create Employee Account</h2>
+<p class="muted">Choose an action first. The relevant form opens only after you select it.</p>
+<div class="employee-submenu" role="tablist" aria-label="Employee account actions">
+<button type="button" class="employee-action" data-employee-view="directory">Employee Directory</button>
+<button type="button" class="employee-action active" data-employee-view="create-worker">Create Worker</button>
+<button type="button" class="employee-action" data-employee-view="create-driver">Create Driver</button>
+<button type="button" class="employee-action" data-employee-view="delete-worker">Delete Worker</button>
+<button type="button" class="employee-action" data-employee-view="delete-driver">Delete Driver</button>
+</div>
+<div id="workerMsg" role="status" aria-live="polite"></div>
+<div id="createWorkerForm" class="employee-form">
+<h3>Create Normal Worker</h3>
+<div class="grid3">
+<div><label>Worker ID</label><input id="wId" placeholder="e.g. EZ001"></div>
+<div><label>Full Name</label><input id="wName" placeholder="Worker full name"></div>
+<div><label>Phone</label><input id="wPhone" placeholder="Phone number"></div>
+<div><label>Email</label><input id="wEmail" type="email" placeholder="Worker email"></div>
+<div><label>Address</label><input id="wAddress" placeholder="Home address"></div>
+<div><label>Contract Start</label><input id="wStart" type="date"></div>
+<div><label>Contract End</label><input id="wEnd" type="date"></div>
+</div>
+<button id="createWorkerBtn" class="gold" type="button">Create Worker & Send Welcome Email</button>
+</div>
+<div id="createDriverForm" class="employee-form hidden">
+<h3>Create Driver</h3>
+<div class="grid3">
+<div><label>Driver ID</label><input id="dId" placeholder="e.g. EZD001"></div>
+<div><label>Full Name</label><input id="dName" placeholder="Driver full name"></div>
+<div><label>Phone</label><input id="dPhone" placeholder="Phone number"></div>
+<div><label>Email</label><input id="dEmail" type="email" placeholder="Driver email"></div>
+<div><label>Address</label><input id="dAddress" placeholder="Driver's residential address"></div>
+<div><label>Driver's Licence ID</label><input id="dLicenseId" placeholder="Enter licence ID"></div>
+<div><label>Contract Start</label><input id="dStart" type="date"></div>
+<div><label>Contract End</label><input id="dEnd" type="date"></div>
+</div>
+<button id="createDriverBtn" class="gold" type="button">Create Driver & Send Welcome Email</button>
+</div>
+<div id="deleteWorkerForm" class="employee-form hidden">
+<h3>Delete Worker</h3>
+<p class="muted">Select a worker account. Administrator accounts and driver accounts are excluded from this action.</p>
+<div class="grid2">
+<div><label>Worker Account</label><select id="deleteWorkerSelect"><option value="">Select a worker</option></select></div>
+<div style="display:flex;align-items:end"><button id="deleteSelectedWorkerBtn" class="danger" type="button">Delete Selected Worker</button></div>
+</div>
+</div>
+<div id="deleteDriverForm" class="employee-form hidden">
+<h3>Delete Driver</h3>
+<p class="muted">Permanent deletion removes the driver's login/profile and linked tricycle contracts, weekly reports and payment ledger records. Use the employee directory's “Keep Records &amp; Remove Driver” action if records must be retained.</p>
+<div class="grid2">
+<div><label>Driver Account</label><select id="deleteDriverSelect"><option value="">Select a driver</option></select></div>
+<div style="display:flex;align-items:end"><button id="deleteSelectedDriverBtn" class="danger" type="button">Permanently Delete Driver</button></div>
+</div>
+</div>
+</div>
+<div class="section"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2 style="margin:0">Pending Worker Invitations</h2><span class="badge pending" id="pendingWorkersLabel">0 pending</span></div><p class="muted">Workers stay here until they create their password and successfully log in for the first time.</p><div class="tablebox" style="margin-top:14px"><table><thead><tr><th>Worker ID</th><th>Name</th><th>Email</th><th>Contract</th><th>Status</th><th>Action</th></tr></thead><tbody id="pendingWorkersBody"></tbody></table></div></div><div class="section"><h2>Workers</h2><button id="refreshWorkers" class="soft">Refresh Workers</button><div class="tablebox" style="margin-top:14px"><table><thead><tr><th>Worker ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Contract</th><th>Status</th><th>Action</th></tr></thead><tbody id="workersBody"></tbody></table></div></div>
+</section>
+
+
+<section id="communication" class="page hidden">
+<div class="section"><h2>Worker &amp; Driver Communication Centre</h2><p class="muted">Send an email to an individual active worker or driver, or to all active employees.</p><div id="commMsg"></div>
+<div class="grid2"><div><label>Send To</label><select id="commRecipient"><option value="ALL">All Active Workers &amp; Drivers</option></select></div><div><label>Subject</label><input id="commSubject" maxlength="200" placeholder="EZELEX Update"></div></div>
+<label>Message</label><textarea id="commBody" maxlength="10000" style="min-height:160px" placeholder="Write your message to the worker or driver..."></textarea>
+<button id="sendCommBtn" class="gold">Send Message</button>
+</div>
+<div class="section"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Communication History</h2><button id="refreshComm" class="soft">Refresh</button></div><div class="tablebox"><table><thead><tr><th>Date</th><th>Recipient</th><th>Subject</th><th>Message</th><th>Status</th></tr></thead><tbody id="commBodyRows"></tbody></table></div></div>
+</section>
+
+
+<section id="tricycle" class="page hidden">
+ <div class="section" id="triManagementPanel"><h2>🛺 Tricycle Contract Management</h2><p class="muted">Manage each driver's individually agreed contract amount, enter historical payments, and review weekly reports. A weekly report adds to the payment ledger only when approved. This area uses separate tricycle tables and does not change existing stock or profit/loss calculations.</p><div id="tricycleMsg"></div>
+ <div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="label">Contracts</div><div class="value" id="triCount">0</div></div><div class="card"><div class="label">Pending Reports</div><div class="value" id="triPending">0</div></div><div class="card"><div class="label">Outstanding Contract Balance</div><div class="value" id="triBalance">GH₵0.00</div></div></div></div>
+ <div class="section hidden" id="triPrivateProfitSection"><h2>🔒 Private Tricycle Profit (Admin Only)</h2><p class="muted">Private business figures. Drivers cannot read this table. Profit is the agreed contract amount minus the actual purchase price, and the running total includes contracts that still exist.</p><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="label">Total Actual Tricycle Cost</div><div class="value" id="triPrivateCost">GH₵0.00</div></div><div class="card"><div class="label">Total Agreed Contract Value</div><div class="value" id="triPrivateValue">GH₵0.00</div></div><div class="card"><div class="label">Expected Profit — All Existing Contracts</div><div class="value" id="triPrivateProfit">GH₵0.00</div></div></div><div class="tablebox"><table><thead><tr><th>Driver / Vehicle</th><th>Actual Purchase Price</th><th>Agreed Contract Amount</th><th>Expected Profit</th></tr></thead><tbody id="triPrivateProfitBody"><tr><td colspan="4" class="empty">Loading private profit records...</td></tr></tbody></table></div><div id="triPrivateProfitMsg" class="muted"></div></div>
+ <div class="section hidden" id="triCreatePanel"><h2>Create Tricycle Contract</h2><p class="muted">Select an existing worker account. The total contract amount is specific to this driver and tricycle. Historical payments should be entered in the separate payment ledger below.</p>
+ <div class="grid3"><div><label>Driver</label><select id="triWorker"><option value="">Select driver</option></select></div><div><label>Tricycle / Vehicle ID</label><input id="triVehicle" placeholder="e.g. TRI-001"></div><div><label>Registration (optional)</label><input id="triRegistration" placeholder="Registration number"></div><div><label>Contract start date</label><input id="triStart" type="date"></div><div><label>Contract end date</label><input id="triEnd" type="date"></div><div><label>Agreed total contract amount (GH₵)</label><input id="triTotal" type="number" min="0" step="0.01" placeholder="Individually agreed amount"></div><div><label>Actual tricycle purchase price (GH₵) — private</label><input id="triActualCost" type="number" min="0.01" step="0.01" placeholder="Only visible in this admin form"></div><div><label>Daily target (GH₵)</label><input id="triDaily" type="number" min="0" step="0.01" value="200"></div><div><label>Weekly target (GH₵)</label><input id="triWeekly" type="number" min="0" step="0.01" value="1400"></div><div><label>Opening amount paid (GH₵)</label><input id="triOpeningPaid" type="number" min="0" step="0.01" value="0" placeholder="Amount already paid at contract start"></div></div><label>Admin notes</label><textarea id="triNotes" placeholder="Contract notes (optional)"></textarea><button id="triCreateBtn" class="gold">Save Tricycle Contract</button></div>
+ <div class="section hidden" id="triRegisterPanel"><div class="toolbar" style="justify-content:space-between"><h2 style="margin:0">Contract Register & Balances</h2><button id="triRefresh" class="soft">Refresh Tricycle Data</button></div><div class="tablebox"><table><thead><tr><th>Driver</th><th>Worker ID</th><th>Vehicle</th><th>Contract Dates</th><th>Agreed Total</th><th>Paid to Date</th><th>Balance</th><th>Time Remaining</th><th>Status</th><th>Admin Action</th></tr></thead><tbody id="triContractsBody"><tr><td colspan="9" class="empty">Loading contracts...</td></tr></tbody></table></div></div>
+ <div class="section hidden" id="triHistoricalPanel"><h2>Record Historical Payment</h2><p class="muted">Enter the total amount received during a chosen date range before or while using Ezelex. The system splits the total across daily/weekly periods between the start and end dates, then preserves any amount above the scheduled target capacity as a clearly labelled excess credit on the end date. The total is never hard-coded. Review the preview before saving.</p><div class="grid3"><div><label>Contract</label><select id="triPaymentContract"><option value="">Select contract</option></select></div><div><label>Total payments received in this period (GH₵)</label><input id="triPaymentAmount" type="number" min="0.01" step="0.01" placeholder="Enter any total amount"></div><div><label>Allocate payment start date</label><input id="triPaymentStartDate" type="date"></div><div><label>Allocate payment end date</label><input id="triPaymentDate" type="date"></div><div><label>Payment method (ledger label)</label><select id="triPaymentMethod"><option>Historical total (allocation)</option><option>Cash</option><option>Mobile Money</option><option>Bank transfer</option><option>Other</option></select></div><div><label>Reference (optional)</label><input id="triPaymentRef" placeholder="Receipt / transaction reference"></div><div><label>Notes (optional)</label><input id="triPaymentNotes" placeholder="Historical payment details"></div></div><button id="triPreviewHistorical" class="soft" type="button">Preview Weekly Allocation</button> <button id="triPaymentSave" class="primary" type="button">Save Historical Allocation</button><div id="triHistoricalPreview" class="msg" style="margin-top:12px">Choose a contract, enter the total amount received and the last date covered, then preview the weekly split.</div></div>
+ <div class="section hidden" id="triReportsPanel"><h2>Weekly Reports — Review & Approval</h2><p class="muted">Approving confirms the reported payment was received and reduces the contract balance once. Rejecting requires a reason. Do not approve a report unless payment is confirmed.</p><div class="toolbar"><select id="triReportFilter" style="max-width:220px"><option value="pending">Pending reports</option><option value="approved">Approved reports</option><option value="rejected">Rejected reports</option><option value="all">All reports</option></select><button id="triLoadReports" class="soft">Refresh Reports</button></div><div class="tablebox"><table><thead><tr><th>Driver</th><th>Vehicle</th><th>Report period</th><th>Sales reported</th><th>Payment reported</th><th>Reference / Notes</th><th>Status</th><th>Rejection reason</th><th>Action</th></tr></thead><tbody id="triReportsBody"><tr><td colspan="9" class="empty">Loading reports...</td></tr></tbody></table></div></div>
+ <div class="section hidden" id="triCalendarPanel"><h2>Payment Ledger Calendar</h2><p class="muted">Choose a contract and month. Click any date to see payments recorded for that day and the daily target from the contract start date.</p><div class="toolbar"><select id="triCalendarContract" style="max-width:340px"><option value="">Select contract</option></select><button class="soft" id="triCalPrev">‹ Previous month</button><input id="triCalendarMonth" type="month" style="max-width:190px"><button class="soft" id="triCalNext">Next month ›</button></div><div id="triCalendar" class="tri-calendar"></div><div id="triCalendarDayDetail" class="msg">Choose a date in the calendar to view details.</div></div>
+ <div class="section hidden" id="triOwingPanel"><h2>Owing / Weekly Shortfalls</h2><p class="muted">Each driver’s assigned contract target is used to calculate weekly shortfalls. When accumulated owing reaches or exceeds that driver’s weekly target, review the debt and consider whether the contract end date needs to be extended. This does not change a contract automatically.</p><div id="triDebtThresholdPrompt" class="msg error hidden" role="alert" aria-live="polite"></div><div class="section" style="margin:12px 0;border:1px solid #f2c9c9;background:#fffafa"><h3>Contracts Requiring Review</h3><p class="muted">Drivers appear here when accumulated owing reaches or exceeds their own assigned weekly target. Enter a new end date to extend a contract. Saving updates the tricycle contract and the driver profile contract end date.</p><div class="tablebox"><table style="min-width:900px"><thead><tr><th>Driver / Vehicle</th><th>Accumulated Owing</th><th>Assigned Weekly Target</th><th>Current End Date</th><th>New Contract End Date</th><th>Action</th></tr></thead><tbody id="triDebtThresholdContractsBody"><tr><td colspan="6" class="empty">No contracts currently require review.</td></tr></tbody></table></div></div><div class="cards" style="grid-template-columns:repeat(2,1fr)"><div class="card"><div class="label">Total Recorded Shortfall</div><div class="value" id="triOwingTotal">GH₵0.00</div></div><div class="card"><div class="label">Periods Below Target</div><div class="value" id="triOwingCount">0</div></div></div><div class="tablebox"><table><thead><tr><th>Driver</th><th>Period</th><th>Expected</th><th>Recorded</th><th>Owing</th><th>Report Status</th></tr></thead><tbody id="triOwingBody"></tbody></table></div></div>
+ <div class="section hidden" id="triLedgerPanel"><h2>Full Payment Ledger</h2><p class="muted">Includes historical payments and payments confirmed by weekly report approval.</p><div class="tablebox"><table><thead><tr><th>Date</th><th>Driver / Vehicle</th><th>Amount</th><th>Type</th><th>Method</th><th>Reference</th><th>Notes</th></tr></thead><tbody id="triPaymentsBody"><tr><td colspan="7" class="empty">Loading payments...</td></tr></tbody></table></div></div>
+</section>
+
+<section id="profile" class="page hidden"><div class="section"><h2>Admin Profile</h2><div class="profile"><div class="avatar">AD</div><div><h2>EZELEX Administrator</h2><p><b>Admin ID:</b> ADMIN001</p><p><b>Email:</b> <span id="adminEmail">—</span></p><p><b>Status:</b> <span class="badge approved">ACTIVE</span></p><p class="muted">EZELEX ENTERPRISE • Administrator Account</p></div></div></div></section>
+<section id="security" class="page hidden"><div class="section"><h2>Change Password</h2><div id="securityMsg"></div><div class="grid2"><div><label>New Password</label><input id="newPass" type="password"></div><div><label>Confirm Password</label><input id="confirmPass" type="password"></div></div><button id="changePass" class="primary">Change Password</button></div></section>
+</main>
+
+<script>
+const SUPABASE_URL="https://hweczhwoggmsrwhkktrx.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_D0o90HRJ1AfROf_DAj7ZAg_uaPDwqvV";
+const db=window.parent.ezelexManagementDb,$=id=>document.getElementById(id);
+let session=null,allSales=[],filteredSales=[],workers=[],allInventory=[],filteredInventory=[];
+const money=n=>"GH₵"+Number(n||0).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const dateOnly=v=>v?String(v).slice(0,10):"";
+const amount=s=>Number(s.sale_amount??0);
+const status=s=>String(s.status||"pending").toLowerCase();
+function msg(id,t,type=""){ $(id).innerHTML=t?`<div class="msg ${type}">${esc(t)}</div>`:"" }
+function workerInfo(id){return workers.find(x=>x.user_id===id)||workers.find(x=>x.id===id)||{}}
+function invCalc(r){const total=Number(r.total_quantity||0),purchase=Number(r.purchase_total||0),price=Number(r.selling_price_per_unit||0),sold=Number(r.sold_quantity||0),damage=Number(r.damage_quantity||0),loss=Number(r.loss_quantity||0),unit=Number(r.cost_per_unit||0),remaining=Number(r.remaining_quantity??Math.max(0,total-sold-damage-loss)),revenue=Number(r.sales_revenue??(sold*price)),damageValue=Number(r.damage_value??(damage*unit)),lossValue=Number(r.loss_value??(loss*unit)),profit=Number(r.profit_loss??(revenue-sold*unit-damageValue-lossValue));return{total,purchase,price,sold,damage,loss,unit,remaining,revenue,damageValue,lossValue,profit,remainingValue:Number(r.remaining_value??(remaining*unit))}}
+async function adminCheck(){
+ const {data:{session:s}}=await db.auth.getSession();session=s;
+ if(!s)throw new Error("The authenticated Management Centre session is unavailable. Please sign in again.");
+ await window.parent.verifyEzelexLiveDataSession();
+ $("loginSection").classList.add("hidden");$("dashboard").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("menuToggle").classList.remove("hidden");$("adminEmail").textContent=s.user.email||"";
+ await loadWorkers();
+ // Load independent dashboard datasets together so the centre becomes usable sooner.
+ const results=await Promise.allSettled([loadSales(),loadInventory(),loadStockHistory(),loadAdminCredits(),loadBusinessCapital(),loadCommunication(),triLoadAll()]);
+ results.forEach((result,index)=>{if(result.status==="rejected")console.error("Management Centre data load failed (task "+(index+1)+"):",result.reason)});
+ return true
+}
+function showLogin(){$("loginSection").classList.remove("hidden");$("dashboard").classList.add("hidden");$("logoutBtn").classList.add("hidden")}
+async function loadWorkers(){
+ const r=await db.from("worker_profiles").select("*").order("full_name",{ascending:true});if(r.error){msg("dashMsg",r.error.message,"error");return}
+ workers=(r.data||[]).filter(w=>w.role!=="admin");$("activeWorkers").textContent=workers.filter(w=>w.active).length;$("pendingWorkers").textContent=workers.filter(isPendingWorker).length;
+ ["workerFilter","invWorkerFilter"].forEach(id=>{const s=$(id);s.innerHTML='<option value="">All workers</option>';workers.forEach(w=>{const o=document.createElement("option");o.value=w.user_id||w.id;o.textContent=`${w.full_name||"Worker"} (${w.worker_id||""})`;s.appendChild(o)})});
+ const recipient=$("commRecipient");if(recipient){const prior=recipient.value;recipient.innerHTML='<option value="ALL">All Active Workers &amp; Drivers</option>';const activePeople=workers.filter(w=>w.active===true);["worker","driver"].forEach(role=>{const group=document.createElement("optgroup");group.label=role==="driver"?"Drivers":"Workers";activePeople.filter(w=>String(w.role||"worker").trim().toLowerCase()===role).forEach(w=>{const o=document.createElement("option");o.value=w.user_id||w.id;o.textContent=`${w.full_name||role} (${w.worker_id||""})`;group.appendChild(o)});if(group.children.length)recipient.appendChild(group)});if([...recipient.options].some(o=>o.value===prior))recipient.value=prior;}
+ renderWorkers();if($("triWorker"))triPopulateSelects()
+}
+async function loadSales(){const r=await db.from("sales").select("*").order("sale_date",{ascending:false}).order("created_at",{ascending:false});if(r.error){msg("dashMsg","Could not load sales: "+r.error.message,"error");return}allSales=r.data||[];updateSummary();applyFilters()}
+function approvedSales(){return allSales.filter(s=>status(s)==="approved")}
+function updateSummary(){
+ const a=approvedSales(),now=new Date(),td=dateOnly(now),month=td.slice(0,7),monday=new Date(now);monday.setHours(0,0,0,0);monday.setDate(monday.getDate()-((monday.getDay()+6)%7));const wk=dateOnly(monday);
+ $("today").textContent=money(a.filter(s=>dateOnly(s.sale_date||s.created_at)===td).reduce((x,s)=>x+amount(s),0));
+ $("week").textContent=money(a.filter(s=>{let d=dateOnly(s.sale_date||s.created_at);return d>=wk&&d<=td}).reduce((x,s)=>x+amount(s),0));
+ $("month").textContent=money(a.filter(s=>dateOnly(s.sale_date||s.created_at).startsWith(month)).reduce((x,s)=>x+amount(s),0));
+ $("alltime").textContent=money(a.reduce((x,s)=>x+amount(s),0));$("pendingCount").textContent=allSales.filter(s=>status(s)==="pending").length;$("approvedCount").textContent=allSales.filter(s=>status(s)==="approved").length;$("rejectedCount").textContent=allSales.filter(s=>status(s)==="rejected").length
+}
+function applyFilters(){const st=$("statusFilter").value,wid=$("workerFilter").value,from=$("fromDate").value,to=$("toDate").value;filteredSales=allSales.filter(s=>{let d=dateOnly(s.sale_date||s.created_at);return(!st||status(s)===st)&&(!wid||s.worker_id===wid)&&(!from||d>=from)&&(!to||d<=to)});renderSales()}
+function renderSales(){
+ $("salesBody").innerHTML=filteredSales.length?filteredSales.map(s=>{const w=workerInfo(s.worker_id),st=status(s),actions=st==="pending"?`<button class="success" onclick="approveSale('${esc(s.id)}')">✓ Approve</button> <button class="reject" onclick="rejectSale('${esc(s.id)}')">✕ Disapprove</button>`:st==="approved"?`<span class="muted">Approved</span> <button class="danger" onclick="adminDeleteApprovedSale('${esc(s.id)}')">Delete approved sale</button>`:`<span class="muted">Disapproved</span>`;return `<tr><td>${esc(dateOnly(s.sale_date||s.created_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||s.worker_id||"")}</td><td>${esc(s.product_service||"")}</td><td>${esc(s.quantity??"")}</td><td>${money(amount(s))}</td><td>${esc(s.payment_method||"")}</td><td><span class="badge ${st}">${st.toUpperCase()}</span>${st==="rejected"&&s.rejection_reason?`<br><small>${esc(s.rejection_reason)}</small>`:""}</td><td>${actions}</td></tr>`}).join(""):'<tr><td colspan="9" class="empty">No sales found.</td></tr>'
+}
+async function sendSaleNotice(event,id,extra={}){const {data:{session:s}}=await db.auth.getSession();if(!s)throw new Error("Admin session expired. Please sign in again.");const response=await fetch(SUPABASE_URL+"/functions/v1/sale-email-notifications",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({event,sale_id:id,...extra})});const j=await response.json().catch(()=>({}));if(!response.ok||!j.success)throw new Error(j.error||"Email notification failed.");return j}
+window.approveSale=async id=>{if(!confirm("Approve this worker sale?"))return;const r=await db.from("sales").update({status:"approved",rejection_reason:null,approved_at:new Date().toISOString()}).eq("id",id);if(r.error){msg("dashMsg",r.error.message,"error");return}try{await sendSaleNotice("approved",id);msg("dashMsg","Sale approved and worker email sent.","ok")}catch(e){msg("dashMsg","Sale approved, but worker email failed: "+e.message,"error")}await loadSales()}
+window.rejectSale=async id=>{const reason=prompt("Reason for disapproving this sale:");if(reason===null)return;const r=await db.from("sales").update({status:"rejected",rejection_reason:reason.trim()||"No reason provided",approved_at:null}).eq("id",id);if(r.error){msg("dashMsg",r.error.message,"error");return}try{await sendSaleNotice("rejected",id);msg("dashMsg","Sale disapproved and worker email sent.","ok")}catch(e){msg("dashMsg","Sale disapproved, but worker email failed: "+e.message,"error")}await loadSales()}
+window.adminDeleteApprovedSale=async id=>{const sale=allSales.find(x=>String(x.id)===String(id));if(!sale||status(sale)!=="approved"){msg("dashMsg","Only approved sales can be deleted from this admin action.","error");return}const reason=prompt("Required: explain why this approved sale is being deleted. This reason will be emailed to the worker:");if(reason===null)return;if(!reason.trim()){alert("Please enter a reason before deleting the approved sale.");return}if(!confirm("Delete this approved sale and email the worker the reason? This cannot be undone."))return;let emailStatus="Worker email sent.";try{await sendSaleNotice("approved_deleted",id,{reason:reason.trim()})}catch(e){emailStatus="Worker email could not be sent ("+e.message+")."}const r=await db.from("sales").delete().eq("id",id).eq("status","approved");if(r.error){msg("dashMsg","Could not delete approved sale: "+r.error.message+(emailStatus.startsWith("Worker email sent")?" Email was sent.":""),"error");return}msg("dashMsg","Approved sale deleted. "+emailStatus,"ok");await loadSales()}
+async function loadInventory(){const r=await db.from("worker_stock_batches").select("*").order("stock_date",{ascending:false}).order("created_at",{ascending:false});if(r.error){msg("dashMsg","Stock tracker: "+r.error.message,"error");return}allInventory=r.data||[];const wr=await db.from("worker_stock_weeks").select("id,worker_id,week_start,status");allStockWeeks=wr.error?[]:(wr.data||[]);const now=new Date(),day=now.getDay();now.setDate(now.getDate()-(day===0?6:day-1));const monday=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");currentWeekIds=new Set(allStockWeeks.filter(w=>w.week_start===monday).map(w=>String(w.id)));applyInvFilters();updateInventorySummary();if(businessCapitalRow)updateBusinessCapitalSummary()}
+function applyInvFilters(){const wid=$("invWorkerFilter").value,from=$("invFromDate").value,to=$("invToDate").value;filteredInventory=allInventory.filter(r=>{let d=dateOnly(r.stock_date||r.created_at);return(!wid||r.worker_id===wid)&&(!from||d>=from)&&(!to||d<=to)});renderInventory();updateInventorySummary()}
+function renderInventory(){
+ $("inventoryBody").innerHTML=filteredInventory.length?filteredInventory.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id),pc=c.profit<0?"loss":"profit";return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${c.total}</td><td>${c.sold}</td><td>${c.damage}</td><td><b>${c.remaining}</b></td><td>${money(c.purchase)}</td><td>${money(c.revenue)}</td><td>${money(c.damageValue)}</td><td class="${pc}">${money(c.profit)}</td></tr>`}).join(""):'<tr><td colspan="12" class="empty">No stock records found.</td></tr>'
+}
+function updateInventorySummary(){
+ const a=filteredInventory.reduce((x,r)=>{const c=invCalc(r);x.total+=r.stock_type==="carry_forward"?0:c.total;if(currentWeekIds.has(String(r.week_id||"")))x.rem+=c.remaining;x.damage+=c.damageValue;x.profit+=c.profit;return x},{total:0,rem:0,damage:0,profit:0});
+ $("invTotal").textContent=Number(a.total.toFixed(2));$("invRemain").textContent=Number(a.rem.toFixed(2));$("invDamage").textContent=money(a.damage);$("invProfit").textContent=money(a.profit);
+ $("stockRemaining").textContent=Number(a.rem.toFixed(2));$("damageValue").textContent=money(a.damage);$("profitValue").textContent=money(a.profit);$("profitValue").className=a.profit<0?"value loss":"value profit";
+ const all=allInventory.reduce((x,r)=>{const c=invCalc(r);if(r.stock_type!=="carry_forward")x.purchase+=c.total;x.sold+=c.sold;x.profit+=c.profit;return x},{purchase:0,sold:0,profit:0});
+ if($("reviewPurchase"))$("reviewPurchase").textContent=Number(all.purchase.toFixed(2)).toLocaleString();if($("reviewSold"))$("reviewSold").textContent=Number(all.sold.toFixed(2)).toLocaleString();if($("reviewProfit")){$("reviewProfit").textContent=money(all.profit);$("reviewProfit").className="value "+(all.profit<0?"loss":"profit");}
+}
+let businessCapitalRow=null;
+async function loadBusinessCapital(){
+ const r=await db.from("ezelex_business_capital").select("id,original_capital,current_cash").eq("id",1).maybeSingle();
+ if(r.error){msg("capitalMsg","Capital data unavailable. Run the supplied EZELEX business capital SQL in Supabase. "+r.error.message,"error");return}
+ businessCapitalRow=r.data||{id:1,original_capital:20000,current_cash:0};
+ $("originalCapitalValue").textContent=money(businessCapitalRow.original_capital);
+ $("currentCashValue").textContent=money(businessCapitalRow.current_cash);
+ $("currentCashInput").value=Number(businessCapitalRow.current_cash||0).toFixed(2);
+ $("originalCapitalInput").value=Number(businessCapitalRow.original_capital||20000).toFixed(2);
+ updateBusinessCapitalSummary();
+}
+function updateBusinessCapitalSummary(){
+ const stockValue=allInventory.reduce((n,r)=>{const c=invCalc(r);return n+Math.max(0,c.remaining)*Math.max(0,c.unit)},0);
+ const credit=adminCreditRows.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0);
+ const cash=Number(businessCapitalRow?.current_cash||0),original=Number(businessCapitalRow?.original_capital||20000),assets=cash+stockValue+credit,diff=assets-original;
+ $("capitalStockValue").textContent=money(stockValue);$("capitalCreditValue").textContent=money(credit);$("capitalAssetsValue").textContent=money(assets);$("capitalDifferenceValue").textContent=money(diff);$("capitalDifferenceValue").className="value "+(diff<0?"loss":diff>0?"profit":"");
+}
+async function saveBusinessCash(){
+ const cash=Number($("currentCashInput").value);if(!Number.isFinite(cash)||cash<0){msg("capitalMsg","Enter a valid cash balance of zero or more.","error");return}
+ const r=await db.from("ezelex_business_capital").upsert({id:1,original_capital:Number(businessCapitalRow?.original_capital??20000),current_cash:cash,updated_at:new Date().toISOString()},{onConflict:"id"}).select("id,original_capital,current_cash").single();
+ if(r.error){msg("capitalMsg","Could not save cash balance: "+r.error.message,"error");return}
+ businessCapitalRow=r.data;$("currentCashValue").textContent=money(cash);updateBusinessCapitalSummary();msg("capitalMsg","Cash balance saved. Profit/Loss calculations were not changed.","ok");
+}
+async function saveOriginalBusinessCapital(){
+ const capital=Number($("originalCapitalInput").value);if(!Number.isFinite(capital)||capital<0){msg("capitalMsg","Enter a valid total capital of zero or more.","error");return}
+ const cash=Number(businessCapitalRow?.current_cash||0);
+ const r=await db.from("ezelex_business_capital").upsert({id:1,original_capital:capital,current_cash:cash,updated_at:new Date().toISOString()},{onConflict:"id"}).select("id,original_capital,current_cash").single();
+ if(r.error){msg("capitalMsg","Could not save business capital: "+r.error.message,"error");return}
+ businessCapitalRow=r.data;$("originalCapitalValue").textContent=money(capital);updateBusinessCapitalSummary();msg("capitalMsg","Business capital updated. Weekly stock and Profit/Loss calculations were not changed.","ok");
+}
+let allStockHistory=[];
+function historyDateTime(v){if(!v)return "—";const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"});}
+let adminCreditRows=[];
+async function loadAdminCredits(){
+ if(!$('adminCreditBody'))return;const r=await db.from('worker_stock_credit_sales').select('*').order('credit_date',{ascending:false}).order('created_at',{ascending:false});
+ if(r.error){$('adminCreditBody').innerHTML='<tr><td colspan="10" class="empty">Credit records unavailable. Run the supplied stock and credit SQL.</td></tr>';return;}
+ adminCreditRows=r.data||[];const open=adminCreditRows.filter(c=>Number(c.amount_due||0)>Number(c.amount_paid||0));
+ $('adminCreditAmount').textContent=money(open.reduce((n,c)=>n+Number(c.amount_due||0)-Number(c.amount_paid||0),0));$('adminCreditUnits').textContent=open.reduce((n,c)=>n+Number(c.quantity||0),0).toLocaleString();$('adminCreditCustomers').textContent=new Set(open.map(c=>String(c.customer_name||'').trim().toLowerCase())).size;
+ $('adminCreditBody').innerHTML=adminCreditRows.length?adminCreditRows.map(c=>{const w=workerInfo(c.worker_id),bal=Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0));return `<tr><td>${esc(dateOnly(c.credit_date))}</td><td>${esc(w.full_name||'')}</td><td>${esc(w.worker_id||c.worker_id||'')}</td><td>${esc(c.customer_name||'')}</td><td>${esc(c.product_service||'Eggs')}</td><td>${Number(c.quantity||0)}</td><td>${money(c.amount_due)}</td><td>${money(c.amount_paid)}</td><td><b>${money(bal)}</b></td><td>${bal<=0?'<span class="badge approved">PAID</span>':'<span class="badge pending">OUTSTANDING</span>'}</td></tr>`}).join(''):'<tr><td colspan="10" class="empty">No on-credit sales recorded.</td></tr>';if(businessCapitalRow)updateBusinessCapitalSummary();
+}
+async function loadStockHistory(){
+ const r=await db.from("worker_stock_edit_history").select("*").order("changed_at",{ascending:false}).limit(2000);
+ if(r.error){$("adminStockHistoryBody").innerHTML='<tr><td colspan="10" class="empty">History unavailable. Run the supplied stock history SQL and check admin read policy.</td></tr>';return;}
+ allStockHistory=r.data||[];
+ const select=$("historyWorkerFilter");if(select){const current=select.value;select.innerHTML='<option value="">All workers</option>'+workers.map(w=>`<option value="${esc(w.user_id||w.id)}">${esc(w.full_name||w.worker_id||w.email||"Worker")}</option>`).join("");select.value=current;}
+ renderAdminStockHistory();
+}
+
+function drawAdminDailyPerformanceChart(detailRows){
+ const canvas=$("adminDailyPerformanceChart"),note=$("adminDailyChartNote");if(!canvas||!note)return;
+ const grouped={};detailRows.forEach(r=>{if(!grouped[r.day])grouped[r.day]={day:r.day,units:0,value:0};grouped[r.day].units+=Number(r.units||0);grouped[r.day].value+=Number(r.value||0)});
+ const data=Object.values(grouped).sort((a,b)=>a.day.localeCompare(b.day)).slice(-14);
+ const width=Math.max(300,Math.floor(canvas.getBoundingClientRect().width||700)),height=300,dpr=window.devicePixelRatio||1;
+ canvas.width=width*dpr;canvas.height=height*dpr;canvas.style.height=height+"px";
+ const ctx=canvas.getContext("2d");if(!ctx)return;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+ if(!data.length){note.textContent="No stock sales recorded for these filters yet.";return}
+ const pad={l:48,r:48,t:20,b:58},plotW=width-pad.l-pad.r,plotH=height-pad.t-pad.b;
+ const maxU=Math.max(1,...data.map(x=>x.units)),maxV=Math.max(1,...data.map(x=>x.value)),slot=plotW/data.length,bar=Math.max(4,Math.min(18,slot*.25));
+ ctx.font="11px Arial";ctx.textBaseline="middle";
+ for(let i=0;i<=4;i++){const y=pad.t+plotH-plotH*i/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(width-pad.r,y);ctx.strokeStyle="#e5e7eb";ctx.stroke();ctx.fillStyle="#64748b";ctx.textAlign="right";ctx.fillText(String(Math.round(maxU*i/4)),pad.l-7,y);ctx.textAlign="left";ctx.fillText((maxV*i/4).toFixed(0),width-pad.r+7,y)}
+ data.forEach((x,i)=>{const cx=pad.l+slot*i+slot/2,uh=x.units/maxU*plotH,vh=x.value/maxV*plotH;ctx.fillStyle="#2463eb";ctx.fillRect(cx-bar-2,pad.t+plotH-uh,bar,uh);ctx.fillStyle="#15945b";ctx.fillRect(cx+2,pad.t+plotH-vh,bar,vh);ctx.save();ctx.translate(cx,height-pad.b+12);ctx.rotate(-Math.PI/5);ctx.fillStyle="#475467";ctx.textAlign="right";ctx.fillText(x.day.slice(5),0,0);ctx.restore()});
+ ctx.fillStyle="#475467";ctx.textAlign="left";ctx.fillText("Units",pad.l,10);ctx.textAlign="right";ctx.fillText("Value (GH₵)",width-pad.r,10);
+ const totalUnits=data.reduce((a,x)=>a+x.units,0),totalValue=data.reduce((a,x)=>a+x.value,0);
+ note.textContent=`Latest ${data.length} day(s): ${totalUnits} units sold; estimated sales value ${money(totalValue)}. Each measure uses its own scale.`;
+ canvas.setAttribute("aria-label",`Daily performance for ${data.length} days. ${totalUnits} units sold and estimated sales value ${money(totalValue)}.`);
+}
+window.addEventListener("resize",()=>{if(typeof allStockHistory!=="undefined"&&allStockHistory.length)renderAdminStockHistory()});
+
+function renderAdminStockHistory(){
+ const wid=$("historyWorkerFilter")?.value||"",from=$("historyFromDate")?.value||"",to=$("historyToDate")?.value||"";
+ const rows=allStockHistory.filter(h=>{const d=dateOnly(h.changed_at);const isDeletion=/delet/i.test(String(h.action||""));return !isDeletion&&(!wid||h.worker_id===wid)&&(!from||d>=from)&&(!to||d<=to)});
+ const daily={};rows.forEach(h=>{const delta=Number(h.sold_delta||0);if(delta<=0)return;const day=dateOnly(h.changed_at),key=day+'|'+h.worker_id+'|'+(h.product_service||'Stock');if(!daily[key])daily[key]={day,worker:h.worker_id,product:h.product_service||'Stock',units:0,value:0};daily[key].units+=delta;daily[key].value+=delta*Number(h.selling_price_per_unit||0)});
+ const drows=Object.values(daily).sort((a,b)=>b.day.localeCompare(a.day)||b.units-a.units);
+ drawAdminDailyPerformanceChart(drows);
+ $("adminStockHistoryBody").innerHTML=rows.length?rows.map(h=>{const w=workerInfo(h.worker_id);return `<tr><td>${esc(historyDateTime(h.changed_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||h.worker_id||"")}</td><td>${esc(h.product_service||"")}</td><td>${esc(h.action||"Edited")}</td><td>${Number(h.sold_delta||0)>0?"+":""}${Number(h.sold_delta||0)}</td><td>${esc(h.sold_after??"—")}</td><td>${esc(h.damage_after??"—")}</td><td>${esc(h.remaining_after??"—")}</td><td>${esc(h.notes||"")}</td></tr>`}).join(""):'<tr><td colspan="10" class="empty">No stock edit history found for these filters.</td></tr>';
+}
+$("applyHistoryFilters").onclick=renderAdminStockHistory;$("refreshStockHistory").onclick=loadStockHistory;
+
+function isPendingWorker(w){return !w.active && !w.activated_at;}
+function renderWorkers(){
+ const pending=workers.filter(isPendingWorker), established=workers.filter(w=>!isPendingWorker(w));
+ $("pendingWorkersLabel").textContent=`${pending.length} pending`;
+ $("pendingWorkersBody").innerHTML=pending.length?pending.map(w=>{const uid=esc(w.user_id||w.id),wid=esc(w.worker_id||"");const driver=String(w.role||"").trim().toLowerCase()==="driver";const actions=driver?`<button class="soft" onclick="resendDriverInvite('${uid}')">Resend Welcome Email</button> <button class="soft" onclick="manageDriver('${uid}','${wid}','deactivate')">Keep Records & Remove Driver</button> <button class="danger" onclick="manageDriver('${uid}','${wid}','permanent_delete')">Permanently Delete Driver</button>`:`<button class="soft" onclick="resendWorkerInvite('${uid}')">Resend Welcome Email</button> <button class="danger" onclick="deletePendingWorker('${uid}','${wid}')">Delete Pending Worker</button>`;return `<tr><td>${esc(w.worker_id||"")}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.email||"")}</td><td>${esc(w.contract_start||"")} → ${esc(w.contract_end||"")}</td><td><span class="badge pending">PENDING PROFILE</span></td><td>${actions}</td></tr>`}).join(""):'<tr><td colspan="6" class="empty">No pending worker invitations.</td></tr>';
+ $("workersBody").innerHTML=established.length?established.map(w=>{const uid=esc(w.user_id||w.id),wid=esc(w.worker_id||"");const driver=String(w.role||"").trim().toLowerCase()==="driver";const action=driver?`<button class="soft" onclick="manageDriver('${uid}','${wid}','${w.active?'deactivate':'reactivate'}')">${w.active?'Keep Records & Remove Driver':'Reactivate Driver'}</button> <button class="danger" onclick="manageDriver('${uid}','${wid}','permanent_delete')">Permanently Delete Driver</button>`:`<button class="soft" onclick="toggleWorker('${uid}','${wid}',${w.active?'true':'false'})">${w.active?'Deactivate':'Reactivate'}</button><button class="danger" onclick="deleteWorker('${uid}','${wid}')">Permanent Delete</button>`;return `<tr><td>${esc(w.worker_id||"")}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.email||"")}</td><td>${esc(w.phone||"")}</td><td>${esc(w.contract_start||"")} → ${esc(w.contract_end||"")}</td><td><span class="badge ${w.active?"approved":"rejected"}">${w.active?"ACTIVE":"INACTIVE"}</span></td><td style="white-space:nowrap">${action}</td></tr>`}).join(""):'<tr><td colspan="7" class="empty">No activated workers yet.</td></tr>';
+}
+window.resendWorkerInvite=async(uid)=>{const w=workers.find(x=>(x.user_id||x.id)===uid);if(!w||!isPendingWorker(w)){msg("workerMsg","This worker is no longer pending profile activation.","error");return}if(!confirm(`Resend the welcome email to ${w.full_name||w.email}?`))return;const {data:{session:s}}=await db.auth.getSession();if(!s){msg("workerMsg","Admin session expired. Please sign in again.","error");return}msg("workerMsg",`Resending welcome email to ${w.email}...`);try{const r=await fetch(SUPABASE_URL+"/functions/v1/resend-worker-invite",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({user_id:uid})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.success){msg("workerMsg",j.error||"Could not resend the welcome email.","error");return}msg("workerMsg","Welcome email resent successfully. The worker remains pending until they activate their account.","ok")}catch(e){msg("workerMsg",e.message||"Could not reach the email service.","error")}}
+
+window.resendDriverInvite=async(uid)=>{const w=workers.find(x=>String(x.user_id||x.id)===String(uid));if(!w||String(w.role||"").trim().toLowerCase()!=="driver"||!isPendingWorker(w)){msg("workerMsg","This driver is no longer pending profile activation.","error");return}if(!confirm(`Resend the password setup welcome email to ${w.full_name||w.email}? This will not delete the account or change its activation status.`))return;const {data:{session:s}}=await db.auth.getSession();if(!s){msg("workerMsg","Admin session expired. Please sign in again.","error");return}msg("workerMsg",`Resending driver welcome email to ${w.email}...`);try{const r=await fetch(SUPABASE_URL+"/functions/v1/resend-driver-invite",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({user_id:uid})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.success){msg("workerMsg",j.error||"Could not resend the driver welcome email. Check that the resend-driver-invite Edge Function has been deployed.","error");return}msg("workerMsg","Driver welcome email resent. The driver remains pending until the required profile onboarding and admin activation are completed.","ok")}catch(e){msg("workerMsg",e.message||"Could not reach the driver email service.","error")}};
+
+window.deletePendingWorker=async(uid,wid)=>{wid=String(wid||"").trim();if(wid==="ADMIN001"){alert("ADMIN001 cannot be deleted.");return}const w=workers.find(x=>String(x.user_id||x.id)===String(uid));if(!w||!isPendingWorker(w)){msg("workerMsg","This account is no longer a pending worker.","error");return}if(!confirm(`Permanently delete pending worker ${wid} (${w.full_name||w.email}) and their login invitation?`))return;await window.deleteWorker(uid,wid)};
+window.manageDriver=async(uid,wid,action)=>{
+ wid=String(wid||"").trim();
+ if(wid==="ADMIN001"){alert("ADMIN001 cannot be changed or deleted.");return}
+ const w=workers.find(x=>String(x.user_id||x.id)===String(uid));
+ if(!w||String(w.role||"").trim().toLowerCase()!=="driver"){msg("workerMsg","This action is only available for a driver account.","error");return}
+ let confirmText="";
+ if(action==="deactivate") confirmText=`Keep all records and remove driver access for ${wid} (${w.full_name||w.email})? Their tricycle contracts, payment history, balances and other existing records will be kept. The driver will not be able to access the portal.`;
+ else if(action==="reactivate") confirmText=`Restore driver access for ${wid} (${w.full_name||w.email})? Existing records will remain unchanged.`;
+ else if(action==="permanent_delete") confirmText=`PERMANENTLY DELETE driver ${wid} (${w.full_name||w.email})? This will remove the driver's login/profile, tricycle contracts, weekly reports and linked payment ledger records. This cannot be undone. Choose “Keep Records & Remove Driver” instead if you need to preserve any of those records.`;
+ else return;
+ if(!confirm(confirmText))return;
+ if(action==="permanent_delete"&&!confirm(`FINAL CONFIRMATION: permanently delete ${wid} and its linked tricycle contract/payment/report records? This cannot be reversed.`))return;
+ const {data:{session:s}}=await db.auth.getSession();if(!s){msg("workerMsg","Admin session expired. Please sign in again.","error");return}
+ msg("workerMsg",action==="permanent_delete"?"Permanently deleting driver and linked tricycle records...":"Updating driver access while preserving records...");
+ try{
+  const response=await fetch(SUPABASE_URL+"/functions/v1/manage-driver-account",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({user_id:uid,action})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||!result.success){msg("workerMsg",result.error||"Driver account action failed. No success was reported; check the function response before retrying.","error");return}
+  msg("workerMsg",result.message||(action==="deactivate"?"Driver access removed. Existing records were kept.":action==="reactivate"?"Driver access restored.":"Driver and linked records permanently deleted."),"ok");
+  await loadWorkers();await triLoadAll();
+ }catch(e){msg("workerMsg",e.message||"Could not reach the driver account service.","error")}
+};
+window.toggleWorker=async(uid,wid,currentlyActive)=>{wid=String(wid||"").trim();if(wid==="ADMIN001"){alert("ADMIN001 cannot be changed.");return}const action=currentlyActive?"deactivate":"reactivate";if(!confirm(`${action[0].toUpperCase()+action.slice(1)} worker ${wid}? ${currentlyActive?"They will no longer be able to log in, but all sales and stock history will be kept.":"Their worker account will become active again."}`))return;const r=await db.from("worker_profiles").update({active:!currentlyActive}).eq("user_id",uid);if(r.error){msg("workerMsg","Could not "+action+" worker: "+r.error.message,"error");return}msg("workerMsg",`Worker ${wid} ${currentlyActive?"deactivated":"reactivated"} successfully. ${currentlyActive?"Sales and stock history were kept.":""}`,"ok");await loadWorkers()};
+window.deleteWorker=async(uid,wid)=>{if(wid==="ADMIN001"){alert("ADMIN001 cannot be deleted.");return}if(!confirm(`Delete worker ${wid}? This will remove the worker profile, sales and login account.`))return;const {data:{session:s}}=await db.auth.getSession();const r=await fetch("https://hweczhwoggmsrwhkktrx.supabase.co/functions/v1/delete-worker",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token},body:JSON.stringify({user_id:uid})});let j={};try{j=await r.json()}catch{}if(!r.ok){msg("workerMsg",j.error||"Could not delete worker.","error");return}msg("workerMsg","Worker deleted successfully.","ok");await loadWorkers();await Promise.all([loadSales(),loadInventory(),loadStockHistory(),loadAdminCredits()])}
+async function loadCommunication(){
+ const r=await db.from("communications").select("*").order("created_at",{ascending:false}).limit(100);
+ if(r.error){$("commBodyRows").innerHTML='<tr><td colspan="5" class="empty">Communication history is not available yet.</td></tr>';return}
+ const rows=r.data||[];$("commBodyRows").innerHTML=rows.length?rows.map(x=>`<tr><td>${esc(dateOnly(x.created_at))}</td><td>${esc(x.worker_id||"All active workers")}</td><td>${esc(x.subject||"")}</td><td>${esc(x.message||"")}</td><td>${esc(x.status||"sent")}</td></tr>`).join(""):'<tr><td colspan="5" class="empty">No messages sent yet.</td></tr>';
+}
+$("sendCommBtn").onclick=async()=>{
+ const worker_id=$("commRecipient").value,subject=$("commSubject").value.trim(),message=$("commBody").value.trim();
+ if(!subject||!message){msg("commMsg","Subject and message are required.","error");return}
+ const {data:{session:s}}=await db.auth.getSession(); if(!s){msg("commMsg","Your admin session has expired. Please sign in again.","error");return}
+ msg("commMsg","Sending message...");
+ try{const response=await fetch(SUPABASE_URL+"/functions/v1/send-worker-message",{method:"POST",headers:{"Authorization":"Bearer "+s.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"},body:JSON.stringify({worker_id,subject,message})});const result=await response.json().catch(()=>({}));if(!response.ok||!result.success){msg("commMsg",result.error||"Could not send message.","error");return}msg("commMsg",result.message||"Message sent successfully.","ok");$("commSubject").value="";$("commBody").value="";await loadCommunication()}catch(e){msg("commMsg",e.message||"Could not reach messaging service.","error")}
+};
+$("refreshComm").onclick=loadCommunication;
+
+async function createEmployeeAccount(p,resetIds){
+ if(!p.worker_id||!p.full_name||!p.email){msg("workerMsg","Employee ID, full name and email are required.","error");return}
+ if(p.role==="driver"&&(!p.address||!p.driver_license_id)){msg("workerMsg","Driver address and Driver's Licence ID are required.","error");return}
+ const {data:{session:s}}=await db.auth.getSession();
+ if(!s){msg("workerMsg","Admin session expired. Please sign in again.","error");return}
+ msg("workerMsg","Creating "+(p.role==="driver"?"driver":"normal worker")+" account and sending welcome email...");
+ try{
+  const r=await fetch("https://hweczhwoggmsrwhkktrx.supabase.co/functions/v1/create-worker",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify(p)});
+  let j={};try{j=await r.json()}catch{}
+  if(!r.ok||j.success===false){msg("workerMsg",j.error||"Could not create employee.","error");return}
+  if(j.worker_user_id){
+   const pendingUpdate=await db.from("worker_profiles").update({active:false,activated_at:null}).eq("user_id",j.worker_user_id);
+   if(pendingUpdate.error){msg("workerMsg","Employee was created, but the pending status could not be set: "+pendingUpdate.error.message,"error");return}
+  }
+  const emailOk=!j.warning;
+  msg("workerMsg",emailOk?(p.role==="driver"?"Driver created successfully. Profile status: PENDING. Welcome email sent.":"Worker created successfully. Profile status: PENDING. Welcome email sent."):(p.role==="driver"?"Driver created, but the welcome email could not be sent.":"Worker created, but the welcome email could not be sent."),emailOk?"ok":"error");
+  resetIds.forEach(id=>{const el=$(id);if(el)el.value=""});
+  await loadWorkers();populateDeleteWorkerSelect();
+ }catch(e){msg("workerMsg",e.message||"Could not reach the employee service.","error")}
+}
+$("createWorkerBtn").onclick=()=>createEmployeeAccount({role:"worker",worker_id:$("wId").value.trim(),full_name:$("wName").value.trim(),phone:$("wPhone").value.trim(),email:$("wEmail").value.trim(),address:$("wAddress").value.trim(),contract_start:$("wStart").value,contract_end:$("wEnd").value},["wId","wName","wPhone","wEmail","wAddress","wStart","wEnd"]);
+$("createDriverBtn").onclick=()=>createEmployeeAccount({role:"driver",worker_id:$("dId").value.trim(),full_name:$("dName").value.trim(),phone:$("dPhone").value.trim(),email:$("dEmail").value.trim(),address:$("dAddress").value.trim(),driver_license_id:$("dLicenseId").value.trim(),contract_start:$("dStart").value,contract_end:$("dEnd").value},["dId","dName","dPhone","dEmail","dAddress","dLicenseId","dStart","dEnd"]);
+function populateDeleteWorkerSelect(){
+ const sel=$("deleteWorkerSelect");if(!sel)return;const current=sel.value;
+ sel.innerHTML='<option value="">Select a worker</option>';
+ workers.filter(w=>String(w.worker_id||"").trim()!=="ADMIN001"&&String(w.role||"").toLowerCase()==="worker").forEach(w=>{const o=document.createElement("option");o.value=w.user_id||w.id;o.textContent=`${w.full_name||"Worker"} — ${w.worker_id||""}`;sel.appendChild(o)});
+ if([...sel.options].some(o=>o.value===current))sel.value=current;
+}
+function populateDeleteDriverSelect(){
+ const sel=$("deleteDriverSelect");if(!sel)return;const current=sel.value;
+ sel.innerHTML='<option value="">Select a driver</option>';
+ workers.filter(w=>String(w.worker_id||"").trim()!=="ADMIN001"&&String(w.role||"").toLowerCase()==="driver").forEach(w=>{const o=document.createElement("option");o.value=w.user_id||w.id;o.textContent=`${w.full_name||"Driver"} — ${w.worker_id||""}`;sel.appendChild(o)});
+ if([...sel.options].some(o=>o.value===current))sel.value=current;
+}
+$("deleteSelectedWorkerBtn").onclick=async()=>{
+ const uid=$("deleteWorkerSelect").value;
+ if(!uid){msg("workerMsg","Select an account to delete.","error");return}
+ const w=workers.find(x=>String(x.user_id||x.id)===String(uid));
+ if(!w){msg("workerMsg","Selected employee could not be found. Refresh the list and try again.","error");return}
+ await window.deleteWorker(uid,String(w.worker_id||""));
+};
+$("deleteSelectedDriverBtn").onclick=async()=>{
+ const uid=$("deleteDriverSelect").value;
+ if(!uid){msg("workerMsg","Select a driver account to delete.","error");return}
+ const w=workers.find(x=>String(x.user_id||x.id)===String(uid));
+ if(!w||String(w.role||"").toLowerCase()!=="driver"){msg("workerMsg","Selected driver could not be found. Refresh the list and try again.","error");return}
+ await window.manageDriver(uid,String(w.worker_id||""),"permanent_delete");
+};
+document.querySelectorAll("[data-employee-view]").forEach(btn=>btn.addEventListener("click",()=>{
+ document.querySelectorAll("[data-employee-view]").forEach(b=>b.classList.toggle("active",b===btn));
+ ["createWorkerForm","createDriverForm","deleteWorkerForm","deleteDriverForm"].forEach(id=>$(id).classList.add("hidden"));
+ const target={"create-worker":"createWorkerForm","create-driver":"createDriverForm","delete-worker":"deleteWorkerForm","delete-driver":"deleteDriverForm"}[btn.dataset.employeeView];
+ if(target)$(target).classList.remove("hidden");
+ if(btn.dataset.employeeView==="delete-worker")populateDeleteWorkerSelect();
+ if(btn.dataset.employeeView==="delete-driver")populateDeleteDriverSelect();
+}));
+$("loginBtn").onclick=async()=>{msg("loginMsg","Signing in...");const r=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(r.error){msg("loginMsg",r.error.message,"error");return}await adminCheck()}
+$("forgotBtn").onclick=async()=>{const email=$("email").value.trim();if(!email){msg("loginMsg","Enter your admin email first.","error");return}const r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.href});msg("loginMsg",r.error?r.error.message:"Password recovery email sent. Check your inbox.",r.error?"error":"ok")}
+$("logoutBtn").onclick=()=>window.parent.ezelexManagementLogout()
+$("refreshBtn").onclick=async()=>{await loadWorkers();await Promise.all([loadSales(),loadInventory(),loadStockHistory(),loadAdminCredits(),loadBusinessCapital()])}
+$("refreshWorkers").onclick=loadWorkers;$("applyFilters").onclick=applyFilters;$("statusFilter").onchange=applyFilters;$("workerFilter").onchange=applyFilters;$("refreshInventory").onclick=loadInventory;$("applyInvFilters").onclick=applyInvFilters;$("invWorkerFilter").onchange=applyInvFilters
+const _loadWorkersWithDeleteSelect=loadWorkers;loadWorkers=async function(){await _loadWorkersWithDeleteSelect();populateDeleteWorkerSelect()};
+function navigateAdminSection(section){document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));const target=$(section);if(target)target.classList.remove("hidden");document.querySelectorAll(".dashboard-nav button").forEach(x=>x.classList.toggle("active",x.dataset.section===section));$("adminMenu").classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu";if(section==="workers")window.scrollTo({top:0,behavior:"smooth"})}
+document.querySelectorAll("[data-section]").forEach(b=>b.onclick=()=>navigateAdminSection(b.dataset.section));
+$("menuToggle").onclick=()=>{const open=$("adminMenu").classList.toggle("hidden")===false;$("menuToggle").setAttribute("aria-expanded",String(open));$("menuToggle").textContent=open?"✕ Close Menu":"☰ Open Menu"};
+document.addEventListener("click",e=>{if(!e.target.closest(".header-actions")){$("adminMenu").classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu"}});
+const originalShowLogin=showLogin;showLogin=function(){originalShowLogin();$("menuToggle").classList.add("hidden");$("adminMenu").classList.add("hidden")};
+const originalAdminCheck=adminCheck;adminCheck=async function(){const result=await originalAdminCheck();if(result){$("menuToggle").classList.remove("hidden");}return result};
+$("menuLogout").onclick=()=>window.parent.ezelexManagementLogout();
+$("changePass").onclick=async()=>{const a=$("newPass").value,b=$("confirmPass").value;if(a.length<8){msg("securityMsg","Password must be at least 8 characters.","error");return}if(a!==b){msg("securityMsg","Passwords do not match.","error");return}const r=await db.auth.updateUser({password:a});msg("securityMsg",r.error?r.error.message:"Password changed successfully.",r.error?"error":"ok");if(!r.error){$("newPass").value="";$("confirmPass").value=""}}
+$("csvBtn").onclick=()=>{const rows=[["Date","Worker","Worker ID","Product/Service","Quantity","Amount","Payment","Status","Reason"],...filteredSales.map(s=>{const w=workerInfo(s.worker_id);return[dateOnly(s.sale_date||s.created_at),w.full_name||"",w.worker_id||"",s.product_service||"",s.quantity??"",amount(s).toFixed(2),s.payment_method||"",status(s),s.rejection_reason||""]})];const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="EZELEX-sales.csv";a.click()}
+$("invCsvBtn").onclick=()=>{const rows=[["Date","Worker","Worker ID","Product","Total","Sold","Damaged","Remaining","Purchase","Revenue","Damage Value","Profit/Loss"],...filteredInventory.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id);return[dateOnly(r.stock_date||r.created_at),w.full_name||"",w.worker_id||"",r.product_service||"",c.total,c.sold,c.damage,c.remaining,c.purchase.toFixed(2),c.revenue.toFixed(2),c.damageValue.toFixed(2),c.profit.toFixed(2)]})];const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="EZELEX-stock-profit-report.csv";a.click()}
+$("saveCapitalCashBtn").onclick=saveBusinessCash;$("saveOriginalCapitalBtn").onclick=saveOriginalBusinessCapital;
+
+// TRICYCLE CONTRACT MODULE — intentionally isolated from the existing sales/stock/profit logic.
+let triContracts=[],triReports=[],triPayments=[],triPrivateCosts=[];
+const triDate=v=>v?String(v).slice(0,10):'';
+function triTimeRemaining(end){if(!end)return '—';const a=new Date();a.setHours(0,0,0,0);const b=new Date(end+'T00:00:00');let days=Math.max(0,Math.ceil((b-a)/86400000));if(b<a)return 'Ended';const months=Math.floor(days/30.4375),weeks=Math.floor((days%30.4375)/7),left=days-Math.floor(months*30.4375)-weeks*7;return `${months} mo · ${weeks} wk · ${Math.max(0,left)} d`}
+function triWorkerByUid(uid){return workers.find(w=>String(w.user_id||w.id)===String(uid))||{}}
+function triContractById(id){return triContracts.find(c=>String(c.id)===String(id))||{}}
+function triBalance(c){return Math.max(0,Number(c.total_contract_amount||0)-Number(c.opening_paid_amount||0)-triPayments.filter(p=>String(p.contract_id)===String(c.id)).reduce((n,p)=>n+Number(p.amount||0),0))}
+function triPopulateSelects(){const ws=$('triWorker'),old=ws.value;ws.innerHTML='<option value="">Select worker</option>';workers.filter(w=>w.active&&w.user_id&&String(w.role||'').toLowerCase()==='driver').forEach(w=>{const o=document.createElement('option');o.value=w.user_id;o.textContent=`${w.full_name||'Driver'} (${w.worker_id||''})`;ws.appendChild(o)});if(old)ws.value=old;const cs=$('triPaymentContract'),oldc=cs.value;cs.innerHTML='<option value="">Select contract</option>';triContracts.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.driver_name} — ${c.vehicle_id} (${c.driver_worker_id||''})`;cs.appendChild(o)});if(oldc)cs.value=oldc;const cal=$('triCalendarContract');if(cal){const cv=cal.value;cal.innerHTML='<option value="">Select contract</option>';triContracts.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.driver_name} — ${c.vehicle_id}`;cal.appendChild(o)});if(cv)cal.value=cv}}
+function triRenderPrivateProfit(){const body=$('triPrivateProfitBody');if(!body)return;const rows=triContracts.map(c=>{const p=triPrivateCosts.find(x=>String(x.contract_id)===String(c.id));if(!p)return null;const cost=Number(p.actual_purchase_price||0),value=Number(c.total_contract_amount||0);return {c,cost,value,profit:value-cost}}).filter(Boolean);$('triPrivateCost').textContent=money(rows.reduce((n,x)=>n+x.cost,0));$('triPrivateValue').textContent=money(rows.reduce((n,x)=>n+x.value,0));$('triPrivateProfit').textContent=money(rows.reduce((n,x)=>n+x.profit,0));body.innerHTML=rows.length?rows.map(x=>`<tr><td>${esc(x.c.driver_name||'—')} / ${esc(x.c.vehicle_id||'—')}</td><td>${money(x.cost)}</td><td>${money(x.value)}</td><td><b>${money(x.profit)}</b></td></tr>`).join(''):'<tr><td colspan="4" class="empty">No private purchase prices recorded yet.</td></tr>';if($('triPrivateProfitMsg'))$('triPrivateProfitMsg').textContent=triPrivateCosts.length===triContracts.length?'Private profit figures are up to date.':'Some contracts have no private purchase price recorded. Add prices only through the admin-only financial table; do not expose these values to drivers.'}
+async function triLoadAll(){if(!$('triContractsBody'))return;['triContractsBody','triReportsBody','triPaymentsBody'].forEach((id,i)=>$(id).innerHTML=`<tr><td colspan="${[9,9,7][i]}" class="empty">Loading...</td></tr>`);const [cr,rr,pr,fr]=await Promise.all([db.from('tricycle_contracts').select('*').order('created_at',{ascending:false}),db.from('tricycle_weekly_reports').select('*').order('submitted_at',{ascending:false}),db.from('tricycle_contract_payments').select('*').order('payment_date',{ascending:false}).order('created_at',{ascending:false}),db.from('tricycle_contract_private_financials').select('contract_id,actual_purchase_price')]);const err=[cr,rr,pr].find(r=>r.error);if(err){const detail='Could not load tricycle data. The admin session may lack SELECT permission/RLS access, or the Phase 1 SQL may be incomplete: '+err.error.message;msg('tricycleMsg',detail,'error');['triContractsBody','triReportsBody','triPaymentsBody'].forEach((id,i)=>{const el=$(id);if(el)el.innerHTML=`<tr><td colspan="${[10,9,7][i]}" class="empty">LOAD FAILED — ${esc(err.error.message)}. The zero counters are not a confirmed balance.</td></tr>`});['triCount','triPending','triBalance','overviewTriCount','overviewTriPending','overviewTriBalance'].forEach(id=>{const el=$(id);if(el)el.textContent='LOAD ERROR'});return}triContracts=cr.data||[];triReports=rr.data||[];triPayments=pr.data||[];triPrivateCosts=fr.error?[]:(fr.data||[]);if(fr.error&&$('triPrivateProfitMsg'))$('triPrivateProfitMsg').textContent='Private profit table is not ready or admin access was denied. Run the supplied SQL setup before using private profit tracking: '+fr.error.message;triPopulateSelects();triRenderPrivateProfit();triRenderContracts();triRenderReports();triRenderPayments();triRenderOwing();if(!$('triCalendarMonth').value)$('triCalendarMonth').value=new Date().toISOString().slice(0,7);triRenderCalendar();$('triCount').textContent=triContracts.length;$('triPending').textContent=triReports.filter(r=>r.status==='pending').length;$('triBalance').textContent=money(triContracts.reduce((n,c)=>n+triBalance(c),0));$('overviewTriCount').textContent=triContracts.length;$('overviewTriPending').textContent=triReports.filter(r=>r.status==='pending').length;$('overviewTriBalance').textContent=money(triContracts.reduce((n,c)=>n+triBalance(c),0));msg('tricycleMsg','');}
+window.triDeleteContract=async(id)=>{const c=triContractById(id);if(!c.id)return;if(!confirm(`Permanently delete the tricycle contract for ${c.driver_name||'this driver'} / ${c.vehicle_id||'this vehicle'}? Its linked weekly reports and payment ledger entries will also be deleted. This cannot be undone.`))return;msg('tricycleMsg','Deleting contract and its linked ledger records...');for(const table of ['tricycle_contract_payments','tricycle_weekly_reports']){const r=await db.from(table).delete().eq('contract_id',id);if(r.error){msg('tricycleMsg',`Could not clear linked ${table} records: ${r.error.message}. Contract has not been deleted.`, 'error');return}}const r=await db.from('tricycle_contracts').delete().eq('id',id);if(r.error){msg('tricycleMsg','Could not delete contract: '+r.error.message,'error');return}msg('tricycleMsg','Contract and linked ledger entries deleted. Outstanding contract balance has been recalculated.','ok');await triLoadAll()};
+function triRenderContracts(){const body=$('triContractsBody');body.innerHTML=triContracts.length?triContracts.map(c=>{const paid=Number(c.opening_paid_amount||0)+triPayments.filter(p=>String(p.contract_id)===String(c.id)).reduce((n,p)=>n+Number(p.amount||0),0);return `<tr><td>${esc(c.driver_name)}</td><td>${esc(c.driver_worker_id||'—')}</td><td>${esc(c.vehicle_id)}${c.vehicle_registration?' / '+esc(c.vehicle_registration):''}</td><td>${esc(c.contract_start_date)} → ${esc(c.contract_end_date)}</td><td>${money(c.total_contract_amount)}</td><td>${money(paid)}</td><td><b>${money(triBalance(c))}</b></td><td>${esc(triTimeRemaining(c.contract_end_date))}</td><td><span class="badge ${c.status==='active'?'approved':'pending'}">${esc(c.status)}</span></td><td><button type="button" class="danger" onclick="triDeleteContract('${esc(c.id)}')">Delete Contract</button></td></tr>`}).join(''):'<tr><td colspan="10" class="empty">No tricycle contracts created yet.</td></tr>'}
+function triRenderReports(){const filter=$('triReportFilter').value,rows=triReports.filter(r=>filter==='all'||r.status===filter);$('triReportsBody').innerHTML=rows.length?rows.map(r=>{const c=triContractById(r.contract_id);const canReview=r.status==='pending';return `<tr><td>${esc(c.driver_name||r.driver_user_id)}</td><td>${esc(c.vehicle_id||'—')}</td><td>${esc(r.week_start)} → ${esc(r.week_end)}</td><td>${money(r.sales_reported)}</td><td><b>${money(r.payment_amount)}</b></td><td>${esc(r.payment_reference||'')}${r.driver_notes?'<br>'+esc(r.driver_notes):''}</td><td><span class="badge ${r.status==='approved'?'approved':r.status==='rejected'?'rejected':'pending'}">${esc(r.status)}</span></td><td>${esc(r.rejection_reason||'—')}</td><td>${canReview?`<button class="success" onclick="triApproveReport('${r.id}')">Approve Payment</button> <button class="danger" onclick="triRejectReport('${r.id}')">Reject</button>`:'—'}</td></tr>`}).join(''):`<tr><td colspan="9" class="empty">No ${filter==='all'?'':filter+' '}reports found.</td></tr>`}
+
+function triRenderOwing(){
+ const rows=triReports.map(r=>{
+  const c=triContractById(r.contract_id),start=new Date(r.week_start+'T00:00:00'),end=new Date(r.week_end+'T00:00:00');
+  const days=Math.max(1,Math.floor((end-start)/86400000)+1),dailyTarget=Number(c.daily_target||200),weeklyTarget=Number(c.weekly_target||dailyTarget*7);
+  const expected=days>=7?weeklyTarget*Math.floor(days/7)+dailyTarget*(days%7):dailyTarget*days,paid=Number(r.payment_amount||0),owing=Math.max(0,expected-paid);
+  return {r,c,days,expected,paid,owing};
+ }).filter(x=>x.owing>0);
+ const owingByContract=new Map();
+ rows.forEach(x=>owingByContract.set(String(x.c.id),(owingByContract.get(String(x.c.id))||0)+x.owing));
+ const reached=triContracts.map(c=>({c,owing:owingByContract.get(String(c.id))||0,target:Number(c.weekly_target||Number(c.daily_target||200)*7)})).filter(x=>x.target>0&&x.owing>=x.target);
+ const promptText=reached.length?'<strong>Contract review needed</strong><br>'+reached.map(x=>esc(x.c.driver_name||'Driver')+' / '+esc(x.c.vehicle_id||'Tricycle')+': accumulated owing '+money(x.owing)+' has reached or exceeded the assigned weekly target '+money(x.target)+'. Please review the debt and consider whether the contract end date should be extended. No contract has been changed automatically.').join('<br>'):'';
+ const owingPrompt=$('triDebtThresholdPrompt');if(owingPrompt){if(reached.length){owingPrompt.classList.remove('hidden');owingPrompt.innerHTML=promptText}else{owingPrompt.classList.add('hidden');owingPrompt.textContent=''}}
+ const shortfallsValue=$('overviewTriShortfalls');if(shortfallsValue)shortfallsValue.textContent=money(rows.reduce((n,x)=>n+x.owing,0));
+ const thresholdBody=$('triDebtThresholdContractsBody');if(thresholdBody){thresholdBody.innerHTML=reached.length?reached.map(x=>`<tr><td><b>${esc(x.c.driver_name||'Driver')}</b><br>${esc(x.c.vehicle_id||'Tricycle')}</td><td><b style="color:#b42318">${money(x.owing)}</b></td><td>${money(x.target)}</td><td>${esc(x.c.contract_end_date||'—')}</td><td><input type="date" id="triExtendDate-${esc(x.c.id)}" min="${esc(x.c.contract_end_date||'')}" value="${esc(x.c.contract_end_date||'')}" aria-label="New contract end date for ${esc(x.c.driver_name||'driver')}"></td><td><button type="button" class="primary" onclick="triExtendContract('${esc(x.c.id)}')">Save Extension</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">No contracts currently require review.</td></tr>';}
+ $('triOwingTotal').textContent=money(rows.reduce((n,x)=>n+x.owing,0));
+ $('triOwingCount').textContent=rows.length;
+ $('triOwingBody').innerHTML=rows.length?rows.map(x=>`<tr><td>${esc(x.c.driver_name||'—')}</td><td>${esc(x.r.week_start)} → ${esc(x.r.week_end)}</td><td>${money(x.expected)}</td><td>${money(x.paid)}</td><td><b style="color:#b91c1c">${money(x.owing)}</b></td><td><span class="badge ${x.r.status==='approved'?'approved':x.r.status==='rejected'?'rejected':'pending'}">${esc(x.r.status)}</span></td></tr>`).join(''):'<tr><td colspan="6" class="empty">No reported shortfalls found.</td></tr>';
+}
+window.triExtendContract=async function(id){
+ const c=triContractById(id);if(!c||!c.id){alert('Could not find that tricycle contract. Refresh the tricycle data and try again.');return;}
+ const input=$('triExtendDate-'+id),newEnd=input?.value||'';
+ if(!newEnd){alert('Choose the new contract end date first.');return;}
+ const currentEnd=String(c.contract_end_date||'');
+ if(currentEnd&&newEnd<=currentEnd){alert('The new end date must be later than the current contract end date.');return;}
+ if(!confirm(`Extend ${c.driver_name||'this driver'} / ${c.vehicle_id||'this tricycle'} contract end date from ${currentEnd||'not set'} to ${newEnd}? This will update the tricycle contract and the date shown in the driver's profile.`))return;
+ const contractUpdate=await db.from('tricycle_contracts').update({contract_end_date:newEnd}).eq('id',id);
+ if(contractUpdate.error){msg('tricycleMsg','Could not update the contract end date: '+contractUpdate.error.message,'error');return;}
+ let profileNote='';
+ if(c.driver_user_id){
+  const profileUpdate=await db.from('worker_profiles').update({contract_end:newEnd}).eq('user_id',c.driver_user_id);
+  if(profileUpdate.error){profileNote=' The tricycle contract date was updated, but the driver profile date could not be updated: '+profileUpdate.error.message+'. Please check the profile record.';}
+ }else{profileNote=' The tricycle contract date was updated, but this contract has no driver user ID to match the profile date.';}
+ msg('tricycleMsg','Contract end date updated to '+newEnd+'. The driver dashboard reads the tricycle contract date; refresh the driver portal to see the new date.'+profileNote,profileNote?'error':'ok');
+ await triLoadAll();
+};
+function triRenderCalendar(){const cid=$('triCalendarContract')?.value,monthInput=$('triCalendarMonth');if(!cid||!monthInput?.value){$('triCalendar').innerHTML='<p class="muted">Select a contract and month to view its payment calendar.</p>';return}const c=triContractById(cid),[yy,mm]=monthInput.value.split('-').map(Number),first=new Date(yy,mm-1,1),offset=(first.getDay()+6)%7,daysIn=new Date(yy,mm,0).getDate();let html=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="tri-cal-head">${d}</div>`).join('');for(let i=0;i<offset;i++)html+='<div class="tri-cal-day empty"></div>';for(let d=1;d<=daysIn;d++){const date=`${yy}-${String(mm).padStart(2,'0')}-${String(d).padStart(2,'0')}`,inContract=date>=c.contract_start_date&&date<=c.contract_end_date,pays=triPayments.filter(p=>String(p.contract_id)===String(cid)&&triDate(p.payment_date)===date),paid=pays.reduce((n,p)=>n+Number(p.amount||0),0),target=inContract?Number(c.daily_target||200):0,owing=Math.max(0,target-paid);html+=`<button type="button" class="tri-cal-day ${inContract?'':'outside'}" data-tri-date="${date}" ${inContract?'':'disabled'}><span class="daynum">${d}</span>${paid?`<span class="daypay">Paid ${money(paid)}</span>`:''}${inContract&&owing?`<span class="dayowing">Target gap ${money(owing)}</span>`:''}</button>`} $('triCalendar').innerHTML=html;document.querySelectorAll('[data-tri-date]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tri-date]').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');const date=b.dataset.triDate, c=triContractById(cid),pays=triPayments.filter(p=>String(p.contract_id)===String(cid)&&triDate(p.payment_date)===date),paid=pays.reduce((n,p)=>n+Number(p.amount||0),0),target=Number(c.daily_target||200),reports=triReports.filter(r=>String(r.contract_id)===String(cid)&&r.week_start<=date&&r.week_end>=date);$('triCalendarDayDetail').innerHTML=`<b>${esc(date)}</b> · ${esc(c.driver_name)} / ${esc(c.vehicle_id)}<br>Daily target: <b>${money(target)}</b> · Ledger payments: <b>${money(paid)}</b> · Target gap: <b style="color:${Math.max(0,target-paid)>0?'#b91c1c':'#047857'}">${money(Math.max(0,target-paid))}</b><br>${pays.length?pays.map(p=>`${esc(p.source_type||'payment')}: ${money(p.amount)} (${esc(p.payment_method||'—')})`).join('<br>'):'No payment recorded on this date.'}${reports.length?'<br>Reports covering this date: '+reports.map(r=>`${esc(r.status)} (${money(r.payment_amount)})`).join(', '):''}`})}
+function triRenderPayments(){$('triPaymentsBody').innerHTML=triPayments.length?triPayments.map(p=>{const c=triContractById(p.contract_id);return `<tr><td>${esc(p.payment_date)}</td><td>${esc(c.driver_name||'—')} / ${esc(c.vehicle_id||'—')}</td><td><b>${money(p.amount)}</b></td><td>${esc(p.source_type||'historical')}</td><td>${esc(p.payment_method||'—')}</td><td>${esc(p.reference||'—')}</td><td>${esc(p.notes||'—')}</td></tr>`}).join(''):'<tr><td colspan="7" class="empty">No payments recorded yet.</td></tr>'}
+$('triCreateBtn').onclick=async()=>{const uid=$('triWorker').value,w=triWorkerByUid(uid),start=$('triStart').value,end=$('triEnd').value,total=Number($('triTotal').value),actualCost=Number($('triActualCost').value),openingPaid=Number($('triOpeningPaid').value||0);if(!uid||!w?.user_id){msg('tricycleMsg','Choose a driver account.','error');return}if(!$('triVehicle').value.trim()||!start||!end||end<start||!Number.isFinite(total)||total<=0||!Number.isFinite(actualCost)||actualCost<=0||!Number.isFinite(openingPaid)||openingPaid<0||openingPaid>total){msg('tricycleMsg','Enter vehicle ID, valid start/end dates, a positive contract amount, a positive actual purchase price, and an opening amount paid between GH₵0 and the total contract amount.','error');return}const startDate=new Date(start+'T00:00:00'),endDate=new Date(end+'T00:00:00');if(Number.isNaN(startDate.getTime())||Number.isNaN(endDate.getTime())){msg('tricycleMsg','Please enter valid contract dates.','error');return}const durationMonths=Math.max(1,Math.round((endDate-startDate)/(86400000*30.4375)));const payload={driver_user_id:w.user_id,driver_worker_id:w.worker_id||null,driver_name:w.full_name||'Driver',driver_phone:w.phone||null,vehicle_id:$('triVehicle').value.trim(),vehicle_registration:$('triRegistration').value.trim()||null,contract_duration_months:durationMonths,contract_start_date:start,contract_end_date:end,total_contract_amount:total,weekly_target:Number($('triWeekly').value||1400),daily_target:Number($('triDaily').value||200),opening_paid_amount:openingPaid,opening_paid_notes:null,admin_notes:$('triNotes').value.trim()||null,created_by:session?.user?.id||null};const r=await db.from('tricycle_contracts').insert(payload).select('id').single();if(r.error){msg('tricycleMsg','Could not save contract: '+r.error.message,'error');return}const privateResult=await db.from('tricycle_contract_private_financials').insert({contract_id:r.data.id,actual_purchase_price:actualCost,recorded_by:session?.user?.id||null});if(privateResult.error){const rollback=await db.from('tricycle_contracts').delete().eq('id',r.data.id);msg('tricycleMsg','Private profit could not be saved: '+privateResult.error.message+(rollback.error?' Contract was created but could not be rolled back; please do not send the driver the contract until resolved.':' The new contract was rolled back, so no incomplete contract was kept.')+' Make sure the private-profit SQL setup has been run.','error');return}let emailNote='';try{const {data:notice,error:noticeError}=await db.functions.invoke('send-driver-contract-assignment',{body:{contract_id:r.data.id}});if(noticeError||notice?.success===false)emailNote=' Contract saved, but assignment email failed: '+(notice?.error||noticeError?.message||'email service did not confirm delivery')+'.';else emailNote=' Contract assignment email sent to the driver.'}catch(e){emailNote=' Contract saved, but assignment email request failed: '+(e?.message||String(e))+'.'}msg('tricycleMsg','Tricycle contract saved successfully.'+emailNote+' Record historical payments below if needed so the balance is accurate.',emailNote.includes('failed')?'error':'ok');['triVehicle','triRegistration','triStart','triEnd','triTotal','triActualCost','triNotes','triOpeningPaid'].forEach(id=>{if($(id))$(id).value=id==='triOpeningPaid'?'0':''});await triLoadAll()};
+function triHistoricalPeriods(contract, startDate, endDate){const start=triDate(startDate),end=triDate(endDate);if(!start||!end||end<start)return [];const contractStart=triDate(contract.contract_start_date);if(!contractStart||end<contractStart)return [];const effectiveStart=start<contractStart?contractStart:start;const daily=Number(contract.daily_target||200),weekly=Number(contract.weekly_target||1400);if(!Number.isFinite(daily)||daily<=0||!Number.isFinite(weekly)||weekly<=0)return [];const out=[];let cursor=new Date(effectiveStart+'T00:00:00');const last=new Date(end+'T00:00:00');while(cursor<=last){let periodEnd=new Date(cursor);const daysToSunday=(7-cursor.getDay())%7;periodEnd.setDate(periodEnd.getDate()+daysToSunday);if(periodEnd>last)periodEnd=new Date(last);const days=Math.floor((periodEnd-cursor)/86400000)+1;const fullWeek=days===7&&cursor.getDay()===1;const target=fullWeek?weekly:days*daily;out.push({start:cursor.toISOString().slice(0,10),end:periodEnd.toISOString().slice(0,10),days,target});cursor=new Date(periodEnd);cursor.setDate(cursor.getDate()+1)}return out}
+function triBuildHistoricalAllocation(){
+ const cid=$('triPaymentContract').value,c=triContractById(cid),raw=$('triPaymentAmount').value,total=Number(raw),startDate=$('triPaymentStartDate').value,through=$('triPaymentDate').value;
+ if(!cid||!c.id||!startDate||!through||String(raw).trim()===''||!Number.isFinite(total)||total<=0)return {error:'Select a contract, enter any positive total amount, and choose both the allocation start and end dates.'};
+ if(through<startDate)return {error:'The allocation end date must be on or after the allocation start date.'};
+ if(through<triDate(c.contract_start_date))return {error:'The allocation end date must be on or after the contract start date.'};
+ const periods=triHistoricalPeriods(c,startDate,through);
+ if(!periods.length)return {error:'No valid daily/weekly allocation periods were found. Check the contract start date and selected date range.'};
+ let remaining=Math.round(total*100)/100;const rows=[];
+ for(const p of periods){if(remaining<=0.00001)break;const amount=Math.min(remaining,p.target);rows.push({...p,amount,kind:'scheduled'});remaining=Math.round((remaining-amount)*100)/100;}
+ if(remaining>0.009){const last=periods[periods.length-1];rows.push({...last,start:through,end:through,days:1,target:0,amount:remaining,kind:'excess'});remaining=0;}
+ const allocated=Math.round(rows.reduce((n,r)=>n+r.amount,0)*100)/100;
+ if(Math.abs(allocated-Math.round(total*100)/100)>0.009)return {error:'The allocation preview did not balance to the entered total. Nothing has been saved; refresh and try again.'};
+ return {contract:c,total:Math.round(total*100)/100,startDate:periods[0].start,through,rows};
+}
+function triPreviewHistorical(){
+ const box=$('triHistoricalPreview'),a=triBuildHistoricalAllocation();
+ if(a.error){box.textContent=a.error;box.className='msg error';return;}
+ const already=triPayments.some(p=>String(p.contract_id)===String(a.contract.id)&&String(p.source_type||'').toLowerCase().includes('historical'));
+ if(already){box.textContent='Historical payment entries already exist for this contract. To prevent double-counting, review the ledger before adding another historical total. If you need to add a separate period, ensure its dates do not overlap previous historical entries.';box.className='msg error';return;}
+ box.className='msg';box.innerHTML=`<b>${esc(a.contract.driver_name)} / ${esc(a.contract.vehicle_id)}</b> — ${money(a.total)} total from ${esc(a.startDate)} to ${esc(a.through)} across ${a.rows.length} ledger row(s).<div class="tablebox" style="margin-top:8px"><table><thead><tr><th>Period / date</th><th>Days</th><th>Target capacity</th><th>Amount credited</th><th>Allocation type</th></tr></thead><tbody>${a.rows.map(r=>`<tr><td>${r.start} → ${r.end}</td><td>${r.days}</td><td>${money(r.target)}</td><td><b>${money(r.amount)}</b></td><td>${r.kind==='excess'?'Historical excess credit':'Scheduled allocation'}</td></tr>`).join('')}</tbody></table></div><p class="muted">Daily/weekly allocations are distributed within the selected date range. Any amount above target capacity is preserved as an excess credit on ${esc(a.through)}. The entered total is not capped or hard-coded. If you know exact individual payment dates, record those separately for a more accurate calendar.</p><p><b>Preview total: ${money(a.rows.reduce((n,r)=>n+r.amount,0))}</b> · <b>Entered total: ${money(a.total)}</b></p>`;
+}
+$('triPaymentContract').addEventListener('change',()=>{const c=triContractById($('triPaymentContract').value);if(c?.contract_start_date){$('triPaymentStartDate').value=triDate(c.contract_start_date);if(!$('triPaymentDate').value||$('triPaymentDate').value<triDate(c.contract_start_date))$('triPaymentDate').value=triDate(c.contract_start_date)}});
+$('triPreviewHistorical').onclick=triPreviewHistorical;
+$('triPaymentSave').onclick=async()=>{const a=triBuildHistoricalAllocation();if(a.error){msg('tricycleMsg',a.error,'error');return}if(triPayments.some(p=>String(p.contract_id)===String(a.contract.id)&&String(p.source_type||'').toLowerCase().includes('historical'))){msg('tricycleMsg','Historical payments already exist for this contract. Bulk allocation blocked to prevent double-counting. Review the ledger first.','error');return}triPreviewHistorical();if(!confirm(`Save ${a.rows.length} weekly ledger entries totalling ${money(a.total)} for ${a.contract.driver_name}? Please confirm this total has not already been recorded.`))return;const method=$('triPaymentMethod').value,ref=$('triPaymentRef').value.trim()||null,notes=$('triPaymentNotes').value.trim()||null;const payload=a.rows.map((r,i)=>({contract_id:a.contract.id,amount:r.amount,payment_date:r.end,payment_method:method,reference:ref?`${ref} (${r.start} to ${r.end})`:null,source_type:'historical',notes:[notes,r.kind==='excess'?`Historical excess credit: amount exceeded scheduled target capacity for selected period ${a.startDate} to ${a.through}; this row preserves the remaining amount without inventing additional payment dates.`:`Historical allocation period ${r.start} to ${r.end}; ${r.days} day(s); target ${r.target.toFixed(2)}.`].filter(Boolean).join(' '),recorded_by:session?.user?.id||null}));const result=await db.from('tricycle_contract_payments').insert(payload);if(result.error){msg('tricycleMsg','Could not save historical allocation: '+result.error.message,'error');return}msg('tricycleMsg',`Historical amount saved in ${payload.length} ledger row(s), including any excess credit. The full entered amount is credited and the contract balance is updated. Verify the ledger before adding another historical total.`,'ok');['triPaymentAmount','triPaymentStartDate','triPaymentDate','triPaymentRef','triPaymentNotes'].forEach(id=>$(id).value='');$('triHistoricalPreview').textContent='Historical allocation saved.';await triLoadAll()};
+window.triApproveReport=async id=>{const r=triReports.find(x=>String(x.id)===String(id));if(!r||r.status!=='pending')return;if(!confirm(`Confirm that payment of ${money(r.payment_amount)} was received for ${r.week_start} to ${r.week_end}? Approving will add this payment to the contract ledger.`))return;const q=await db.from('tricycle_weekly_reports').update({status:'approved',rejection_reason:null,reviewed_at:new Date().toISOString(),reviewed_by:session?.user?.id||null}).eq('id',id).eq('status','pending');if(q.error){msg('tricycleMsg','Could not approve report: '+q.error.message,'error');return}let emailNote='';try{const {data:notice,error:noticeError}=await db.functions.invoke('sale-email-notifications',{body:{event:'tricycle_approved',tricycle_report_id:id}});if(noticeError||notice?.success===false)emailNote=' Report approved, but worker email failed: '+(notice?.error||noticeError?.message||'email service did not confirm delivery')+'.';else emailNote=' Worker approval email sent.'}catch(e){emailNote=' Report approved, but worker email request failed: '+(e?.message||String(e))+'.'}msg('tricycleMsg','Report approved. The database approval trigger should record the payment exactly once. Verify the ledger after refresh.'+emailNote,emailNote.includes('failed')?'error':'ok');await triLoadAll()};
+window.triRejectReport=async id=>{const r=triReports.find(x=>String(x.id)===String(id));if(!r||r.status!=='pending')return;const reason=prompt('Enter the reason for rejecting this tricycle report:');if(reason===null)return;if(!reason.trim()){alert('A rejection reason is required.');return}const q=await db.from('tricycle_weekly_reports').update({status:'rejected',rejection_reason:reason.trim(),reviewed_at:new Date().toISOString(),reviewed_by:session?.user?.id||null}).eq('id',id).eq('status','pending');if(q.error){msg('tricycleMsg','Could not reject report: '+q.error.message,'error');return}let emailNote='';try{const {data:notice,error:noticeError}=await db.functions.invoke('sale-email-notifications',{body:{event:'tricycle_rejected',tricycle_report_id:id}});if(noticeError||notice?.success===false)emailNote=' Rejection saved, but worker email failed: '+(notice?.error||noticeError?.message||'email service did not confirm delivery')+'.';else emailNote=' Worker rejection email sent.'}catch(e){emailNote=' Rejection saved, but worker email request failed: '+(e?.message||String(e))+'.'}msg('tricycleMsg','Report rejected with reason saved.'+emailNote,emailNote.includes('failed')?'error':'ok');await triLoadAll()};
+$('triRefresh').onclick=triLoadAll;$('triLoadReports').onclick=triLoadAll;$('triReportFilter').onchange=triRenderReports;$('triCalendarContract').onchange=triRenderCalendar;$('triCalendarMonth').onchange=triRenderCalendar;$('triCalPrev').onclick=()=>{const x=new Date(($('triCalendarMonth').value||new Date().toISOString().slice(0,7))+'-01T00:00:00');x.setMonth(x.getMonth()-1);$('triCalendarMonth').value=x.toISOString().slice(0,7);triRenderCalendar()};$('triCalNext').onclick=()=>{const x=new Date(($('triCalendarMonth').value||new Date().toISOString().slice(0,7))+'-01T00:00:00');x.setMonth(x.getMonth()+1);$('triCalendarMonth').value=x.toISOString().slice(0,7);triRenderCalendar()};
+
+// Dashboard shortcut: Reports Awaiting Review opens the existing Weekly Report — Review & Approval panel.
+const reportsCard=document.getElementById('overviewReportsCard');
+if(reportsCard)reportsCard.addEventListener('click',function(){
+ navigateAdminSection('tricycle');
+ const panelIds=['triManagementPanel','triCreatePanel','triRegisterPanel','triPrivateProfitSection','triHistoricalPanel','triReportsPanel','triCalendarPanel','triOwingPanel','triLedgerPanel'];
+ panelIds.forEach(pid=>{const panel=document.getElementById(pid);if(panel){panel.classList.toggle('hidden',pid!=='triReportsPanel');panel.classList.toggle('tri-panel-selected',pid==='triReportsPanel')}});
+ const menu=document.getElementById('adminMenu');if(menu)menu.classList.add('hidden');
+ const toggle=document.getElementById('menuToggle');if(toggle){toggle.setAttribute('aria-expanded','false');toggle.textContent='☰ Open Menu'}
+ document.querySelectorAll('[data-tri-panel]').forEach(btn=>btn.classList.toggle('tri-menu-active',btn.dataset.triPanel==='triReportsPanel'));
+ window.scrollTo({top:0,behavior:'smooth'});
+});
+
+const shortfallsCard=document.getElementById('overviewShortfallsCard');
+if(shortfallsCard)shortfallsCard.addEventListener('click',function(){
+ const owingMenuButton=document.querySelector('[data-tri-panel="triOwingPanel"]');
+ if(owingMenuButton){owingMenuButton.click();return;}
+ navigateAdminSection('tricycle');
+ document.querySelectorAll('#tricycle .section[id^="tri"]').forEach(p=>p.classList.add('hidden'));
+ const owing=document.getElementById('triOwingPanel');if(owing)owing.classList.remove('hidden');
+ window.scrollTo({top:0,behavior:'smooth'});
+});
+
+
+// Tricycle menu navigation: reveal only the selected existing section; do not duplicate or alter data logic.
+(function installTricycleMenuNavigation(){
+ const menu=document.getElementById('adminMenu');
+ if(!menu)return;
+ const panelIds=['triManagementPanel','triCreatePanel','triRegisterPanel','triPrivateProfitSection','triHistoricalPanel','triReportsPanel','triCalendarPanel','triOwingPanel','triLedgerPanel'];
+ function showTriPanel(id){
+   navigateAdminSection('tricycle');
+   panelIds.forEach(pid=>{const panel=document.getElementById(pid);if(panel){panel.classList.toggle('hidden',pid!==id);panel.classList.toggle('tri-panel-selected',pid===id)}});
+   menu.querySelectorAll('[data-tri-panel]').forEach(btn=>btn.classList.toggle('tri-menu-active',btn.dataset.triPanel===id));
+   menu.classList.add('hidden');
+   const toggle=document.getElementById('menuToggle');
+   if(toggle){toggle.setAttribute('aria-expanded','false');toggle.textContent='☰ Open Menu'}
+   window.scrollTo({top:0,behavior:'smooth'});
+ }
+ window.openEzelexTriPanel=showTriPanel;
+ menu.querySelectorAll('[data-menu-group]').forEach(btn=>btn.addEventListener('click',function(e){
+   e.preventDefault();e.stopPropagation();
+   const group=document.getElementById(btn.getAttribute('aria-controls'));
+   if(!group)return;
+   const opening=group.classList.contains('hidden');
+   menu.querySelectorAll('.menu-subgroup').forEach(el=>el.classList.add('hidden'));
+   menu.querySelectorAll('[data-menu-group]').forEach(el=>el.setAttribute('aria-expanded','false'));
+   if(opening){group.classList.remove('hidden');btn.setAttribute('aria-expanded','true')}
+ }));
+ menu.querySelectorAll('[data-tri-panel]').forEach(btn=>btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();showTriPanel(btn.dataset.triPanel)}));
+})();
+
+(async()=>{try{if(window.parent===window||window.parent.location.origin!==window.location.origin)throw new Error("Open this page from the authenticated Management Centre.");await window.parent.verifyEzelexLiveDataSession();await adminCheck();const p=new URLSearchParams(location.search);const s=p.get("section");if(s&&$(s))navigateAdminSection(s);if(p.get("page")==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();
+if(p.get("page")==="Delete Worker")document.querySelector('[data-employee-view="delete-worker"]')?.click();
+if(p.get("page")==="Delete Driver")document.querySelector('[data-employee-view="delete-driver"]')?.click();
+if(p.get("page")==="Create Worker")document.querySelector('[data-employee-view="create-worker"]')?.click();
+if(p.get("page")==="Employee Directory")document.querySelector('[data-employee-view="directory"]')?.click();
+const triPagePanels={
+ "Create Tricycle Contract":"triCreatePanel",
+ "Record Historical Payment":"triHistoricalPanel",
+ "Payment Ledger Calendar":"triCalendarPanel",
+ "Tricycle Contract Management":"triManagementPanel",
+ "Private Tricycle Profit":"triPrivateProfitSection",
+ "Contract Register & Balances":"triRegisterPanel",
+ "Weekly Report — Review & Approval":"triReportsPanel",
+ "Owing / Weekly Shortfalls":"triOwingPanel",
+ "Full Payment Ledger":"triLedgerPanel",
+ "Delete Contract":"triManagementPanel"
+};
+const triPanel=triPagePanels[p.get("page")];
+if(triPanel)window.openEzelexTriPanel(triPanel);}catch(e){document.body.innerHTML="<main style=\"max-width:760px;margin:60px auto;padding:24px;font:16px Arial;color:#8b1e1e;background:#fff;border-radius:16px\"><h2>Administrator access could not be verified</h2><p>"+String(e.message||e)+"</p><p>Return to the Management Centre and sign in again.</p></main>"}})();
+</script>
+<script>(function(){const send=()=>{try{parent.postMessage({type:"ezelex-admin-frame-height",height:document.documentElement.scrollHeight},location.origin)}catch(_){}};new ResizeObserver(send).observe(document.documentElement);window.addEventListener("load",send);setTimeout(send,500);})();</script>
+<style id="ezelex-advanced-workspace-styles">
+:root{--ezx-bg:#f3f6fa;--ezx-panel:#fff;--ezx-text:#172b45;--ezx-muted:#6b7b90;--ezx-border:#e3eaf2;--ezx-accent:#174a7e}
+body.ezx-dark{--ezx-bg:#101a29;--ezx-panel:#17263a;--ezx-text:#e7eef7;--ezx-muted:#a8b7ca;--ezx-border:#2c4058;--ezx-accent:#7db5e8;color:var(--ezx-text)!important}
+body.ezx-dark .section,body.ezx-dark .card,body.ezx-dark .employee-form,body.ezx-dark .daily-chart-wrap{background:var(--ezx-panel)!important;color:var(--ezx-text)!important;border-color:var(--ezx-border)!important}
+body.ezx-dark input,body.ezx-dark select,body.ezx-dark textarea,body.ezx-dark th{background:#1d3048!important;color:var(--ezx-text)!important;border-color:var(--ezx-border)!important}
+body.ezx-dark td,body.ezx-dark .muted,body.ezx-dark .label{color:var(--ezx-muted)!important;border-color:var(--ezx-border)!important}
+body.ezx-compact .section{padding:13px!important;margin-top:12px!important}body.ezx-compact .card{padding:12px!important}
+#ezxWorkspace{margin:12px 0 18px;padding:16px;background:var(--ezx-panel);border:1px solid var(--ezx-border);border-radius:16px;box-shadow:0 8px 22px #10243e0b;color:var(--ezx-text)}
+#ezxWorkspace .ezx-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}#ezxWorkspace h2{font-size:17px;margin:0;color:inherit}#ezxWorkspace p{margin:4px 0 0;color:var(--ezx-muted);font-size:12px}
+#ezxWorkspace .ezx-controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}#ezxWorkspace button,#ezxWorkspace select{border:1px solid var(--ezx-border);background:var(--ezx-panel);color:var(--ezx-text);border-radius:9px;padding:8px 11px;font-size:12px;font-weight:700}
+#ezxWorkspace .ezx-routes{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}#ezxWorkspace .ezx-route{background:#edf4fa;color:#174a7e;border:1px solid #d9e6f2}#ezxWorkspace .ezx-status{font-size:11px;color:var(--ezx-muted);margin-top:9px}
+.ezx-draggable{cursor:grab}.ezx-dragging{opacity:.45;outline:2px dashed #d7ad55}.ezx-drop-target{outline:2px dashed #174a7e}
+.ezx-widget-hidden{display:none!important}
+@media(max-width:650px){#ezxWorkspace{padding:12px}#ezxWorkspace .ezx-controls>*{flex:1 1 auto}}
+</style>
+<script id="ezelex-advanced-workspace">
+(()=>{
+ const KEY="ezelex-management-workspace-v1";let prefs={theme:"light",compact:false,hiddenWidgets:[],order:[]};
+ try{prefs={...prefs,...JSON.parse(localStorage.getItem(KEY)||"{}")} }catch(_){}
+ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch(_){}};
+ const apply=()=>{document.body.classList.toggle("ezx-dark",prefs.theme==="dark");document.body.classList.toggle("ezx-compact",!!prefs.compact);document.querySelectorAll("#dashboard .page .cards").forEach((grid)=>{[...grid.children].forEach((card,i)=>{card.classList.add("ezx-draggable");card.draggable=true;card.dataset.ezxWidget=card.dataset.ezxWidget||`${grid.id||grid.parentElement.id||"cards"}-${i}`;card.classList.toggle("ezx-widget-hidden",prefs.hiddenWidgets.includes(card.dataset.ezxWidget));});const order=prefs.order.filter(id=>[...grid.children].some(c=>c.dataset.ezxWidget===id));order.forEach(id=>{const el=[...grid.children].find(c=>c.dataset.ezxWidget===id);if(el)grid.appendChild(el);});});};
+ const mount=()=>{const dash=document.getElementById("dashboard");if(!dash||document.getElementById("ezxWorkspace"))return;const panel=document.createElement("section");panel.id="ezxWorkspace";panel.innerHTML=`<div class="ezx-head"><div><h2>Executive Workspace</h2><p>Personalise your view, open key work areas and manage your display preferences.</p></div><span class="badge approved">ADVANCED WORKSPACE</span></div><div class="ezx-controls"><button type="button" id="ezxTheme">☾ Dark mode</button><button type="button" id="ezxDensity">Compact layout</button><button type="button" id="ezxArrange">Save widget layout</button><button type="button" id="ezxReset">Reset workspace</button><button type="button" id="ezxInstall" hidden>Install app</button><button type="button" id="ezxNotify">Enable notifications</button></div><div class="ezx-routes"><button class="ezx-route" data-go="overview">Overview</button><button class="ezx-route" data-go="capital">Finance &amp; Capital</button><button class="ezx-route" data-go="sales">Sales</button><button class="ezx-route" data-go="stock">Stock</button><button class="ezx-route" data-go="workers">Employees</button><button class="ezx-route" data-go="tricycle">Contracts</button><button class="ezx-route" data-go="communication">Communication</button></div><div class="ezx-status" id="ezxStatus" aria-live="polite">Your layout and appearance preferences are saved on this device. Drag dashboard cards to rearrange them.</div>`;dash.insertBefore(panel,dash.firstChild);
+ panel.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{if(typeof window.navigateAdminSection==="function")window.navigateAdminSection(b.dataset.go);else{const target=document.querySelector(`[data-section="${b.dataset.go}"]`);target?.click();}}));
+ panel.querySelector("#ezxTheme").onclick=()=>{prefs.theme=prefs.theme==="dark"?"light":"dark";apply();save();panel.querySelector("#ezxTheme").textContent=prefs.theme==="dark"?"☀ Light mode":"☾ Dark mode";};
+ panel.querySelector("#ezxDensity").onclick=()=>{prefs.compact=!prefs.compact;apply();save();panel.querySelector("#ezxDensity").textContent=prefs.compact?"Comfortable layout":"Compact layout";};
+ panel.querySelector("#ezxArrange").onclick=()=>{prefs.order=[...document.querySelectorAll("#dashboard .page .cards")].flatMap(g=>[...g.children].map(c=>c.dataset.ezxWidget).filter(Boolean));save();panel.querySelector("#ezxStatus").textContent="Your dashboard widget order has been saved.";};
+ panel.querySelector("#ezxReset").onclick=()=>{if(!confirm("Reset this device's dashboard layout and appearance preferences?"))return;prefs={theme:"light",compact:false,hiddenWidgets:[],order:[]};save();apply();location.reload();};
+ panel.querySelector("#ezxNotify").onclick=async()=>{if(!("Notification" in window)){panel.querySelector("#ezxStatus").textContent="This browser does not support notifications.";return;}const permission=await Notification.requestPermission();panel.querySelector("#ezxStatus").textContent=permission==="granted"?"Browser notifications are permitted on this device. Server-triggered push alerts still require notification subscription/VAPID backend setup.":"Notifications were not enabled.";};
+ let installPrompt=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;const b=panel.querySelector("#ezxInstall");b.hidden=false;b.onclick=async()=>{installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;b.hidden=true;};});
+ dash.addEventListener("dragstart",e=>{const card=e.target.closest(".ezx-draggable");if(!card)return;e.dataTransfer.setData("text/plain",card.dataset.ezxWidget);card.classList.add("ezx-dragging");});dash.addEventListener("dragend",e=>e.target.closest(".ezx-draggable")?.classList.remove("ezx-dragging"));dash.addEventListener("dragover",e=>{const card=e.target.closest(".ezx-draggable");if(card){e.preventDefault();card.classList.add("ezx-drop-target");}});dash.addEventListener("dragleave",e=>e.target.closest(".ezx-draggable")?.classList.remove("ezx-drop-target"));dash.addEventListener("drop",e=>{const target=e.target.closest(".ezx-draggable"),id=e.dataTransfer.getData("text/plain"),source=[...dash.querySelectorAll(".ezx-draggable")].find(x=>x.dataset.ezxWidget===id);if(!target||!source||target===source||target.parentElement!==source.parentElement)return;e.preventDefault();target.classList.remove("ezx-drop-target");const rect=target.getBoundingClientRect();target.parentElement.insertBefore(source,e.clientY<rect.top+rect.height/2?target:target.nextSibling);prefs.order=[...document.querySelectorAll("#dashboard .page .cards")].flatMap(g=>[...g.children].map(c=>c.dataset.ezxWidget).filter(Boolean));save();});
+ apply();panel.querySelector("#ezxTheme").textContent=prefs.theme==="dark"?"☀ Light mode":"☾ Dark mode";panel.querySelector("#ezxDensity").textContent=prefs.compact?"Comfortable layout":"Compact layout";
+ };
+ const start=()=>{mount();apply();};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();new MutationObserver(()=>{if(document.getElementById("dashboard")&&!document.getElementById("ezxWorkspace"))mount();}).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10243e">
+<title>EZELEX Enterprise — Management Centre</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#10243e;--navy2:#173d62;--blue:#2366a8;--teal:#138477;--gold:#d7ad55;--ink:#172b45;--muted:#6b7b90;--line:#e3eaf2;--bg:#f3f6fa;--white:#fff;--shadow:0 12px 34px rgba(16,36,62,.09)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 Inter,"Segoe UI",Arial,sans-serif}
+button,input{font:inherit}button{cursor:pointer;border:0;border-radius:10px;font-weight:700;transition:.18s ease}button:focus-visible,input:focus-visible{outline:3px solid #69a6d4;outline-offset:2px}
+[hidden],.hidden{display:none!important}
+.topbar{height:76px;background:linear-gradient(115deg,#0d2038,#174b70 72%,#126c70);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,54px);box-shadow:0 5px 22px #10243e26;position:sticky;top:0;z-index:30}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}.logo{width:43px;height:43px;border-radius:13px;background:linear-gradient(145deg,#f2d48f,#d0a143);color:#152a43;display:grid;place-items:center;font-weight:950;font-size:17px;box-shadow:inset 0 1px #fff9}.brand strong{display:block;font-size:17px;letter-spacing:.01em}.brand small{display:block;color:#d4e0ec;font-size:10px;letter-spacing:1.8px;font-weight:800}
+.top-actions{display:flex;align-items:center;gap:10px}.menu-open{background:linear-gradient(135deg,#f0d18b,#d6aa4d);color:#172b45;padding:12px 18px;box-shadow:0 5px 15px #07172b40}.menu-open:hover{transform:translateY(-1px);filter:brightness(1.04)}.secure-pill{font-size:10px;letter-spacing:1.2px;color:#e5edf5;border:1px solid #ffffff40;border-radius:30px;padding:8px 11px;font-weight:800}
+.shell{max-width:1500px;margin:auto;padding:28px clamp(14px,3vw,42px) 50px}
+
+
+.eyebrow{font-size:10px;letter-spacing:2.2px;font-weight:900;color:#f3d58e}
+
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:14px;margin:30px 2px 15px}.section-head h2{font-size:21px;margin:0;letter-spacing:-.5px}.section-head p{color:var(--muted);margin:4px 0 0}.live-badge{font-size:10px;font-weight:850;letter-spacing:1px;color:#8a641d;background:#fff4d9;border:1px solid #f2dfb2;padding:8px 11px;border-radius:30px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:19px;box-shadow:0 5px 18px #10243e09;min-width:0;position:relative;overflow:hidden}.kpi:after{content:"";position:absolute;width:76px;height:76px;border-radius:50%;right:-25px;top:-28px;background:#eaf2fa}.kpi:nth-child(2):after{background:#e5f5f1}.kpi:nth-child(3):after{background:#fff4df}.kpi:nth-child(4):after{background:#f1ebfb}.kpi small{display:block;color:var(--muted);font-size:10px;font-weight:850;letter-spacing:1px;text-transform:uppercase;position:relative;z-index:1}.kpi strong{display:block;font-size:27px;margin:9px 0 3px;letter-spacing:-1px;position:relative;z-index:1}.kpi p{color:#8a97a8;font-size:11px;margin:0;position:relative;z-index:1}
+.overview-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-top:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:17px;padding:22px;box-shadow:0 5px 18px #10243e08;min-width:0}.panel h3{margin:0 0 7px;font-size:16px}.panel>p{margin:0;color:var(--muted);font-size:13px}.chart{height:160px;margin-top:15px;border-radius:12px;background:linear-gradient(180deg,#f2f7fc,#fff);position:relative;overflow:hidden;padding:12px}.chart svg{width:100%;height:100%}.chart-labels{display:flex;justify-content:space-between;color:#8b98a8;font-size:10px;margin-top:6px}.status-list{margin-top:12px}.status-row{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #edf1f5;font-size:12px}.status-row:last-child{border:0}.status-row b{font-size:10px;letter-spacing:.6px;color:#a16d18}
+.page-view{margin-top:24px}.page-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:clamp(20px,3vw,32px);box-shadow:var(--shadow)}.page-kicker{color:var(--teal);font-size:10px;font-weight:900;letter-spacing:1.7px;text-transform:uppercase}.page-card h2{font-size:clamp(24px,3vw,34px);margin:8px 0}.page-card p{color:var(--muted);max-width:760px}.page-placeholder{margin-top:20px;padding:18px;border-radius:13px;background:#f5f8fb;border:1px dashed #cbd8e5;color:#64758a}.back-dashboard{margin-top:18px;background:#eaf1f8;color:#21496e;padding:10px 14px}
+.drawer-scrim{position:fixed;inset:0;background:#06172b80;z-index:50;opacity:0;pointer-events:none;transition:opacity .22s}.drawer{position:fixed;z-index:60;right:0;top:0;height:100dvh;width:min(420px,92vw);background:#f8fafc;box-shadow:-20px 0 55px #06172b35;transform:translateX(105%);transition:transform .25s ease;display:flex;flex-direction:column}.drawer-head{padding:22px 20px 16px;background:linear-gradient(130deg,#10243e,#1a5276);color:#fff;display:flex;justify-content:space-between;align-items:center}.drawer-head strong{font-size:16px;letter-spacing:1px}.drawer-head small{display:block;color:#cbd9e8;font-size:10px;letter-spacing:1.5px;margin-top:3px}.drawer-close{background:#ffffff18;color:#fff;width:37px;height:37px;font-size:22px}.drawer-body{padding:12px 13px 25px;overflow:auto}.drawer-overview{width:100%;text-align:left;background:#e9f0f7;color:#1c4569;padding:13px 14px;margin-bottom:9px}.menu-group{border:1px solid #e1e8f0;background:#fff;border-radius:12px;margin:8px 0;overflow:hidden;box-shadow:0 3px 10px #10243e06}.menu-group-toggle{position:relative;z-index:1;pointer-events:auto;cursor:pointer;width:100%;background:#fff;color:#203c5a;text-align:left;display:flex;align-items:center;justify-content:space-between;padding:15px 14px;font-size:13px}.menu-group-toggle:hover,.menu-group.open .menu-group-toggle{background:#edf4fa;color:#174a7e}.chevron{font-size:17px;color:#b58b3d;transition:transform .18s}.menu-group.open .chevron{transform:rotate(180deg)}.menu-subgroup{padding:3px 9px 10px;background:#fbfcfe}.submenu-item{display:block;width:100%;text-align:left;background:transparent;color:#53657b;border-left:3px solid #d7e3ed;border-radius:0 8px 8px 0;padding:10px 12px;margin:3px 0;font-size:12px;font-weight:650}.submenu-item:hover,.submenu-item.active{background:#e9f2fa;color:#174a7e;border-left-color:#d4a94f}
+.login-wrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 15% 15%,#d9e7f3 0,transparent 32%),radial-gradient(circle at 90% 85%,#dcefe9 0,transparent 30%),#f3f6fa}.login-card{width:min(450px,100%);background:#fff;border:1px solid #e1e8f0;border-radius:19px;padding:30px;box-shadow:0 20px 60px #10243e18}.login-brand{display:flex;align-items:center;gap:11px;margin-bottom:23px}.login-brand .logo{width:40px;height:40px}.login-brand strong{font-size:13px;letter-spacing:.4px}.login-brand small{display:block;color:#8190a1;font-size:9px;letter-spacing:1.4px}.login-card h1{font-size:25px;margin:0 0 6px}.login-card p{color:var(--muted);margin:0 0 17px;font-size:13px}.login-card label{display:block;font-size:11px;font-weight:800;color:#40536a;margin:13px 0 5px}.login-card input{width:100%;padding:13px;border:1px solid #d7e0e9;border-radius:10px;background:#fff}.login-primary{width:100%;padding:13px;background:linear-gradient(110deg,#174a7e,#1c7590);color:#fff;margin-top:13px}.login-secondary{width:100%;padding:11px;background:#edf2f7;color:#334b65;margin-top:8px}.notice{padding:11px 12px;background:#edf5fc;color:#315a7c;border-radius:9px;font-size:12px;margin:12px 0}.notice.error{background:#fff0f0;color:#a22c34}.otp-expiry{font-size:12px!important;color:#8b641b!important;background:#fff7e6;border-radius:8px;padding:9px 11px;margin:10px 0!important}.small{font-size:11px!important;margin-top:15px!important}.small a{color:#1b6596;font-weight:750}.login-foot{text-align:center;color:#98a3b1;font-size:10px;margin-top:18px}
+footer{text-align:center;color:#8b98a8;font-size:11px;margin-top:28px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.topbar{height:65px;padding:0 12px}.brand strong{font-size:14px}.brand small{font-size:8px}.logo{width:36px;height:36px}.secure-pill{display:none}.menu-open{padding:10px 13px;font-size:12px}.shell{padding:15px 11px 35px}.section-head{align-items:start;flex-direction:column;margin-top:23px}.kpis{gap:9px}.kpi{padding:14px;border-radius:13px}.kpi strong{font-size:22px}.kpi small{font-size:9px}.kpi p{font-size:10px}.panel{padding:17px}.login-wrap{padding:14px}.login-card{padding:23px 20px;border-radius:16px}.page-card{padding:20px}.drawer-head{padding:18px}.drawer-body{padding:10px}.drawer{width:min(390px,94vw)}}
+body.drawer-open .drawer{transform:translateX(0)}body.drawer-open .drawer-scrim{opacity:1;pointer-events:auto}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+/* Executive visual refinement */
+.top-actions #logout{display:none!important}.topbar{background:linear-gradient(112deg,#0b1d33 0%,#153b5e 58%,#12666b 100%);box-shadow:0 8px 28px rgba(8,27,48,.18)}
+.brand strong{letter-spacing:.045em;font-size:15px}
+.menu-open{border:1px solid rgba(255,255,255,.3);box-shadow:0 7px 18px rgba(5,20,38,.24);letter-spacing:.09em;font-size:11px}
+
+
+
+.greeting-line{font-size:clamp(14px,1.5vw,18px);font-weight:750;color:#f5d995;margin:12px 0 5px;letter-spacing:.01em}
+
+.kpi{box-shadow:0 8px 22px rgba(16,36,62,.055);border-color:#e4ebf2}
+.panel{box-shadow:0 8px 24px rgba(16,36,62,.045)}
+.drawer{background:#f7f9fc}
+.drawer-head{background:linear-gradient(125deg,#0d2038,#17496c 70%,#126b70);padding:23px 21px 19px}
+.drawer-head strong{letter-spacing:1.5px;font-size:13px}
+.drawer-body{padding:13px 14px 18px}
+.drawer-overview,.drawer-utility{width:100%;text-align:left;padding:13px 14px;margin:0 0 9px;border-radius:10px;background:#eaf1f7;color:#234968;font-size:12px;border:1px solid #dce6ef}
+.drawer-utility{background:#fff;border:1px solid #e1e8ef;color:#24435f;font-weight:750}
+.menu-group{border:1px solid #e1e8ef;box-shadow:0 3px 11px rgba(16,36,62,.035);border-radius:11px;margin:7px 0}
+.menu-group-toggle{font-size:12px;letter-spacing:.015em;padding:14px 13px}
+.menu-group.open{border-color:#c9d9e8;box-shadow:0 7px 18px rgba(20,65,100,.07)}
+.menu-group.open .menu-group-toggle{background:linear-gradient(90deg,#edf4fa,#f8fbfd)}
+.menu-subgroup{padding:3px 9px 9px}
+.submenu-item{font-size:11.5px;padding:10px 12px;color:#52657b}
+.submenu-item.active{background:#e7f0f8;color:#174a7e;border-left-color:#d4a94f}
+.drawer-footer{margin-top:15px;padding:14px 4px 3px;border-top:1px solid #e0e7ef}
+.drawer-secure-note{display:flex;align-items:center;gap:8px;color:#7a899a;font-size:10px;margin:0 4px 12px}
+.secure-dot{width:7px;height:7px;border-radius:50%;background:#15966f;box-shadow:0 0 0 4px #e1f4ec}
+.drawer-signout{width:100%;padding:13px 14px;text-align:left;background:#fff1f0;color:#a32d35;border:1px solid #f3d4d3;font-size:12px}
+.drawer-signout:hover{background:#ffe5e3}
+.settings-panel{margin-top:22px;padding:22px;border:1px solid #e1e9f1;border-radius:15px;background:linear-gradient(145deg,#fff,#f8fbfd);max-width:680px}
+.settings-panel label{display:block;font-size:11px;font-weight:800;color:#43566b;margin:14px 0 6px}
+.settings-panel input{display:block;width:100%;max-width:100%;padding:12px 13px;border:1px solid #d5e0ea;border-radius:9px;background:#fff;color:#18334f}
+.settings-panel-head,.profile-heading{display:flex;align-items:center;gap:13px;margin-bottom:18px}
+.settings-panel-head h3,.profile-heading h3{margin:0;color:#183a5b;font-size:17px}
+.settings-panel-head p,.profile-heading p{margin:3px 0 0;color:#77879a;font-size:12px}
+.settings-icon,.profile-avatar{width:43px;height:43px;flex:0 0 43px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,#174a7e,#138477);color:#fff;font-size:20px;font-weight:800}
+.action-primary{background:linear-gradient(110deg,#174a7e,#147b80);color:#fff;padding:12px 17px;margin-top:14px;box-shadow:0 6px 14px rgba(23,74,126,.15)}
+.form-feedback{font-size:12px;color:#a22c34;margin-top:10px}
+.form-feedback.success{color:#14734f}
+.profile-heading{padding:17px;border-radius:13px;background:linear-gradient(110deg,#eff5fa,#eff8f6)}
+.profile-avatar{width:56px;height:56px;flex-basis:56px;border-radius:16px;font-size:18px;background:linear-gradient(145deg,#d7ad55,#f0d99e);color:#17324d}
+.profile-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.profile-details>div{padding:14px;border:1px solid #e5ebf1;border-radius:10px;background:#fff;min-width:0}
+.profile-details small{display:block;color:#8492a2;font-size:9px;font-weight:850;letter-spacing:1px;margin-bottom:5px}
+.profile-details strong{display:block;color:#29445f;font-size:12px;overflow-wrap:anywhere}
+@media(max-width:600px){.greeting-line{margin-top:10px}.profile-details{grid-template-columns:1fr}.settings-panel{padding:17px}.drawer-footer{padding-bottom:12px}}
+
+
+.live-data-content{margin-top:20px;display:grid;gap:16px}.live-data-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.live-data-stat{background:#fff;border:1px solid #e2e9f0;border-radius:13px;padding:16px;min-width:0;box-shadow:0 4px 14px rgba(16,36,62,.04)}.live-data-stat small{display:block;color:#77879a;font-size:9px;font-weight:850;letter-spacing:1px;text-transform:uppercase}.live-data-stat strong{display:block;color:#183b5d;font-size:21px;margin-top:7px;overflow-wrap:anywhere}.live-data-panel{background:#fff;border:1px solid #e2e9f0;border-radius:15px;padding:18px;box-shadow:0 5px 17px rgba(16,36,62,.04);min-width:0}.live-data-panel h3{margin:0 0 12px;font-size:15px;color:#193b5a}.live-data-table-wrap{overflow:auto;border:1px solid #e7edf3;border-radius:10px}.live-data-table{width:100%;border-collapse:collapse;min-width:620px;font-size:12px}.live-data-table th,.live-data-table td{padding:10px 12px;border-bottom:1px solid #edf1f5;text-align:left;white-space:nowrap}.live-data-table th{background:#f3f7fa;color:#607287;font-size:9px;letter-spacing:.8px;text-transform:uppercase}.live-data-table tr:last-child td{border-bottom:0}.live-data-note{padding:12px 14px;border-radius:10px;background:#edf5fb;color:#42627f;font-size:12px}.live-data-error{padding:12px 14px;border-radius:10px;background:#fff1f0;color:#a22d35;font-size:12px}.live-data-loading{padding:16px;color:#75869a;background:#f7f9fb;border-radius:10px;font-size:12px}.live-refresh{background:#eaf1f7;color:#214b70;padding:9px 12px;font-size:11px}.communication-form{display:grid;gap:10px;max-width:760px}.communication-form label{font-size:11px;font-weight:800;color:#43566b}.communication-form input,.communication-form select,.communication-form textarea{width:100%;padding:11px;border:1px solid #d6e0e9;border-radius:9px;background:#fff}.communication-form textarea{min-height:130px;resize:vertical}@media(max-width:750px){.live-data-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.live-data-panel{padding:14px}}@media(max-width:420px){.live-data-grid{grid-template-columns:1fr}}
+
+
+.overview-intro{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:4px 2px 10px;margin:0 2px 22px}
+.overview-kicker{font-size:10px;letter-spacing:2px;font-weight:900;color:var(--teal)}
+.overview-intro h1{font-size:clamp(25px,3.4vw,37px);line-height:1.12;letter-spacing:-1.1px;margin:8px 0;color:var(--ink)}
+.overview-intro p{margin:0;color:var(--muted);font-size:14px}
+.overview-date{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--muted);padding:9px 12px;border-radius:30px;font-size:9px;font-weight:850;letter-spacing:1px}
+.panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.panel-heading p{margin:2px 0 0;color:var(--muted);font-size:12px}.panel-period{font-size:9px;letter-spacing:1px;font-weight:850;color:#57718a;background:#eef4f8;padding:7px 9px;border-radius:20px;white-space:nowrap}
+.chart-live{min-height:190px;margin-top:16px;padding:10px 4px 0}.live-bars{height:165px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:end}.live-bar-col{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;min-width:0}.live-bar-col strong{font-size:9px;color:#52667b;white-space:nowrap}.live-bar-track{height:112px;width:min(34px,75%);background:#edf3f7;border-radius:8px 8px 3px 3px;display:flex;align-items:flex-end;overflow:hidden}.live-bar-track span{display:block;width:100%;min-height:3px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#178b88,#2366a8)}.live-bar-col small{font-size:10px;color:#8492a2;white-space:nowrap}.chart-footnote{margin-top:9px;font-size:10px;color:#8190a1}.chart-empty{padding:45px 10px;text-align:center;color:var(--muted);background:#f5f8fb;border-radius:12px;font-size:12px}
+@media(max-width:680px){.overview-intro{align-items:flex-start;flex-direction:column;gap:10px}.overview-date{align-self:flex-start}.live-bars{gap:5px}.live-bar-col strong{font-size:8px}.live-bar-track{width:70%;}}
+
+
+.dashboard-link{width:100%;text-align:left;cursor:pointer;border:1px solid var(--line);font:inherit;}
+.dashboard-link:hover,.shortcut-card:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(16,36,62,.10);border-color:#b9cadd}
+.dashboard-link:focus-visible,.shortcut-card:focus-visible{outline:3px solid #d7ad55;outline-offset:2px}
+.profit-kpi{background:linear-gradient(135deg,#e8f7ee,#f5fcf7);border-color:#a9d9b8;color:#126b3a}
+.profit-kpi strong{color:#15803d}
+.overview-shortcuts{margin:22px 0 24px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.shortcut-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.shortcut-heading h3{margin:0;color:var(--ink)}.shortcut-heading p{margin:5px 0 0;color:var(--muted);font-size:12px}.shortcut-heading span{font-size:9px;font-weight:900;letter-spacing:1px;color:#16804a;background:#e8f7ee;border-radius:20px;padding:8px 10px}
+.shortcut-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.shortcut-card{background:#f8fafc;border:1px solid #e3eaf2;border-radius:11px;text-align:left;padding:14px;cursor:pointer;min-height:78px;transition:.18s}.shortcut-card strong{display:block;color:#203c5a;font-size:12px}.shortcut-card small{display:block;margin-top:7px;color:#718197;font-size:10px}.shortcut-card.action-shortcut{background:#fff0f0;border:1px solid #f0b6b6}.shortcut-card.action-shortcut strong,.shortcut-card.action-shortcut small{color:#b42318}
+@media(max-width:850px){.shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.shortcut-grid{grid-template-columns:1fr}.shortcut-heading{align-items:flex-start;flex-direction:column}}
+
+</style>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#10243e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="./ezelex-icon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<section id="login" class="login-wrap">
+ <div class="login-card">
+  <div class="login-brand"><div class="logo">EZ</div><div><strong>EZELEX ENTERPRISE</strong><small>PRIVATE MANAGEMENT ACCESS</small></div></div>
+  <div class="eyebrow">SECURE ADMINISTRATOR ACCESS</div>
+  <h1>Management Centre</h1>
+  <p id="intro">Sign in with your EZELEX administrator account.</p>
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  <form id="passwordForm">
+   <label for="email">Administrator email</label><input id="email" type="email" autocomplete="username" required>
+   <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
+   <button id="passwordButton" class="login-primary" type="submit">Sign in securely</button>
+  </form>
+  <section id="otpPanel" hidden>
+   <h3>Email verification</h3><p>Your password was accepted. Enter the six-digit code sent to your administrator email.</p>
+   <p class="otp-expiry">Code expires in <strong id="otpCountdown">03:00</strong></p>
+   <label for="otp">Six-digit verification code</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+   <button id="verifyButton" class="login-primary" type="button">Verify &amp; Open Management</button>
+   <button id="resendButton" class="login-secondary" type="button" disabled>Resend verification code</button>
+   <button id="cancelButton" class="login-secondary" type="button">Cancel and sign out</button>
+   <button id="sendButton" type="button" hidden>Send code</button>
+  </section>
+  <p class="small"><a href="#" id="forgot">Forgot password?</a></p>
+  <section id="recovery" hidden><label for="recoveryEmail">Administrator email</label><input id="recoveryEmail" type="email"><button id="recoveryButton" class="login-primary" type="button">Send password reset email</button><button id="recoveryBack" class="login-secondary" type="button">Back to login</button></section>
+  <div class="login-foot">Protected administrator environment · Ezelex Enterprise</div>
+ </div>
+</section>
+
+<section id="dashboard" hidden>
+ <header class="topbar">
+  <div class="brand"><div class="logo">EZ</div><div><strong>EZELEX ENTERPRISE</strong><small>MANAGEMENT CENTRE</small></div></div>
+  <div class="top-actions"><span class="secure-pill" id="signedIn">SECURE ADMINISTRATOR</span><button id="menuOpen" class="menu-open" type="button" aria-expanded="false">☰ &nbsp; MENU</button><button id="logout" class="login-secondary" type="button">Sign out</button></div>
+ </header>
+ <main class="shell">
+  <section id="overviewPage">
+   <div class="overview-intro">
+    <div>
+     <div class="overview-kicker">EZELEX ENTERPRISE · ADMINISTRATION</div>
+     <h1>Management Overview</h1>
+     <p>Live oversight of finances, operations, contracts, stock and employee administration.</p>
+    </div>
+    <span class="overview-date" id="overviewDate">LIVE BUSINESS POSITION</span>
+   </div>
+   <div class="section-head"><div><h2>Management Overview</h2><p>Business position and operational monitoring at a glance.</p></div><span class="live-badge">CONNECTING TO LIVE BUSINESS DATA</span></div>
+   <div class="kpis">
+    <button class="kpi dashboard-link" type="button" data-page="Business Capital" data-group="Business Finance &amp; Capital"><small>Business Capital</small><strong id="mcCapital">—</strong><p>Original business capital · Open details →</p></button>
+    <button class="kpi dashboard-link" type="button" data-page="Cash in Hand" data-group="Business Finance &amp; Capital"><small>Available Cash</small><strong id="mcCash">—</strong><p>Administrator-confirmed cash · Open details →</p></button>
+    <button class="kpi dashboard-link" type="button" data-page="Outstanding Customer Credit" data-group="Business Finance &amp; Capital"><small>Outstanding Balances</small><strong id="mcOutstanding">—</strong><p>Customer and contract balances · Open details →</p></button>
+    <button class="kpi dashboard-link profit-kpi" type="button" data-page="Profit &amp; Loss" data-group="Stock &amp; Inventory"><small>Profit / Loss</small><strong id="mcProfit">—</strong><p>Calculated from stock records · Open details →</p></button>
+   </div>
+   <section class="overview-shortcuts" aria-label="Live management shortcuts">
+    <div class="shortcut-heading"><div><h3>Live Management Shortcuts</h3><p>Open the actual management page directly from the overview.</p></div><span>LIVE NAVIGATION</span></div>
+    <div class="shortcut-grid">
+     <button class="shortcut-card" data-page="Central Sales Management" data-group="Sales &amp; Performance"><strong>Central Sales Management</strong><small>Sales records and controls →</small></button>
+     <button class="shortcut-card" data-page="Stock &amp; Performance" data-group="Stock &amp; Inventory"><strong>Stock, Profit, Loss &amp; Damage</strong><small>Inventory and stock performance →</small></button>
+     <button class="shortcut-card" data-page="On-Credit Sales" data-group="Business Finance &amp; Capital"><strong>On-Credit Sales</strong><small>Customer credit records →</small></button>
+     <button class="shortcut-card" data-page="Employee Directory" data-group="Employee Management"><strong>Employee Directory</strong><small>Workers and drivers →</small></button>
+     <button class="shortcut-card" data-page="Record Historical Payment" data-group="Tricycle &amp; Contract Management"><strong>Record Historical Payment</strong><small>Enter earlier contract payments →</small></button>
+     <button class="shortcut-card" data-page="Weekly Report — Review &amp; Approval" data-group="Reports &amp; Approvals"><strong>Reports Awaiting Review</strong><small>Review and approve reports →</small></button>
+     <button class="shortcut-card action-shortcut" data-page="Pending Actions" data-group="Reports &amp; Approvals"><strong>Actions &amp; Pending Items</strong><small>Open outstanding actions →</small></button>
+     <button class="shortcut-card" data-page="Communication Centre" data-group="Communication Centre"><strong>Communication Centre</strong><small>Messages and communication history →</small></button>
+    </div>
+   </section>
+   <div class="overview-grid">
+    <article class="panel">
+     <div class="panel-heading"><div><h3>Weekly sales performance</h3><p>Approved sales recorded in the existing EZELEX sales ledger.</p></div><span class="panel-period">LAST 6 WEEKS</span></div>
+     <div id="mcPerformanceChart" class="chart-live"><div class="chart-empty">Loading verified sales performance…</div></div>
+    </article>
+    <article class="panel"><h3>System readiness</h3><p>Management Centre access and integration status.</p><div class="status-list"><div class="status-row"><span>Administrator authentication</span><b>PROTECTED</b></div><div class="status-row"><span>Business database</span><b>AWAITING CONNECTION</b></div><div class="status-row"><span>Financial reporting</span><b>AWAITING VERIFICATION</b></div><div class="status-row"><span>Existing operational portals</span><b>SEPARATE &amp; UNCHANGED</b></div></div></article>
+   </div>
+  </section>
+  <section id="pageView" class="page-view" hidden><div class="page-card"><div class="page-kicker" id="pageGroup">MANAGEMENT</div><h2 id="pageTitle">Section</h2><p id="pageDescription"></p><div class="page-placeholder" id="pageStatus">This section is prepared for integration with the existing EZELEX business records. No live figures or write actions are enabled here yet.</div>
+<div id="liveDataContent" class="live-data-content" aria-live="polite"></div>
+    <section id="changePasswordPanel" class="settings-panel" hidden>
+      <div class="settings-panel-head"><span class="settings-icon">⌑</span><div><h3>Update administrator password</h3><p>Choose a strong password you do not use elsewhere.</p></div></div>
+      <label for="newPassword">New password</label><input id="newPassword" type="password" minlength="10" autocomplete="new-password" placeholder="At least 10 characters">
+      <label for="confirmNewPassword">Confirm new password</label><input id="confirmNewPassword" type="password" minlength="10" autocomplete="new-password" placeholder="Enter the new password again">
+      <div id="passwordUpdateMessage" class="form-feedback" role="status" aria-live="polite"></div>
+      <button id="saveNewPassword" class="action-primary" type="button">Save New Password</button>
+    </section>
+    <section id="managementProfilePanel" class="settings-panel" hidden>
+      <div class="profile-heading"><div class="profile-avatar">EZ</div><div><span class="page-kicker">AUTHORISED PROFILE</span><h3>EZELEX Management Administrator</h3><p>Private Management Centre account</p></div></div>
+      <div class="profile-details"><div><small>ACCOUNT EMAIL</small><strong id="profileEmail">—</strong></div><div><small>ADMINISTRATOR ID</small><strong>ADMIN001</strong></div><div><small>ACCESS LEVEL</small><strong>Management Administrator</strong></div><div><small>SESSION SECURITY</small><strong>Verified email + password</strong></div></div>
+    </section>
+    <button id="backDashboard" class="back-dashboard" type="button">← Back to Management Overview</button></div></section>
+  <footer>© Ezelex Enterprise · Private Management Centre · Existing operational portals remain separate.</footer>
+ </main>
+</section>
+
+<div id="drawerScrim" class="drawer-scrim" hidden></div>
+<aside id="menuDrawer" class="drawer" aria-label="Management menu" aria-hidden="true">
+ <div class="drawer-head"><div><strong>MANAGEMENT MENU</strong><small>SELECT A DIVISION TO EXPLORE</small></div><button id="drawerClose" class="drawer-close" type="button" aria-label="Close menu">×</button></div>
+ <div class="drawer-body">
+  <button class="drawer-overview" type="button" id="drawerOverview">⌂ &nbsp; Management Overview</button>
+  <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Business Finance &amp; Capital</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
+   <button class="submenu-item" data-page="Business Capital" data-group="Business Finance &amp; Capital">Business Capital</button><button class="submenu-item" data-page="Cash in Hand" data-group="Business Finance &amp; Capital">Cash in Hand</button><button class="submenu-item" data-page="Remaining Stock Value" data-group="Business Finance &amp; Capital">Remaining Stock Value</button><button class="submenu-item" data-page="Outstanding Customer Credit" data-group="Business Finance &amp; Capital">On-Credit Sales</button><button class="submenu-item" data-page="Total Current Assets" data-group="Business Finance &amp; Capital">Total Current Assets</button>
+  </div></section>
+  <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Sales &amp; Performance</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
+   <button class="submenu-item" data-page="Central Sales Management" data-group="Sales &amp; Performance">Central Sales Management</button><button class="submenu-item" data-page="Daily Sales Performance" data-group="Sales &amp; Performance">Daily Sales Performance</button><button class="submenu-item" data-page="Approve / Disapprove Sales" data-group="Sales &amp; Performance">Sales Review &amp; Approval</button><button class="submenu-item" data-page="Legacy Sales Cleanup" data-group="Sales &amp; Performance">Legacy Sales Cleanup</button>
+  </div></section>
+  <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Stock &amp; Inventory</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
+   <button class="submenu-item" data-page="Stock &amp; Performance" data-group="Stock &amp; Inventory">Stock, Profit, Loss &amp; Damage</button><button class="submenu-item" data-page="Stock Edit History" data-group="Stock &amp; Inventory">Stock Edit History</button><button class="submenu-item" data-page="Central Stock Management" data-group="Stock &amp; Inventory">Central Stock Management</button><button class="submenu-item" data-page="Purchases &amp; Sales" data-group="Stock &amp; Inventory">Purchases &amp; Sales</button><button class="submenu-item" data-page="Damage &amp; Loss" data-group="Stock &amp; Inventory">Damage &amp; Loss</button><button class="submenu-item" data-page="Profit &amp; Loss" data-group="Stock &amp; Inventory">Profit &amp; Loss</button>
+  </div></section>
+  <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Employee Management</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
+   <button class="submenu-item" data-page="Employee Directory" data-group="Employee Management">Employee Directory</button><button class="submenu-item" data-page="Create Worker" data-group="Employee Management">Create Worker</button><button class="submenu-item" data-page="Create Driver" data-group="Employee Management">Create Driver</button><button class="submenu-item" data-page="Delete Worker" data-group="Employee Management">Delete Worker</button><button class="submenu-item" data-page="Delete Driver" data-group="Employee Management">Delete Driver</button>
+  </div></section>
+  <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Tricycle &amp; Contract Management</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
+   <button class="submenu-item" data-page="Tricycle Contract Management" data-group="Tricycle &amp; Contract Management">Tricycle Contract Management</button><button class="submenu-item" data-page="Create Tricycle Contract" data-group="Tricycle &amp; Contract Management">Create Tricycle Contract</button><button class="submenu-item" data-page="Record Historical Payment" data-group="Tricycle &amp; Contract Management">Record Historical Payment</button><button class="submenu-item" data-page="Payment Ledger Calendar" data-group="Tricycle &amp; Contract Management">Payment Ledger Calendar</button><button class="submenu-item" data-page="Contract Register &amp; Balances" data-group="Tricycle &amp; Contract Management">Contract Register &amp; Balances</button><button class="submenu-item" data-page="Owing / Weekly Shortfalls" data-group="Tricycle &amp; Contract Management">Owing / Weekly Shortfalls</button><button class="submenu-item" data-page="Private Tricycle Profit" data-group="Tricycle &amp; Contract Management">Private Tricycle Profit</button><button class="submenu-item" data-page="Full Payment Ledger" data-group="Tricycle &amp; Contract Management">Full Payment Ledger</button><button class="submenu-item" data-page="Delete Contract" data-group="Tricycle &amp; Contract Management">Manage / Delete Contract</button>
+  </div></section>
+  <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Reports &amp; Approvals</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
+   <button class="submenu-item" data-page="Weekly Report — Review &amp; Approval" data-group="Reports &amp; Approvals">Weekly Report Review &amp; Approval</button><button class="submenu-item" data-page="Reports Awaiting Review" data-group="Reports &amp; Approvals">Reports Awaiting Review</button><button class="submenu-item" data-page="Pending Actions" data-group="Reports &amp; Approvals">Pending Actions</button><button class="submenu-item" data-page="PDF &amp; CSV Reports" data-group="Reports &amp; Approvals">PDF &amp; CSV Reports</button><button class="submenu-item" data-page="Weekly Financial Closing" data-group="Reports &amp; Approvals">Weekly Financial Closing</button>
+  </div></section>
+  <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Communication Centre</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
+   <button class="submenu-item" data-page="Communication Centre" data-group="Communication Centre">Communication Centre</button><button class="submenu-item" data-page="Operational Notifications" data-group="Communication Centre">Operational Notifications</button>
+  </div></section>
+  <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Administration</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
+   <button class="submenu-item" data-page="Management Profile" data-group="Administration">Admin Profile</button><button class="submenu-item" data-page="Change Password" data-group="Administration">Security / Change Password</button><button class="submenu-item" data-page="Security Alerts" data-group="Administration">Security Alerts</button><button class="submenu-item" data-page="Live Data Register" data-group="Administration">Live Data Register</button>
+  </div></section>
+  <div class="drawer-footer">
+    <div class="drawer-secure-note"><span class="secure-dot"></span><span>Administrator session protected</span></div>
+    <button id="drawerSignOut" class="drawer-signout" type="button">↗ &nbsp; Sign Out</button>
+  </div>
+ </div>
+</aside>
+
+<script>
+(() => {
+  "use strict";
+
+  // EZELEX MANAGEMENT CENTRE CONFIGURATION
+  const SUPABASE_URL =
+    "https://hweczhwoggmsrwhkktrx.supabase.co";
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_D0o90HRJ1AfROf_DAj7ZAg_uaPDwqvV";
+
+  const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    }
+  );
+
+  // Use the same authenticated Supabase client for administrator password changes.
+  window.updateEzelexManagementPassword = async password => {
+    const { error } = await db.auth.updateUser({ password });
+    if (error) throw error;
+  };
+
+  window.ezelexManagementDb = db;
+  // The live-data iframe must reuse this already-authorized session.
+  // Do not ask the iframe to re-check worker_profiles.id (that column is not
+  // guaranteed in the existing schema); mc-authorize validates the short-lived
+  // Management Centre token server-side instead.
+  window.verifyEzelexLiveDataSession = async () => {
+    if (!accessToken || !managementToken || !sessionExpiresAt || Date.now() >= sessionExpiresAt) {
+      throw new Error("The Management Centre session has expired. Please sign in again.");
+    }
+    const result = await invoke("mc-authorize", {}, { "x-mc-session": managementToken });
+    if (!result?.authorized) throw new Error("Administrator access could not be verified.");
+    return true;
+  };
+  const $ = id => document.getElementById(id);
+
+  let accessToken = "";
+  let challengeId = "";
+  let adminEmail = "";
+  let managementToken = "";
+  let sessionExpiresAt = 0;
+  let expiryTimer = null;
+  let otpTimer = null;
+  let otpExpiresAt = 0;
+  let sendingCode = false;
+
+  // NOTIFICATIONS
+  function note(message, bad = false) {
+    $("notice").textContent = message;
+    $("notice").className = "notice" + (bad ? " error" : "");
+    $("notice").hidden = false;
+  }
+
+  // SUPABASE EDGE FUNCTION REQUEST
+  async function invoke(name, body, extraHeaders = {}) {
+    const { data, error } = await db.functions.invoke(name, {
+      body,
+      headers: {
+        Authorization: "Bearer " + accessToken,
+        ...extraHeaders
+      }
+    });
+
+    if (error) {
+      throw new Error(
+        data?.error ||
+        error.message ||
+        "Security service unavailable."
+      );
+    }
+
+    if (data?.error) {
+      throw new Error(data.error);
+    }
+
+    return data;
+  }
+
+  // CLEAR OTP COUNTDOWN
+  function stopOtpTimer() {
+    if (otpTimer) {
+      clearInterval(otpTimer);
+      otpTimer = null;
+    }
+  }
+
+  // OTP COUNTDOWN
+  function startOtpTimer(expiresAt) {
+    stopOtpTimer();
+
+    otpExpiresAt = Date.parse(expiresAt);
+
+    const updateCountdown = () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((otpExpiresAt - Date.now()) / 1000)
+      );
+
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+
+      $("otpCountdown").textContent =
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(seconds).padStart(2, "0");
+
+      if (remaining <= 0) {
+        stopOtpTimer();
+
+        $("otpCountdown").textContent = "EXPIRED";
+
+        $("verifyButton").disabled = true;
+        $("resendButton").disabled = false;
+
+        note(
+          "Your verification code has expired. Select Resend Code.",
+          true
+        );
+      }
+    };
+
+    updateCountdown();
+
+    otpTimer = setInterval(updateCountdown, 1000);
+  }
+
+  // CLEAR MANAGEMENT SESSION
+  function clearManagementSession() {
+    managementToken = "";
+    sessionExpiresAt = 0;
+
+    if (expiryTimer) {
+      clearTimeout(expiryTimer);
+      expiryTimer = null;
+    }
+  }
+
+  // AUTOMATIC MANAGEMENT SESSION EXPIRY
+  function startExpiryTimer() {
+    if (expiryTimer) clearTimeout(expiryTimer);
+
+    const remaining = sessionExpiresAt - Date.now();
+
+    if (remaining <= 0) {
+      logout();
+      return;
+    }
+
+    expiryTimer = setTimeout(logout, remaining);
+  }
+
+  // REQUEST OTP AUTOMATICALLY
+  async function sendOtp(isResend = false) {
+    if (sendingCode) return;
+
+    sendingCode = true;
+
+    $("sendButton").disabled = true;
+    $("resendButton").disabled = true;
+    $("verifyButton").disabled = true;
+
+    note(
+      isResend
+        ? "Sending a fresh verification code..."
+        : "Password accepted. Sending your verification code automatically..."
+    );
+
+    try {
+      const data = await invoke("mc-start-otp", {});
+
+      if (!data.challenge_id || !data.expires_at) {
+        throw new Error(
+          "The verification service did not return a valid challenge."
+        );
+      }
+
+      challengeId = data.challenge_id;
+
+      $("otp").value = "";
+      $("otp").disabled = false;
+
+      $("verifyButton").disabled = false;
+      $("resendButton").disabled = false;
+
+      $("sendButton").hidden = true;
+
+      startOtpTimer(data.expires_at);
+
+      note(
+        "A fresh six-digit verification code has been sent to your administrator email. It expires in three minutes."
+      );
+
+      $("otp").focus();
+
+    } catch (error) {
+      note(
+        error.message || "Could not send verification code.",
+        true
+      );
+
+      $("resendButton").disabled = false;
+
+    } finally {
+      sendingCode = false;
+      $("sendButton").disabled = true;
+    }
+  }
+
+  // STEP 1: ADMINISTRATOR PASSWORD
+  $("passwordForm").onsubmit = async e => {
+    e.preventDefault();
+
+    $("passwordButton").disabled = true;
+
+    note("Checking administrator password...");
+
+    try {
+      adminEmail = $("email").value.trim().toLowerCase();
+
+      const { data, error } = await db.auth.signInWithPassword({
+        email: adminEmail,
+        password: $("password").value
+      });
+
+      if (error) throw error;
+
+      accessToken = data.session?.access_token;
+
+      if (!accessToken) {
+        throw new Error(
+          "No authenticated session returned."
+        );
+      }
+
+      $("password").value = "";
+
+      $("passwordForm").hidden = true;
+      $("otpPanel").hidden = false;
+
+      $("intro").textContent =
+        "Your password was accepted. Complete email verification.";
+
+      // AUTOMATIC OTP DELIVERY
+      await sendOtp(false);
+
+    } catch (error) {
+      note(error.message || "Sign-in failed.", true);
+    } finally {
+      $("passwordButton").disabled = false;
+    }
+  };
+
+  // MANUAL RESEND CODE
+  $("resendButton").onclick = async () => {
+    if (!accessToken) {
+      note("Please sign in again.", true);
+      return;
+    }
+
+    stopOtpTimer();
+
+    challengeId = "";
+
+    await sendOtp(true);
+  };
+
+  // STEP 2: VERIFY EMAIL OTP
+  $("verifyButton").onclick = async () => {
+    const code = $("otp").value.trim();
+
+    if (!challengeId) {
+      note("Request a fresh verification code.", true);
+      return;
+    }
+
+    if (Date.now() >= otpExpiresAt) {
+      stopOtpTimer();
+
+      $("verifyButton").disabled = true;
+      $("resendButton").disabled = false;
+
+      note("Your verification code has expired. Resend a new code.", true);
+      return;
+    }
+
+    if (!/^\d{6}$/.test(code)) {
+      note("Enter the six-digit verification code.", true);
+      return;
+    }
+
+    $("verifyButton").disabled = true;
+
+    note("Verifying your email code...");
+
+    try {
+      const data = await invoke("mc-verify-otp", {
+        challenge_id: challengeId,
+        code
+      });
+
+      if (!data?.management_token || !data?.expires_at) {
+        throw new Error(
+          "A valid Management Centre session was not returned."
+        );
+      }
+
+      const expiry = Date.parse(data.expires_at);
+
+      if (!Number.isFinite(expiry) || expiry <= Date.now()) {
+        throw new Error("The Management Centre session has expired.");
+      }
+
+      managementToken = data.management_token;
+
+      stopOtpTimer();
+
+      // SERVER-SIDE MANAGEMENT AUTHORIZATION
+      note("Checking administrator security authorization...");
+
+      const authorization = await invoke(
+        "mc-authorize",
+        {},
+        {
+          "x-mc-session": managementToken
+        }
+      );
+
+      if (!authorization?.authorized) {
+        throw new Error(
+          "Management Centre authorization was rejected."
+        );
+      }
+
+      // OPEN MANAGEMENT CENTRE
+      sessionExpiresAt = expiry;
+
+      challengeId = "";
+
+      $("otp").value = "";
+
+      $("login").hidden = true;
+      $("dashboard").hidden = false;
+
+      window.managementAdminEmail = adminEmail;
+      $("signedIn").textContent =
+        "Verified administrator: " +
+        adminEmail +
+        " · Session expires " +
+        new Date(sessionExpiresAt).toLocaleString();
+
+      startExpiryTimer();
+
+      showDashboard();
+      if (window.loadEzelexManagementOverview) window.loadEzelexManagementOverview();
+
+      note(
+        "Security verification successful. Management Centre session authorized."
+      );
+
+    } catch (error) {
+      clearManagementSession();
+
+      note(
+        error.message || "Verification failed.",
+        true
+      );
+
+      if (
+        /expired|already used|locked|incorrect|verification request/i.test(
+          error.message || ""
+        )
+      ) {
+        $("resendButton").disabled = false;
+      }
+
+    } finally {
+      $("verifyButton").disabled = false;
+    }
+  };
+
+  // DASHBOARD ACTIVATION HOOK — navigation is managed by the inline menu controller below.
+  function showDashboard() {
+    const dashboard = $("dashboard");
+    if (dashboard) dashboard.hidden = false;
+  }
+
+  // LOGOUT
+  async function logout() {
+    stopOtpTimer();
+    clearManagementSession();
+
+    try {
+      if (accessToken) {
+        await db.auth.signOut({ scope: "local" });
+      }
+    } catch (_) {}
+
+    accessToken = "";
+    challengeId = "";
+    adminEmail = "";
+
+    $("dashboard").hidden = true;
+    $("login").hidden = false;
+
+    $("otpPanel").hidden = true;
+    $("recovery").hidden = true;
+    $("passwordForm").hidden = false;
+
+    $("password").value = "";
+    $("otp").value = "";
+
+    $("sendButton").hidden = false;
+    $("sendButton").disabled = true;
+
+    $("verifyButton").disabled = false;
+    $("resendButton").disabled = false;
+
+    note("You have been signed out.");
+  }
+
+  // Shared logout hook used by the embedded Admin Operations workspace.
+  window.ezelexManagementLogout = logout;
+
+  $("cancelButton").onclick = logout;
+  if ($("logout")) $("logout").onclick = logout;
+
+  // PASSWORD RECOVERY
+  $("forgot").onclick = e => {
+    e.preventDefault();
+
+    $("passwordForm").hidden = true;
+    $("otpPanel").hidden = true;
+    $("recovery").hidden = false;
+
+    $("recoveryEmail").value = $("email").value;
+  };
+
+  $("recoveryBack").onclick = () => {
+    $("recovery").hidden = true;
+    $("passwordForm").hidden = false;
+  };
+
+  $("recoveryButton").onclick = async () => {
+    try {
+      const { error } = await db.auth.resetPasswordForEmail(
+        $("recoveryEmail").value.trim(),
+        {
+          redirectTo: location.origin + location.pathname
+        }
+      );
+
+      if (error) throw error;
+
+      note(
+        "If this account exists, a password-reset email has been sent."
+      );
+
+    } catch (error) {
+      note(error.message, true);
+    }
+  };
+
+})();
+</script>
+<script>
+(() => {
+ const dashboard=document.getElementById('dashboard');
+ const drawer=document.getElementById('menuDrawer');
+ const scrim=document.getElementById('drawerScrim');
+ const menuBtn=document.getElementById('menuOpen');
+ const groups=[...drawer.querySelectorAll('.menu-group')];
+ const pageView=document.getElementById('pageView');
+ const overview=document.getElementById('overviewPage');
+ const title=document.getElementById('pageTitle');
+ const pageGroup=document.getElementById('pageGroup');
+ const desc=document.getElementById('pageDescription');
+ const status=document.getElementById('pageStatus');
+ const descriptions={
+  "Financial Management":"Central oversight of business capital, available cash, current assets and customer credit.",
+  "Payments & Risk":"Monitor payment activity, outstanding amounts, customer balances and weekly shortfalls.",
+  "Audit & Transactions":"Review transaction trails, edits, sales activity, approvals, reports and payment ledgers.",
+  "Management Alerts":"A central place for important management notices, pending reviews and operational exceptions.",
+  "Weekly Financial Closing":"Review weekly business performance, reconcile records and prepare financial closing summaries.",
+  "Driver Contracts":"Manage driver agreements, payment records, weekly reports, contract balances and performance.",
+  "Stock & Performance":"Monitor stock purchases, sales, remaining quantities, damage, losses and profitability.",
+  "Employee Administration":"Manage the employee directory, create worker and driver accounts, resend invitations, deactivate access and manage account removal.",
+  "Create Employee":"Manage worker and driver accounts.",
+  "COMMUNICATION CENTRE":"Send and review official Ezelex Enterprise communications.",
+  "SETTINGS":"Manage your administrator password and Management Centre profile."
+ };
+ function openDrawer(){document.body.classList.add('drawer-open');scrim.hidden=false;drawer.setAttribute('aria-hidden','false');menuBtn.setAttribute('aria-expanded','true');}
+ function closeDrawer(){document.body.classList.remove('drawer-open');drawer.setAttribute('aria-hidden','true');menuBtn.setAttribute('aria-expanded','false');setTimeout(()=>{scrim.hidden=true},220);}
+ menuBtn.addEventListener('click',openDrawer);
+ document.getElementById('drawerSignOut').addEventListener('click',()=>{closeDrawer();document.getElementById('logout').click();});
+ document.getElementById('drawerClose').addEventListener('click',closeDrawer);
+ const hour=new Date().getHours();
+ const greetingLine=document.getElementById("greetingLine"); if(greetingLine) greetingLine.textContent=(hour<12?"Good morning":hour<18?"Good afternoon":"Good evening")+", Administrator";
+ document.getElementById('saveNewPassword').addEventListener('click',async()=>{
+  const first=document.getElementById('newPassword').value;
+  const second=document.getElementById('confirmNewPassword').value;
+  const feedback=document.getElementById('passwordUpdateMessage');
+  feedback.className='form-feedback';
+  if(first.length<10){feedback.textContent='Use at least 10 characters for your new password.';return;}
+  if(first!==second){feedback.textContent='The passwords do not match.';return;}
+  const save=document.getElementById('saveNewPassword');
+  save.disabled=true;save.textContent='Updating password…';
+  try{
+   await window.updateEzelexManagementPassword(first);
+   feedback.className='form-feedback success';
+   feedback.textContent='Your administrator password has been updated successfully.';
+   document.getElementById('newPassword').value='';
+   document.getElementById('confirmNewPassword').value='';
+  }catch(err){feedback.textContent=err.message||'Password update failed. Please sign in again and retry.';}
+  finally{save.disabled=false;save.textContent='Save New Password';}
+ });
+ scrim.addEventListener('click',closeDrawer);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
+ // Delegated navigation: reliable for every menu group and resilient to later DOM updates.
+ drawer.addEventListener('click', event => {
+  const toggle = event.target.closest('.menu-group-toggle');
+  if (!toggle || !drawer.contains(toggle)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const group = toggle.closest('.menu-group');
+  const sub = group && group.querySelector('.menu-subgroup');
+  if (!group || !sub) return;
+  const opening = !group.classList.contains('open');
+  drawer.querySelectorAll('.menu-group').forEach(g => {
+   g.classList.remove('open');
+   const b = g.querySelector('.menu-group-toggle');
+   const panel = g.querySelector('.menu-subgroup');
+   if (b) b.setAttribute('aria-expanded','false');
+   if (panel) panel.hidden = true;
+  });
+  if (opening) {
+   group.classList.add('open');
+   toggle.setAttribute('aria-expanded','true');
+   sub.hidden = false;
+  }
+ });
+ overview.addEventListener('click',event=>{const btn=event.target.closest('[data-page]');if(btn)openManagementPage(btn);});
+ function showOverview(){overview.hidden=false;pageView.hidden=true;closeDrawer();}
+ document.getElementById('drawerOverview').addEventListener('click',showOverview);
+ document.getElementById('backDashboard').addEventListener('click',showOverview);
+ function openManagementPage(btn){
+  const page=btn.dataset.page;
+  const group=btn.dataset.group || (btn.closest('.menu-group')?.querySelector('.menu-group-toggle span').textContent||"MANAGEMENT");
+  overview.hidden=true;pageView.hidden=false;
+  title.textContent=page;pageGroup.textContent=group.toUpperCase();
+  desc.textContent=descriptions[group]||"Management tools and records for Ezelex Enterprise.";
+  document.getElementById('changePasswordPanel').hidden=page!=="Change Password";
+  document.getElementById('managementProfilePanel').hidden=page!=="Management Profile";
+  status.hidden=true;
+  if(group==="Create Employee"){
+    status.textContent=page==="Create Worker"?"Worker account creation will be connected to the existing employee-account workflow.":page==="Create Driver"?"Driver account creation will be connected to the existing employee-account workflow.":"Worker deletion will use the existing protected account-management workflow. Protected administrator accounts must remain unavailable for deletion.";
+  } else if(page==="Communication Centre"){
+    status.textContent="Communication Centre workspace. Message sending uses the existing EZELEX messaging Edge Function, and history is read from the communications table.";
+  } else if(page==="Management Profile"){
+    document.getElementById('profileEmail').textContent=window.managementAdminEmail||"Verified administrator account";
+  } else if(page!=="Change Password"){
+    status.textContent="";
+  }
+  drawer.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===btn));
+  if (window.loadEzelexManagementPage) window.loadEzelexManagementPage(page, group);
+  closeDrawer();window.scrollTo({top:0,behavior:'smooth'});
+ }
+ // Delegated page navigation ensures submenu actions always open their requested page.
+ drawer.addEventListener('click', event => {
+  const btn = event.target.closest('[data-page]');
+  if (!btn || !drawer.contains(btn) || btn.classList.contains('menu-group-toggle')) return;
+  event.preventDefault();
+  openManagementPage(btn);
+ });
+})();
+</script>
+
+<script>
+(()=>{"use strict";
+const db=window.ezelexManagementDb;if(!db)return;
+const $=id=>document.getElementById(id),money=n=>"GH₵"+Number(n||0).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2}),num=n=>Number(n||0).toLocaleString("en-GH",{maximumFractionDigits:2}),date=v=>v?String(v).slice(0,10):"—";
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const D={profiles:[],sales:[],batches:[],weeks:[],credits:[],history:[],contracts:[],reports:[],payments:[],privateCosts:[],communications:[],capital:null};
+const pending=w=>!w.active&&!w.activated_at;
+function calc(r){let total=Number(r.total_quantity||0),sold=Number(r.sold_quantity||0),damage=Number(r.damage_quantity||0),loss=Number(r.loss_quantity||0),unit=Number(r.cost_per_unit||0),remaining=Number(r.remaining_quantity??Math.max(0,total-sold-damage-loss)),revenue=Number(r.sales_revenue??sold*Number(r.selling_price_per_unit||0)),damageValue=Number(r.damage_value??damage*unit),lossValue=Number(r.loss_value??loss*unit),profit=Number(r.profit_loss??revenue-sold*unit-damageValue-lossValue);return{total,sold,damage,loss,unit,remaining,revenue,damageValue,lossValue,profit}}
+function balance(c){return Math.max(0,Number(c.total_contract_amount||0)-Number(c.opening_paid_amount||0)-D.payments.filter(p=>String(p.contract_id)===String(c.id)).reduce((n,p)=>n+Number(p.amount||0),0))}
+async function tableRead(name){const {data,error}=await db.from(name).select("*").limit(2000);if(error)throw new Error(name+": "+error.message);return data||[]}
+async function loadAll(){const defs=[["profiles","worker_profiles"],["sales","sales"],["batches","worker_stock_batches"],["weeks","worker_stock_weeks"],["credits","worker_stock_credit_sales"],["history","worker_stock_edit_history"],["contracts","tricycle_contracts"],["reports","tricycle_weekly_reports"],["payments","tricycle_contract_payments"],["privateCosts","tricycle_contract_private_financials"],["communications","communications"]];let errors=[];const rs=await Promise.allSettled(defs.map(d=>tableRead(d[1])));rs.forEach((r,i)=>{if(r.status==="fulfilled")D[defs[i][0]]=r.value;else{D[defs[i][0]]=[];errors.push(r.reason.message)}});const cap=await db.from("ezelex_business_capital").select("id,original_capital,current_cash").eq("id",1).maybeSingle();if(cap.error)errors.push("ezelex_business_capital: "+cap.error.message);D.capital=cap.data||null;const badge=document.querySelector(".live-badge");if(badge)badge.textContent=errors.length?"LIVE DATA PARTIALLY UNAVAILABLE":"LIVE DATA CONNECTED";updateOverview();return errors}
+function updateOverview(){const cap=Number(D.capital?.original_capital??20000),cash=Number(D.capital?.current_cash||0),credit=D.credits.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0),stock=D.batches.reduce((n,r)=>{let x=calc(r);return n+x.remaining*x.unit},0),profit=D.batches.reduce((n,r)=>n+calc(r).profit,0),contractDebt=D.contracts.reduce((n,c)=>n+balance(c),0);$("mcCapital").textContent=money(cap);$("mcCash").textContent=money(cash);$("mcOutstanding").textContent=money(credit+contractDebt);$("mcProfit").textContent=money(profit);
+const chartHost=$("mcPerformanceChart");
+if(chartHost){
+ const now=new Date(),monday=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x;};
+ const thisMonday=monday(now),weeks=[];
+ for(let i=5;i>=0;i--){const start=new Date(thisMonday);start.setDate(start.getDate()-i*7);const end=new Date(start);end.setDate(end.getDate()+6);weeks.push({start,end,total:0,label:start.toLocaleDateString("en-GB",{day:"2-digit",month:"short"})});}
+ D.sales.filter(s=>String(s.status||"pending").toLowerCase()==="approved").forEach(s=>{
+  const raw=s.sale_date||s.created_at;if(!raw)return;const d=new Date(raw);if(Number.isNaN(d.getTime()))return;
+  const w=weeks.find(x=>d>=x.start&&d<=x.end);if(w)w.total+=Number(s.sale_amount||0);
+ });
+ const max=Math.max(1,...weeks.map(w=>w.total));
+ chartHost.innerHTML=`<div class="live-bars">${weeks.map(w=>`<div class="live-bar-col"><strong>${money(w.total)}</strong><div class="live-bar-track"><span style="height:${Math.max(3,Math.round(w.total/max*100))}%"></span></div><small>${w.label}</small></div>`).join("")}</div><div class="chart-footnote">Approved sales only · ${num(D.sales.filter(s=>String(s.status||"pending").toLowerCase()==="approved").length)} approved records loaded</div>`;
+}
+const od=$("overviewDate");if(od)od.textContent="UPDATED "+new Date().toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"});
+
+let old=$("overviewLiveSummary");if(old)old.remove();let el=document.createElement("div");el.id="overviewLiveSummary";el.className="overview-grid";el.innerHTML=`<article class="panel"><h3>Live operational snapshot</h3><div class="live-data-grid">${stat("Active employees",num(D.profiles.filter(x=>x.active).length))}${stat("Pending invitations",num(D.profiles.filter(pending).length))}${stat("Sales awaiting review",num(D.sales.filter(x=>(x.status||"pending")==="pending").length))}${stat("Driver reports pending",num(D.reports.filter(x=>x.status==="pending").length))}${stat("Remaining stock value",money(stock))}${stat("Customer credit outstanding",money(credit))}</div><p style="font-size:10px;color:#8291a2">Figures are read from existing EZELEX tables. Contract balances are included in the outstanding KPI above.</p></article><article class="panel"><h3>Connected business records</h3><div class="status-list">${statusRow("Worker profiles",D.profiles.length)}${statusRow("Sales records",D.sales.length)}${statusRow("Stock batches",D.batches.length)}${statusRow("Customer credit records",D.credits.length)}${statusRow("Driver contracts",D.contracts.length)}${statusRow("Communications",D.communications.length)}</div><button class="live-refresh" id="refreshLiveData" type="button">↻ Refresh live data</button></article>`;$("overviewPage").appendChild(el);$("refreshLiveData").onclick=async()=>{let b=$("refreshLiveData");b.disabled=true;b.textContent="Refreshing…";let e=await loadAll();b.disabled=false;b.textContent="↻ Refresh live data";if(e.length)alert("Some tables could not be read:\n"+e.join("\n"))}}
+function stat(a,b){let action=/pending|awaiting|invitation/i.test(a),profit=/profit/i.test(a);let target=action?"Pending Actions":profit?"Profit & Loss":/employee/i.test(a)?"Employee Directory":/stock value/i.test(a)?"Remaining Stock Value":/credit/i.test(a)?"Outstanding Customer Credit":"";let group=action?"Reports &amp; Approvals":profit?"Stock &amp; Inventory":/employee/i.test(a)?"Employee Management":/stock value/i.test(a)?"Stock &amp; Inventory":/credit/i.test(a)?"Business Finance &amp; Capital":"";return target?`<button type="button" class="live-data-stat dashboard-link ${action?'action-shortcut':profit?'profit-kpi':''}" data-page="${target}" data-group="${group}"><small>${a}</small><strong>${b}</strong><em>Open page →</em></button>`:`<div class="live-data-stat"><small>${a}</small><strong>${b}</strong></div>`}
+function statusRow(a,n){return `<div class="status-row"><span>${a}</span><b>${num(n)} RECORDS</b></div>`}
+function panel(title,heads,rows){return `<article class="live-data-panel"><h3>${title}</h3><div class="live-data-table-wrap"><table class="live-data-table"><thead><tr>${heads.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows.length?rows.join(""):`<tr><td colspan="${heads.length}">No records found.</td></tr>`}</tbody></table></div></article>`}
+function statGrid(items){return `<div class="live-data-grid">${items.map(x=>stat(x[0],x[1])).join("")}</div>`}
+// Integrated Live Data Register: all read-only data views are rendered inside this index.html; no live-data.html file is required.
+async function loadPage(page,group){if(page==="Change Password"||page==="Management Profile"){$("liveDataContent").innerHTML="";return;}$("liveDataContent").innerHTML='<div class="live-data-loading">Loading live records from Supabase…</div>';let errors=await loadAll();if(errors.length){$("liveDataContent").innerHTML=`<div class="live-data-error"><b>Some data could not be loaded.</b><br>${errors.map(esc).join("<br>")}<br><br>No records were changed. Check administrator SELECT permissions for the listed tables.</div>`;return}
+let out="",creditOpen=D.credits.filter(c=>Number(c.amount_due||0)>Number(c.amount_paid||0)),stockValue=D.batches.reduce((n,r)=>n+calc(r).remaining*calc(r).unit,0),totalCredit=creditOpen.reduce((n,c)=>n+Number(c.amount_due||0)-Number(c.amount_paid||0),0);
+if(page==="Live Data Register"){
+ const profiles=D.profiles.map(x=>`<tr><td>${esc(x.worker_id)}</td><td>${esc(x.full_name)}</td><td>${esc(x.email)}</td><td>${esc(x.role)}</td><td>${x.active?"Active":"Inactive"}</td></tr>`);
+ const sales=D.sales.map(x=>`<tr><td>${date(x.sale_date||x.created_at)}</td><td>${esc(x.worker_id)}</td><td>${esc(x.product_service)}</td><td>${num(x.quantity)}</td><td>${money(x.sale_amount)}</td><td>${esc(x.status||"pending")}</td></tr>`);
+ const batches=D.batches.map(x=>{let c=calc(x);return `<tr><td>${date(x.stock_date)}</td><td>${esc(x.worker_id)}</td><td>${esc(x.product_name||x.product_service)}</td><td>${num(c.total)}</td><td>${num(c.sold)}</td><td>${num(c.damage)}</td><td>${num(c.remaining)}</td><td>${money(c.profit)}</td></tr>`});
+ const contracts=D.contracts.map(x=>`<tr><td>${esc(x.driver_name)}</td><td>${esc(x.driver_worker_id)}</td><td>${esc(x.vehicle_id)}</td><td>${date(x.contract_start_date)}</td><td>${date(x.contract_end_date)}</td><td>${money(x.total_contract_amount)}</td><td>${money(balance(x))}</td><td>${esc(x.status)}</td></tr>`);
+ const payments=D.payments.map(x=>`<tr><td>${date(x.payment_date)}</td><td>${esc(x.contract_id)}</td><td>${money(x.amount)}</td><td>${esc(x.source_type)}</td><td>${esc(x.payment_method)}</td><td>${esc(x.reference)}</td></tr>`);
+ const reports=D.reports.map(x=>`<tr><td>${esc(x.driver_name||x.driver_worker_id)}</td><td>${date(x.week_start)} – ${date(x.week_end)}</td><td>${money(x.sales_amount)}</td><td>${money(x.payment_amount)}</td><td>${esc(x.status)}</td></tr>`);
+ out=statGrid([["Worker / driver profiles",num(D.profiles.length)],["Sales records",num(D.sales.length)],["Stock batches",num(D.batches.length)],["Customer credit records",num(D.credits.length)],["Stock edit history",num(D.history.length)],["Tricycle contracts",num(D.contracts.length)],["Contract payments",num(D.payments.length)],["Weekly reports",num(D.reports.length)],["Communications",num(D.communications.length)]]);
+ out+=panel("Employee profiles",["Employee ID","Name","Email","Role","Status"],profiles);
+ out+=panel("Sales register",["Date","Employee ID","Product","Quantity","Amount","Status"],sales);
+ out+=panel("Stock register",["Date","Employee ID","Product","Purchased","Sold","Damaged","Remaining","Profit / loss"],batches);
+ out+=panel("Contract register",["Driver","Employee ID","Vehicle","Start","End","Contract amount","Balance","Status"],contracts);
+ out+=panel("Contract payment ledger",["Date","Contract ID","Amount","Type","Method","Reference"],payments);
+ out+=panel("Weekly report register",["Driver","Week","Sales","Payment","Status"],reports);
+ out+=panel("Stock edit history",["Date","Employee ID","Action","Sold","Damage","Notes"],D.history.map(x=>`<tr><td>${date(x.changed_at)}</td><td>${esc(x.worker_id)}</td><td>${esc(x.action_type||x.action||"Edit")}</td><td>${num(x.sold_quantity)}</td><td>${num(x.damage_quantity)}</td><td>${esc(x.notes)}</td></tr>`));
+ out+=panel("Customer credit register",["Date","Customer","Product","Due","Paid","Balance"],D.credits.map(x=>`<tr><td>${date(x.credit_date)}</td><td>${esc(x.customer_name)}</td><td>${esc(x.product_service)}</td><td>${money(x.amount_due)}</td><td>${money(x.amount_paid)}</td><td>${money(Number(x.amount_due||0)-Number(x.amount_paid||0))}</td></tr>`));
+ out+=panel("Communication register",["Date","Recipient","Subject","Message","Status"],D.communications.map(x=>`<tr><td>${date(x.created_at)}</td><td>${esc(x.worker_id||"All active workers")}</td><td>${esc(x.subject)}</td><td>${esc(x.message)}</td><td>${esc(x.status||"sent")}</td></tr>`));
+}
+else if(group==="Financial Management"){let cash=Number(D.capital?.current_cash||0),capital=Number(D.capital?.original_capital??20000);out=statGrid([["Original capital",money(capital)],["Cash in hand",money(cash)],["Remaining stock value",money(stockValue)],["Customer credit",money(totalCredit)],["Total current assets",money(cash+stockValue+totalCredit)],["Assets less capital",money(cash+stockValue+totalCredit-capital)]]);out+=panel("Business asset position",["Asset","Amount"],[["Original capital",capital],["Cash in hand",cash],["Remaining stock",stockValue],["Outstanding customer credit",totalCredit],["Total current assets",cash+stockValue+totalCredit]].map(x=>`<tr><td>${x[0]}</td><td>${money(x[1])}</td></tr>`))}
+else if(group==="Payments & Risk"){let debts=D.contracts.map(c=>({c,b:balance(c)})).filter(x=>x.b>0);out=statGrid([["Customer credit accounts",num(creditOpen.length)],["Customer credit balance",money(totalCredit)],["Driver contract balance",money(debts.reduce((n,x)=>n+x.b,0))]]);out+=panel("Outstanding customer credit",["Date","Customer","Product","Qty","Due","Paid","Balance"],creditOpen.map(c=>`<tr><td>${date(c.credit_date)}</td><td>${esc(c.customer_name)}</td><td>${esc(c.product_service)}</td><td>${num(c.quantity)}</td><td>${money(c.amount_due)}</td><td>${money(c.amount_paid)}</td><td>${money(c.amount_due-c.amount_paid)}</td></tr>`));out+=panel("Driver balances",["Driver","Vehicle","Contract","Balance"],debts.map(x=>`<tr><td>${esc(x.c.driver_name)}</td><td>${esc(x.c.vehicle_id)}</td><td>${money(x.c.total_contract_amount)}</td><td>${money(x.b)}</td></tr>`))}
+else if(group==="Audit & Transactions"){out=panel("Recent sales transactions",["Date","Worker ID","Product","Qty","Amount","Status"],D.sales.slice(0,300).map(x=>`<tr><td>${date(x.sale_date||x.created_at)}</td><td>${esc(x.worker_id)}</td><td>${esc(x.product_service)}</td><td>${num(x.quantity)}</td><td>${money(x.sale_amount)}</td><td>${esc(x.status||"pending")}</td></tr>`));out+=panel("Stock edit history",["Date","Worker","Action","Sold","Damage","Notes"],D.history.slice(0,300).map(x=>`<tr><td>${date(x.changed_at)}</td><td>${esc(x.worker_id)}</td><td>${esc(x.action_type||x.action||"Edit")}</td><td>${num(x.sold_quantity)}</td><td>${num(x.damage_quantity)}</td><td>${esc(x.notes)}</td></tr>`))}
+else if(group==="Management Alerts"){let ps=D.profiles.filter(pending),ss=D.sales.filter(x=>(x.status||"pending")==="pending"),rr=D.reports.filter(x=>x.status==="pending");out=statGrid([["Pending employee invitations",num(ps.length)],["Sales awaiting review",num(ss.length)],["Driver reports pending",num(rr.length)]]);out+=panel("Pending employees",["ID","Name","Email","Role"],ps.map(x=>`<tr><td>${esc(x.worker_id)}</td><td>${esc(x.full_name)}</td><td>${esc(x.email)}</td><td>${esc(x.role)}</td></tr>`));out+=panel("Sales awaiting approval",["Date","Worker","Product","Amount"],ss.map(x=>`<tr><td>${date(x.sale_date||x.created_at)}</td><td>${esc(x.worker_id)}</td><td>${esc(x.product_service)}</td><td>${money(x.sale_amount)}</td></tr>`));out+=panel("Driver reports awaiting review",["Driver","Period","Payment","Status"],rr.map(x=>`<tr><td>${esc(x.driver_name||x.driver_worker_id)}</td><td>${date(x.week_start)} – ${date(x.week_end)}</td><td>${money(x.payment_amount)}</td><td>${esc(x.status)}</td></tr>`))}
+else if(group==="Weekly Financial Closing"){let m=new Map();D.batches.forEach(r=>{let w=D.weeks.find(x=>String(x.id)===String(r.week_id)),key=w?.week_start||date(r.stock_date),c=calc(r),v=m.get(key)||{b:0,s:0,rev:0,damage:0,profit:0};v.b+=c.total;v.s+=c.sold;v.rev+=c.revenue;v.damage+=c.damageValue;v.profit+=c.profit;m.set(key,v)});out=panel("Weekly stock closing",["Week","Purchased","Sold","Revenue","Damage value","Profit / loss"],[...m.entries()].sort((a,b)=>b[0].localeCompare(a[0])).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${num(v.b)}</td><td>${num(v.s)}</td><td>${money(v.rev)}</td><td>${money(v.damage)}</td><td>${money(v.profit)}</td></tr>`))}
+else if(group==="Driver Contracts"){out=statGrid([["Contracts",num(D.contracts.length)],["Pending reports",num(D.reports.filter(x=>x.status==="pending").length)],["Outstanding balance",money(D.contracts.reduce((n,c)=>n+balance(c),0))],["Payments recorded",num(D.payments.length)]]);out+=panel("Contract register",["Driver","Worker ID","Vehicle","Start","End","Agreed","Paid","Balance","Status"],D.contracts.map(c=>{let b=balance(c);return `<tr><td>${esc(c.driver_name)}</td><td>${esc(c.driver_worker_id)}</td><td>${esc(c.vehicle_id)}</td><td>${date(c.contract_start_date)}</td><td>${date(c.contract_end_date)}</td><td>${money(c.total_contract_amount)}</td><td>${money(Number(c.total_contract_amount||0)-b)}</td><td>${money(b)}</td><td>${esc(c.status)}</td></tr>`}));out+=panel("Weekly reports",["Driver","Period","Sales","Payment","Status"],D.reports.map(r=>`<tr><td>${esc(r.driver_name||r.driver_worker_id)}</td><td>${date(r.week_start)} – ${date(r.week_end)}</td><td>${money(r.sales_amount)}</td><td>${money(r.payment_amount)}</td><td>${esc(r.status)}</td></tr>`));out+=panel("Payment ledger",["Date","Contract","Amount","Type","Method","Reference"],D.payments.map(p=>{let c=D.contracts.find(x=>String(x.id)===String(p.contract_id))||{};return `<tr><td>${date(p.payment_date)}</td><td>${esc(c.driver_name||c.vehicle_id)}</td><td>${money(p.amount)}</td><td>${esc(p.source_type)}</td><td>${esc(p.payment_method)}</td><td>${esc(p.reference)}</td></tr>`}))}
+else if(group==="Stock & Performance"){let total=D.batches.reduce((n,r)=>n+calc(r).total,0),sold=D.batches.reduce((n,r)=>n+calc(r).sold,0),remain=D.batches.reduce((n,r)=>n+calc(r).remaining,0),damage=D.batches.reduce((n,r)=>n+calc(r).damage,0),profit=D.batches.reduce((n,r)=>n+calc(r).profit,0);out=statGrid([["Units purchased",num(total)],["Units sold",num(sold)],["Units remaining",num(remain)],["Damaged units",num(damage)],["Stock batches",num(D.batches.length)],["Profit / loss",money(profit)]]);out+=panel("Stock batch register",["Date","Worker ID","Product","Bought","Sold","Damaged","Remaining","Profit / loss"],D.batches.map(r=>{let c=calc(r);return `<tr><td>${date(r.stock_date)}</td><td>${esc(r.worker_id)}</td><td>${esc(r.product_name||r.product_service)}</td><td>${num(c.total)}</td><td>${num(c.sold)}</td><td>${num(c.damage)}</td><td>${num(c.remaining)}</td><td>${money(c.profit)}</td></tr>`}))}
+else if(group==="Create Employee"){out=statGrid([["Employee profiles",num(D.profiles.filter(x=>x.role!=="admin").length)],["Active employees",num(D.profiles.filter(x=>x.role!=="admin"&&x.active).length)],["Pending profiles",num(D.profiles.filter(pending).length)]]);out+=panel("Employee directory",["Employee ID","Name","Email","Phone","Role","Contract end","Status"],D.profiles.filter(x=>x.role!=="admin").map(x=>`<tr><td>${esc(x.worker_id)}</td><td>${esc(x.full_name)}</td><td>${esc(x.email)}</td><td>${esc(x.phone)}</td><td>${esc(x.role)}</td><td>${date(x.contract_end)}</td><td>${x.active?"Active":pending(x)?"Pending":"Inactive"}</td></tr>`))}
+else if(page==="Communication Centre"){out=`<article class="live-data-panel"><h3>Send a communication</h3><p class="muted">Uses the existing send-worker-message Edge Function.</p><form class="communication-form" id="mcCommunicationForm"><label>Send to</label><select id="mcRecipient"><option value="ALL">All active workers</option>${D.profiles.filter(x=>x.active&&x.role!=="admin").map(x=>`<option value="${esc(x.user_id||x.id)}">${esc(x.full_name)} (${esc(x.worker_id)})</option>`).join("")}</select><label>Subject</label><input id="mcSubject" maxlength="200" required><label>Message</label><textarea id="mcMessage" maxlength="10000" required></textarea><button class="action-primary" type="submit">Send Message</button><div id="mcCommFeedback" class="form-feedback" role="status"></div></form></article>`;out+=panel("Communication history",["Date","Recipient","Subject","Message","Status"],D.communications.map(x=>`<tr><td>${date(x.created_at)}</td><td>${esc(x.worker_id||"All active workers")}</td><td>${esc(x.subject)}</td><td>${esc(x.message)}</td><td>${esc(x.status||"sent")}</td></tr>`))}
+else{out='<div class="live-data-note">This page is not yet connected to an existing business workflow.</div>'}
+$("liveDataContent").innerHTML=out;
+if(page==="Communication Centre")$("mcCommunicationForm").onsubmit=async e=>{e.preventDefault();let btn=e.submitter,fb=$("mcCommFeedback");btn.disabled=true;fb.textContent="Sending…";try{let {data:{session}}=await db.auth.getSession();if(!session)throw Error("Admin session expired. Sign in again.");let resp=await fetch("https://hweczhwoggmsrwhkktrx.supabase.co/functions/v1/send-worker-message",{method:"POST",headers:{"Authorization":"Bearer "+session.access_token,"apikey":"sb_publishable_D0o90HRJ1AfROf_DAj7ZAg_uaPDwqvV","Content-Type":"application/json"},body:JSON.stringify({worker_id:$("mcRecipient").value,subject:$("mcSubject").value.trim(),message:$("mcMessage").value.trim()})});let j=await resp.json().catch(()=>({}));if(!resp.ok||!j.success)throw Error(j.error||"Message could not be sent.");fb.className="form-feedback success";fb.textContent=j.message||"Message sent.";await loadAll();loadPage("Communication Centre","COMMUNICATION CENTRE")}catch(err){fb.textContent=err.message}finally{btn.disabled=false}};
+}
+window.loadEzelexManagementOverview=async()=>{let errors=await loadAll();if(errors.length)console.warn("EZELEX live data read errors",errors)};
+window.addEventListener("message", event => {
+  if (event.origin !== location.origin || event.data?.type !== "ezelex-admin-frame-height") return;
+  const frame = document.querySelector('#liveDataContent iframe');
+  if (!frame || event.source !== frame.contentWindow) return;
+  const height = Number(event.data.height);
+  if (Number.isFinite(height) && height > 500) frame.style.height = Math.min(height + 36, 6000) + "px";
+});
+window.loadEzelexManagementPage = (page, group) => {
+  const host = document.getElementById("liveDataContent");
+  if (!host) return;
+  if (page === "Change Password" || page === "Management Profile") { host.innerHTML = ""; return; }
+  if (page === "Live Data Register") {
+    // Render the dedicated read-only register in the Management Centre shell.
+    // Do not redirect it to Audit & Transactions.
+    loadPage("Live Data Register", "Administration");
+    return;
+  }
+  const sectionMap = {
+    "Business Finance & Capital":"capital", "Financial Management":"capital", "Business Capital":"capital", "Cash in Hand":"capital", "Remaining Stock Value":"capital", "Outstanding Customer Credit":"credits", "Total Current Assets":"capital",
+    "On-Credit Sales":"credits", "Payments & Risk":"credits", "Outstanding Amounts":"credits", "Crates Outstanding":"credits", "Customers Owing":"credits", "Payment Records":"credits", "Owing / Weekly Shortfalls":"tricycle",
+    "Sales & Performance":"sales", "Audit & Transactions":"sales", "Edit History":"stockHistory", "Stock Edit History":"stockHistory", "Daily Sales Performance":"stockHistory", "Full Payment Ledger":"tricycle", "Legacy Sales Cleanup":"sales", "Central Sales Management":"sales", "Approve / Disapprove Sales":"sales", "PDF & CSV Reports":"sales",
+    "Reports & Approvals":"tricycle", "Administration":"security", "Communication Centre":"communication", "Management Alerts":"overview", "Pending Actions":"sales", "Reports Awaiting Review":"tricycle", "Security Alerts":"security", "Operational Notifications":"communication",
+    "Weekly Financial Closing":"stock", "Weekly Reconciliation":"stock", "Cash & Payment Reconciliation":"capital", "Weekly Performance Summary":"stockHistory", "Closing Reports":"stockHistory",
+    "Tricycle & Contract Management":"tricycle", "Driver Contracts":"tricycle", "Create Tricycle Contract":"tricycle", "Record Historical Payment":"tricycle", "Payment Ledger Calendar":"tricycle", "Tricycle Contract Management":"tricycle", "Delete Contract":"tricycle", "Private Tricycle Profit":"tricycle", "Contract Register & Balances":"tricycle", "Weekly Report — Review & Approval":"tricycle", "Owing / Weekly Shortfalls":"tricycle",
+    "Stock & Inventory":"stock", "Stock & Performance":"stock", "Central Stock Management":"stock", "Purchases & Sales":"stock", "Damage & Loss":"stock", "Profit & Loss":"stock", "All-Time Purchase & Sales Review":"stock",
+    "Employee Management":"workers", "Employee Administration":"workers", "Create Employee":"workers", "Employee Directory":"workers", "Create Worker":"workers", "Create Driver":"workers", "Delete Worker":"workers", "Delete Driver":"workers", "Communication Centre":"communication"
+  };
+  const section = sectionMap[page] || sectionMap[group] || "overview";
+  const frame = document.createElement("iframe");
+  frame.title = "EZELEX complete administrator operations";
+  frame.src = "admin-operations.html?section=" + encodeURIComponent(section) + "&page=" + encodeURIComponent(page || "");
+  frame.style.cssText = "display:block;width:100%;min-height:1180px;border:0;border-radius:14px;background:transparent";
+  frame.setAttribute("loading", "eager");
+  frame.addEventListener("load", () => {
+    try { const h = frame.contentDocument.documentElement.scrollHeight; if (h > 600) frame.style.height = Math.min(h + 40, 6000) + "px"; } catch (_) {}
+  });
+  host.replaceChildren(frame);
+};
+})();
+</script>
+
+
+<script>
+/* EZELEX PWA shell: does not cache authenticated data or modify sign-in/navigation. */
+(function(){
+  if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js",{scope:"./"}).catch(err=>console.warn("EZELEX offline shell registration:",err)));
+  }
+})();
+</script>
+</body>
+</html>
