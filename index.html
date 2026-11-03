@@ -103,6 +103,35 @@ body.drawer-open .drawer{transform:translateX(0)}body.drawer-open .drawer-scrim{
 @media(max-width:850px){.shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.shortcut-grid{grid-template-columns:1fr}.shortcut-heading{align-items:flex-start;flex-direction:column}}
 
+
+/* V2 Executive Workspace: global theme across the shell and embedded operations frame. */
+body.ezx-dark{--ink:#e7eef7;--muted:#a8b7ca;--line:#2c4058;--bg:#101a29;--white:#17263a;--shadow:0 12px 34px rgba(0,0,0,.24);background:var(--bg)!important;color:var(--ink)!important;color-scheme:dark}
+body.ezx-dark .login-wrap{background:radial-gradient(circle at 15% 15%,#1b344d 0,transparent 32%),radial-gradient(circle at 90% 85%,#183c3a 0,transparent 30%),#101a29}
+body.ezx-dark .login-card,body.ezx-dark .panel,body.ezx-dark .page-card,body.ezx-dark .kpi,body.ezx-dark .overview-shortcuts,body.ezx-dark .overview-date,body.ezx-dark .settings-panel,body.ezx-dark .profile-details>div,body.ezx-dark .live-data-stat,body.ezx-dark .live-data-panel{background:#17263a!important;color:var(--ink)!important;border-color:var(--line)!important}
+body.ezx-dark input,body.ezx-dark select,body.ezx-dark textarea{background:#1d3048!important;color:var(--ink)!important;border-color:#40546c!important}
+body.ezx-dark .drawer{background:#142338!important;color:var(--ink)!important}
+body.ezx-dark .drawer-body,body.ezx-dark .menu-subgroup{background:#142338!important}
+body.ezx-dark .menu-group{background:#17263a!important;border-color:#30445d!important}
+body.ezx-dark .menu-group-toggle,body.ezx-dark .workspace-control{background:#1b2d43!important;color:#e7eef7!important;border-color:#354b64!important}
+body.ezx-dark .menu-group.open .menu-group-toggle,body.ezx-dark .menu-group-toggle:hover{background:#243d59!important;color:#fff!important}
+body.ezx-dark .drawer-overview,body.ezx-dark .drawer-utility{background:#1d344d!important;color:#e7eef7!important;border-color:#354b64!important}
+body.ezx-dark .submenu-item{color:#c1cede!important;border-left-color:#40546c!important}
+body.ezx-dark .submenu-item:hover,body.ezx-dark .submenu-item.active{background:#243d59!important;color:#fff!important}
+body.ezx-dark .drawer-footer{border-color:#30445d!important}
+body.ezx-dark .drawer-signout{background:#492b32!important;color:#ffd9dc!important;border-color:#74414a!important}
+body.ezx-dark .shortcut-card,body.ezx-dark .chart-empty,body.ezx-dark .page-placeholder,body.ezx-dark .live-data-loading{background:#1d3048!important;color:#d8e3ef!important;border-color:#354b64!important}
+body.ezx-dark .shortcut-card strong,body.ezx-dark .shortcut-card small,body.ezx-dark .panel h3,body.ezx-dark .settings-panel-head h3,body.ezx-dark .profile-heading h3,body.ezx-dark .live-data-panel h3,body.ezx-dark .live-data-stat strong,body.ezx-dark .overview-intro h1,body.ezx-dark .shortcut-heading h3{color:#e7eef7!important}
+body.ezx-dark .live-data-table-wrap{border-color:#354b64!important}
+body.ezx-dark .live-data-table th{background:#20364f!important;color:#c1cede!important}
+body.ezx-dark .live-data-table td{border-color:#30445d!important;color:#d8e3ef!important}
+body.ezx-dark .status-row{border-color:#30445d!important}
+body.ezx-dark .status-row span,body.ezx-dark .overview-intro p,body.ezx-dark .shortcut-heading p,body.ezx-dark .panel-heading p,body.ezx-dark .page-card p{color:#a8b7ca!important}
+.workspace-menu-help,.workspace-menu-status{font-size:11px;color:var(--muted);margin:4px 2px 10px}
+.workspace-control{display:block;width:100%;text-align:left;margin:6px 0;padding:11px 12px;border:1px solid #e1e8ef;border-radius:9px;background:#fff;color:#24435f;font-size:12px;font-weight:750}
+.workspace-menu-status{margin-top:10px}
+body.ezx-compact .shell{padding-top:16px}
+body.ezx-compact .panel,body.ezx-compact .overview-shortcuts,body.ezx-compact .page-card{padding:14px}
+
 </style>
 
 <link rel="manifest" href="./manifest.webmanifest">
@@ -206,6 +235,17 @@ body.drawer-open .drawer{transform:translateX(0)}body.drawer-open .drawer-scrim{
  <div class="drawer-head"><div><strong>MANAGEMENT MENU</strong><small>SELECT A DIVISION TO EXPLORE</small></div><button id="drawerClose" class="drawer-close" type="button" aria-label="Close menu">×</button></div>
  <div class="drawer-body">
   <button class="drawer-overview" type="button" id="drawerOverview">⌂ &nbsp; Management Overview</button>
+  <section class="menu-group workspace-menu-group">
+   <button class="menu-group-toggle" type="button" aria-expanded="false"><span>Executive Workspace</span><span class="chevron">⌄</span></button>
+   <div class="menu-subgroup workspace-menu-panel" hidden>
+    <p class="workspace-menu-help">Personalise the appearance and layout of your Management Centre.</p>
+    <button type="button" class="workspace-control" id="ezxGlobalTheme">☾ Dark mode</button>
+    <button type="button" class="workspace-control" id="ezxGlobalDensity">Compact layout</button>
+    <button type="button" class="workspace-control" id="ezxGlobalReset">Reset workspace preferences</button>
+    <button type="button" class="workspace-control" id="ezxGlobalNotify">Enable notifications</button>
+    <p class="workspace-menu-status" id="ezxGlobalStatus" aria-live="polite">Your preferences are saved on this device and applied across the Management Centre.</p>
+   </div>
+  </section>
   <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Business Finance &amp; Capital</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
    <button class="submenu-item" data-page="Business Capital" data-group="Business Finance &amp; Capital">Business Capital</button><button class="submenu-item" data-page="Cash in Hand" data-group="Business Finance &amp; Capital">Cash in Hand</button><button class="submenu-item" data-page="Remaining Stock Value" data-group="Business Finance &amp; Capital">Remaining Stock Value</button><button class="submenu-item" data-page="Outstanding Customer Credit" data-group="Business Finance &amp; Capital">On-Credit Sales</button><button class="submenu-item" data-page="Total Current Assets" data-group="Business Finance &amp; Capital">Total Current Assets</button>
   </div></section>
@@ -937,5 +977,51 @@ window.loadEzelexManagementPage = (page, group) => {
   }
 })();
 </script>
+
+<script id="ezelex-global-workspace-controller">
+(()=>{
+ "use strict";
+ const KEY="ezelex-management-workspace-v1";
+ let prefs={theme:"light",compact:false};
+ try{prefs={...prefs,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(_){}
+ const $=id=>document.getElementById(id);
+ const apply=()=>{
+  document.body.classList.toggle("ezx-dark",prefs.theme==="dark");
+  document.body.classList.toggle("ezx-compact",!!prefs.compact);
+  const themeButton=$("ezxGlobalTheme");
+  if(themeButton)themeButton.textContent=prefs.theme==="dark"?"☀ Light mode":"☾ Dark mode";
+  const densityButton=$("ezxGlobalDensity");
+  if(densityButton)densityButton.textContent=prefs.compact?"Comfortable layout":"Compact layout";
+  document.querySelectorAll("#liveDataContent iframe").forEach(frame=>{
+   try{frame.contentWindow.postMessage({type:"ezelex-workspace-preferences",theme:prefs.theme,compact:!!prefs.compact},location.origin);}catch(_){}
+  });
+ };
+ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(prefs));}catch(_){};apply();};
+ document.addEventListener("click",event=>{
+  const target=event.target;
+  if(target.id==="ezxGlobalTheme"){prefs.theme=prefs.theme==="dark"?"light":"dark";save();}
+  if(target.id==="ezxGlobalDensity"){prefs.compact=!prefs.compact;save();}
+  if(target.id==="ezxGlobalReset"){
+   if(!confirm("Reset appearance and layout preferences on this device?"))return;
+   prefs={theme:"light",compact:false,hiddenWidgets:[],order:[]};save();
+   const status=$("ezxGlobalStatus");if(status)status.textContent="Workspace preferences have been reset.";
+  }
+  if(target.id==="ezxGlobalNotify"){
+   const status=$("ezxGlobalStatus");
+   if(!("Notification" in window)){if(status)status.textContent="This browser does not support notifications.";return;}
+   Notification.requestPermission().then(permission=>{
+    if(status)status.textContent=permission==="granted"?"Browser notifications are permitted on this device. Server-triggered push alerts require the separate push subscription backend.":"Notifications were not enabled.";
+   });
+  }
+ });
+ window.addEventListener("storage",event=>{if(event.key===KEY){try{prefs={...prefs,...JSON.parse(event.newValue||"{}")};}catch(_){}apply();}});
+ window.addEventListener("message",event=>{
+  if(event.origin!==location.origin||event.data?.type!=="ezelex-admin-frame-ready")return;
+  apply();
+ });
+ apply();
+})();
+</script>
+
 </body>
 </html>
