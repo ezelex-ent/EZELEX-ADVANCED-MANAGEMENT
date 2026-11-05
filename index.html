@@ -392,6 +392,9 @@ body.ezx-dark .overview-intro{background:linear-gradient(112deg,#0c1c30,#173d60 
   let otpTimer = null;
   let otpExpiresAt = 0;
   let sendingCode = false;
+  const MC_REMEMBER_KEY = "ezelex_mc_verified_device_v1";
+  const MC_REMEMBER_MS = 60 * 60 * 1000;
+  const MC_SESSION_MS = 45 * 60 * 1000;
 
   // NOTIFICATIONS
   function note(message, bad = false) {
@@ -555,6 +558,25 @@ body.ezx-dark .overview-intro{background:linear-gradient(112deg,#0c1c30,#173d60 
     }
   }
 
+  // A successful OTP creates a signed, one-hour trusted-browser token.
+  // The administrator password is still required on every fresh sign-in.
+  function readRememberedVerification(){
+    try{const x=JSON.parse(localStorage.getItem(MC_REMEMBER_KEY)||"null");if(!x||!x.token||!x.expiresAt||Date.now()>=x.expiresAt){localStorage.removeItem(MC_REMEMBER_KEY);return null;}return x;}catch(_){localStorage.removeItem(MC_REMEMBER_KEY);return null;}
+  }
+  function saveRememberedVerification(token,expiresAt){
+    if(token&&expiresAt)localStorage.setItem(MC_REMEMBER_KEY,JSON.stringify({token,expiresAt:Date.parse(expiresAt)}));
+  }
+  async function openAuthorizedManagement(data){
+    if(!data?.management_token||!data?.expires_at)throw new Error("A valid Management Centre session was not returned.");
+    const expiry=Date.parse(data.expires_at);if(!Number.isFinite(expiry)||expiry<=Date.now())throw new Error("The Management Centre session has expired.");
+    managementToken=data.management_token;sessionExpiresAt=expiry;
+    stopOtpTimer();challengeId="";$("otp").value="";
+    $("login").hidden=true;$("dashboard").hidden=false;window.managementAdminEmail=adminEmail;
+    $("signedIn").textContent="Verified administrator: "+adminEmail+" · Session expires "+new Date(sessionExpiresAt).toLocaleString();
+    startExpiryTimer();showDashboard();
+    if(window.loadEzelexManagementOverview)window.loadEzelexManagementOverview();
+  }
+
   // STEP 1: ADMINISTRATOR PASSWORD
   $("passwordForm").onsubmit = async e => {
     e.preventDefault();
@@ -589,7 +611,23 @@ body.ezx-dark .overview-intro{background:linear-gradient(112deg,#0c1c30,#173d60 
       $("intro").textContent =
         "Your password was accepted. Complete email verification.";
 
-      // AUTOMATIC OTP DELIVERY
+      // Re-authenticate with the password, then use the one-hour signed
+      // remembered verification only on this browser. Never skip password.
+      const remembered=readRememberedVerification();
+      if(remembered){
+        note("Checking your remembered administrator verification...");
+        try{
+          const trusted=await invoke("mc-authorize",{},{"x-mc-remember":remembered.token});
+          if(trusted?.authorized&&trusted?.management_token&&trusted?.expires_at){
+            await openAuthorizedManagement(trusted);
+            note("Welcome back. Your password was checked and your recent OTP verification is still valid.");
+            return;
+          }
+          localStorage.removeItem(MC_REMEMBER_KEY);
+        }catch(_){localStorage.removeItem(MC_REMEMBER_KEY);}
+      }
+      // The six-digit one-time code remains short-lived. The trusted-browser
+      // verification created after success lasts one hour.
       await sendOtp(false);
 
     } catch (error) {
@@ -647,64 +685,14 @@ body.ezx-dark .overview-intro{background:linear-gradient(112deg,#0c1c30,#173d60 
         code
       });
 
-      if (!data?.management_token || !data?.expires_at) {
-        throw new Error(
-          "A valid Management Centre session was not returned."
-        );
+      if (!data?.management_token || !data?.expires_at || !data?.remember_token || !data?.remember_expires_at) {
+        throw new Error("The security service did not return a complete authorized session.");
       }
-
-      const expiry = Date.parse(data.expires_at);
-
-      if (!Number.isFinite(expiry) || expiry <= Date.now()) {
-        throw new Error("The Management Centre session has expired.");
-      }
-
-      managementToken = data.management_token;
-
-      stopOtpTimer();
-
-      // SERVER-SIDE MANAGEMENT AUTHORIZATION
-      note("Checking administrator security authorization...");
-
-      const authorization = await invoke(
-        "mc-authorize",
-        {},
-        {
-          "x-mc-session": managementToken
-        }
-      );
-
-      if (!authorization?.authorized) {
-        throw new Error(
-          "Management Centre authorization was rejected."
-        );
-      }
-
-      // OPEN MANAGEMENT CENTRE
-      sessionExpiresAt = expiry;
-
-      challengeId = "";
-
-      $("otp").value = "";
-
-      $("login").hidden = true;
-      $("dashboard").hidden = false;
-
-      window.managementAdminEmail = adminEmail;
-      $("signedIn").textContent =
-        "Verified administrator: " +
-        adminEmail +
-        " · Session expires " +
-        new Date(sessionExpiresAt).toLocaleString();
-
-      startExpiryTimer();
-
-      showDashboard();
-      if (window.loadEzelexManagementOverview) window.loadEzelexManagementOverview();
-
-      note(
-        "Security verification successful. Management Centre session authorized."
-      );
+      saveRememberedVerification(data.remember_token,data.remember_expires_at);
+      const authorization = await invoke("mc-authorize", {}, {"x-mc-session":data.management_token});
+      if(!authorization?.authorized)throw new Error("Management Centre authorization was rejected.");
+      await openAuthorizedManagement(data);
+      note("Security verification successful. This browser can skip another OTP for one hour after your next password sign-in.");
 
     } catch (error) {
       clearManagementSession();
@@ -907,7 +895,7 @@ body.ezx-dark .overview-intro{background:linear-gradient(112deg,#0c1c30,#173d60 
   if(group==="Create Employee"){
     status.textContent=page==="Create Worker"?"Worker account creation will be connected to the existing employee-account workflow.":page==="Create Driver"?"Driver account creation will be connected to the existing employee-account workflow.":"Worker deletion will use the existing protected account-management workflow. Protected administrator accounts must remain unavailable for deletion.";
   } else if(page==="Communication Centre"){
-    status.textContent="Communication Centre workspace. Message sending uses the existing EZELEX messaging Edge Function, and history is read from the communications table.";
+    status.textContent="Communication Centre workspace. Message sending uses the existing EZELEX messaging Edge Function, and history is read from the same worker_messages records used by the messaging function.";
   } else if(page==="Management Profile"){
     document.getElementById('profileEmail').textContent=window.managementAdminEmail||"Verified administrator account";
   } else if(page!=="Change Password"){
@@ -937,7 +925,7 @@ const pending=w=>!w.active&&!w.activated_at;
 function calc(r){let total=Number(r.total_quantity||0),sold=Number(r.sold_quantity||0),damage=Number(r.damage_quantity||0),loss=Number(r.loss_quantity||0),unit=Number(r.cost_per_unit||0),remaining=Number(r.remaining_quantity??Math.max(0,total-sold-damage-loss)),revenue=Number(r.sales_revenue??sold*Number(r.selling_price_per_unit||0)),damageValue=Number(r.damage_value??damage*unit),lossValue=Number(r.loss_value??loss*unit),profit=Number(r.profit_loss??revenue-sold*unit-damageValue-lossValue);return{total,sold,damage,loss,unit,remaining,revenue,damageValue,lossValue,profit}}
 function balance(c){return Math.max(0,Number(c.total_contract_amount||0)-Number(c.opening_paid_amount||0)-D.payments.filter(p=>String(p.contract_id)===String(c.id)).reduce((n,p)=>n+Number(p.amount||0),0))}
 async function tableRead(name){const {data,error}=await db.from(name).select("*").limit(2000);if(error)throw new Error(name+": "+error.message);return data||[]}
-async function loadAllFresh(){const defs=[["profiles","worker_profiles"],["sales","sales"],["batches","worker_stock_batches"],["weeks","worker_stock_weeks"],["credits","worker_stock_credit_sales"],["history","worker_stock_edit_history"],["contracts","tricycle_contracts"],["reports","tricycle_weekly_reports"],["payments","tricycle_contract_payments"],["privateCosts","tricycle_contract_private_financials"],["communications","communications"]];let errors=[];const [rs,cap]=await Promise.all([Promise.allSettled(defs.map(d=>tableRead(d[1]))),db.from("ezelex_business_capital").select("id,original_capital,current_cash").eq("id",1).maybeSingle()]);rs.forEach((r,i)=>{if(r.status==="fulfilled")D[defs[i][0]]=r.value;else{D[defs[i][0]]=[];errors.push(r.reason.message)}});if(cap.error)errors.push("ezelex_business_capital: "+cap.error.message);D.capital=cap.data||null;const badge=document.querySelector(".live-badge");if(badge)badge.textContent=errors.length?"LIVE DATA PARTIALLY UNAVAILABLE":"LIVE DATA CONNECTED";updateOverview();return errors}
+async function loadAllFresh(){const defs=[["profiles","worker_profiles"],["sales","sales"],["batches","worker_stock_batches"],["weeks","worker_stock_weeks"],["credits","worker_stock_credit_sales"],["history","worker_stock_edit_history"],["contracts","tricycle_contracts"],["reports","tricycle_weekly_reports"],["payments","tricycle_contract_payments"],["privateCosts","tricycle_contract_private_financials"],["communications","worker_messages"]];let errors=[];const [rs,cap]=await Promise.all([Promise.allSettled(defs.map(d=>tableRead(d[1]))),db.from("ezelex_business_capital").select("id,original_capital,current_cash").eq("id",1).maybeSingle()]);rs.forEach((r,i)=>{if(r.status==="fulfilled")D[defs[i][0]]=r.value;else{D[defs[i][0]]=[];errors.push(r.reason.message)}});if(cap.error)errors.push("ezelex_business_capital: "+cap.error.message);D.capital=cap.data||null;const badge=document.querySelector(".live-badge");if(badge)badge.textContent=errors.length?"LIVE DATA PARTIALLY UNAVAILABLE":"LIVE DATA CONNECTED";updateOverview();return errors}
 // Reuse the authenticated data snapshot between section changes. This avoids repeating 12 database reads on every click.
 let ezelexDataLoadedAt=0,ezelexDataLoadPromise=null;
 async function loadAll(force=false){if(!force&&ezelexDataLoadedAt&&Date.now()-ezelexDataLoadedAt<30000)return [];if(ezelexDataLoadPromise)return ezelexDataLoadPromise;ezelexDataLoadPromise=(async()=>{const errors=await loadAllFresh();if(!errors.length)ezelexDataLoadedAt=Date.now();return errors})();try{return await ezelexDataLoadPromise}finally{ezelexDataLoadPromise=null}}
@@ -991,7 +979,7 @@ if(page==="Live Data Register"){
  out+=panel("Weekly report register",["Driver","Week","Sales","Payment","Status"],reports);
  out+=panel("Stock edit history",["Date","Employee ID","Action","Sold","Damage","Notes"],D.history.map(x=>`<tr><td>${date(x.changed_at)}</td><td>${esc(x.worker_id)}</td><td>${esc(x.action_type||x.action||"Edit")}</td><td>${num(x.sold_quantity)}</td><td>${num(x.damage_quantity)}</td><td>${esc(x.notes)}</td></tr>`));
  out+=panel("Customer credit register",["Date","Customer","Product","Due","Paid","Balance"],D.credits.map(x=>`<tr><td>${date(x.credit_date)}</td><td>${esc(x.customer_name)}</td><td>${esc(x.product_service)}</td><td>${money(x.amount_due)}</td><td>${money(x.amount_paid)}</td><td>${money(Number(x.amount_due||0)-Number(x.amount_paid||0))}</td></tr>`));
- out+=panel("Communication register",["Date","Recipient","Subject","Message","Status"],D.communications.map(x=>`<tr><td>${date(x.created_at)}</td><td>${esc(x.worker_id||"All active workers")}</td><td>${esc(x.subject)}</td><td>${esc(x.message)}</td><td>${esc(x.status||"sent")}</td></tr>`));
+ out+=panel("Communication register",["Date","Recipient","Subject","Message","Status"],D.communications.map(x=>{const person=D.profiles.find(p=>String(p.user_id||p.id)===String(x.worker_id));return `<tr><td>${date(x.sent_at||x.created_at)}</td><td>${esc(person?.full_name||person?.worker_id||"Employee")}</td><td>${esc(x.subject)}</td><td>${esc(x.message)}</td><td>${esc(x.status||"sent")}</td></tr>`}));
 }
 else if(group==="Financial Management"){let cash=Number(D.capital?.current_cash||0),capital=Number(D.capital?.original_capital??20000);out=statGrid([["Original capital",money(capital)],["Cash in hand",money(cash)],["Remaining stock value",money(stockValue)],["Customer credit",money(totalCredit)],["Total current assets",money(cash+stockValue+totalCredit)],["Assets less capital",money(cash+stockValue+totalCredit-capital)]]);out+=panel("Business asset position",["Asset","Amount"],[["Original capital",capital],["Cash in hand",cash],["Remaining stock",stockValue],["Outstanding customer credit",totalCredit],["Total current assets",cash+stockValue+totalCredit]].map(x=>`<tr><td>${x[0]}</td><td>${money(x[1])}</td></tr>`))}
 else if(group==="Payments & Risk"){let debts=D.contracts.map(c=>({c,b:balance(c)})).filter(x=>x.b>0);out=statGrid([["Customer credit accounts",num(creditOpen.length)],["Customer credit balance",money(totalCredit)],["Driver contract balance",money(debts.reduce((n,x)=>n+x.b,0))]]);out+=panel("Outstanding customer credit",["Date","Customer","Product","Qty","Due","Paid","Balance"],creditOpen.map(c=>`<tr><td>${date(c.credit_date)}</td><td>${esc(c.customer_name)}</td><td>${esc(c.product_service)}</td><td>${num(c.quantity)}</td><td>${money(c.amount_due)}</td><td>${money(c.amount_paid)}</td><td>${money(c.amount_due-c.amount_paid)}</td></tr>`));out+=panel("Driver balances",["Driver","Vehicle","Contract","Balance"],debts.map(x=>`<tr><td>${esc(x.c.driver_name)}</td><td>${esc(x.c.vehicle_id)}</td><td>${money(x.c.total_contract_amount)}</td><td>${money(x.b)}</td></tr>`))}
@@ -1001,7 +989,7 @@ else if(group==="Weekly Financial Closing"){let m=new Map();D.batches.forEach(r=
 else if(group==="Driver Contracts"){out=statGrid([["Contracts",num(D.contracts.length)],["Pending reports",num(D.reports.filter(x=>x.status==="pending").length)],["Outstanding balance",money(D.contracts.reduce((n,c)=>n+balance(c),0))],["Payments recorded",num(D.payments.length)]]);out+=panel("Contract register",["Driver","Worker ID","Vehicle","Start","End","Agreed","Paid","Balance","Status"],D.contracts.map(c=>{let b=balance(c);return `<tr><td>${esc(c.driver_name)}</td><td>${esc(c.driver_worker_id)}</td><td>${esc(c.vehicle_id)}</td><td>${date(c.contract_start_date)}</td><td>${date(c.contract_end_date)}</td><td>${money(c.total_contract_amount)}</td><td>${money(Number(c.total_contract_amount||0)-b)}</td><td>${money(b)}</td><td>${esc(c.status)}</td></tr>`}));out+=panel("Weekly reports",["Driver","Period","Sales","Payment","Status"],D.reports.map(r=>`<tr><td>${esc(r.driver_name||r.driver_worker_id)}</td><td>${date(r.week_start)} – ${date(r.week_end)}</td><td>${money(r.sales_amount)}</td><td>${money(r.payment_amount)}</td><td>${esc(r.status)}</td></tr>`));out+=panel("Payment ledger",["Date","Contract","Amount","Type","Method","Reference"],D.payments.map(p=>{let c=D.contracts.find(x=>String(x.id)===String(p.contract_id))||{};return `<tr><td>${date(p.payment_date)}</td><td>${esc(c.driver_name||c.vehicle_id)}</td><td>${money(p.amount)}</td><td>${esc(p.source_type)}</td><td>${esc(p.payment_method)}</td><td>${esc(p.reference)}</td></tr>`}))}
 else if(group==="Stock & Performance"){let total=D.batches.reduce((n,r)=>n+calc(r).total,0),sold=D.batches.reduce((n,r)=>n+calc(r).sold,0),remain=D.batches.reduce((n,r)=>n+calc(r).remaining,0),damage=D.batches.reduce((n,r)=>n+calc(r).damage,0),profit=D.batches.reduce((n,r)=>n+calc(r).profit,0);out=statGrid([["Units purchased",num(total)],["Units sold",num(sold)],["Units remaining",num(remain)],["Damaged units",num(damage)],["Stock batches",num(D.batches.length)],["Profit / loss",money(profit)]]);out+=panel("Stock batch register",["Date","Worker ID","Product","Bought","Sold","Damaged","Remaining","Profit / loss"],D.batches.map(r=>{let c=calc(r);return `<tr><td>${date(r.stock_date)}</td><td>${esc(r.worker_id)}</td><td>${esc(r.product_name||r.product_service)}</td><td>${num(c.total)}</td><td>${num(c.sold)}</td><td>${num(c.damage)}</td><td>${num(c.remaining)}</td><td>${money(c.profit)}</td></tr>`}))}
 else if(group==="Create Employee"){out=statGrid([["Employee profiles",num(D.profiles.filter(x=>x.role!=="admin").length)],["Active employees",num(D.profiles.filter(x=>x.role!=="admin"&&x.active).length)],["Pending profiles",num(D.profiles.filter(pending).length)]]);out+=panel("Employee directory",["Employee ID","Name","Email","Phone","Role","Contract end","Status"],D.profiles.filter(x=>x.role!=="admin").map(x=>`<tr><td>${esc(x.worker_id)}</td><td>${esc(x.full_name)}</td><td>${esc(x.email)}</td><td>${esc(x.phone)}</td><td>${esc(x.role)}</td><td>${date(x.contract_end)}</td><td>${x.active?"Active":pending(x)?"Pending":"Inactive"}</td></tr>`))}
-else if(page==="Communication Centre"){out=`<article class="live-data-panel"><h3>Send a communication</h3><p class="muted">Uses the existing send-worker-message Edge Function.</p><form class="communication-form" id="mcCommunicationForm"><label>Send to</label><select id="mcRecipient"><option value="ALL">All active workers</option>${D.profiles.filter(x=>x.active&&x.role!=="admin").map(x=>`<option value="${esc(x.user_id||x.id)}">${esc(x.full_name)} (${esc(x.worker_id)})</option>`).join("")}</select><label>Subject</label><input id="mcSubject" maxlength="200" required><label>Message</label><textarea id="mcMessage" maxlength="10000" required></textarea><button class="action-primary" type="submit">Send Message</button><div id="mcCommFeedback" class="form-feedback" role="status"></div></form></article>`;out+=panel("Communication history",["Date","Recipient","Subject","Message","Status"],D.communications.map(x=>`<tr><td>${date(x.created_at)}</td><td>${esc(x.worker_id||"All active workers")}</td><td>${esc(x.subject)}</td><td>${esc(x.message)}</td><td>${esc(x.status||"sent")}</td></tr>`))}
+else if(page==="Communication Centre"){out=`<article class="live-data-panel"><h3>Send a communication</h3><p class="muted">Uses the existing send-worker-message Edge Function.</p><form class="communication-form" id="mcCommunicationForm"><label>Send to</label><select id="mcRecipient"><option value="ALL">All active workers</option>${D.profiles.filter(x=>x.active&&x.role!=="admin").map(x=>`<option value="${esc(x.user_id||x.id)}">${esc(x.full_name)} (${esc(x.worker_id)})</option>`).join("")}</select><label>Subject</label><input id="mcSubject" maxlength="200" required><label>Message</label><textarea id="mcMessage" maxlength="10000" required></textarea><button class="action-primary" type="submit">Send Message</button><div id="mcCommFeedback" class="form-feedback" role="status"></div></form></article>`;out+=panel("Communication history",["Date","Recipient","Subject","Message","Status"],D.communications.map(x=>{const person=D.profiles.find(p=>String(p.user_id||p.id)===String(x.worker_id));return `<tr><td>${date(x.sent_at||x.created_at)}</td><td>${esc(person?.full_name||person?.worker_id||"Employee")}</td><td>${esc(x.subject)}</td><td>${esc(x.message)}</td><td>${esc(x.status||"sent")}</td></tr>`}))}
 else{out='<div class="live-data-note">This page is not yet connected to an existing business workflow.</div>'}
 $("liveDataContent").innerHTML=out;
 if(page==="Communication Centre")$("mcCommunicationForm").onsubmit=async e=>{e.preventDefault();let btn=e.submitter,fb=$("mcCommFeedback");btn.disabled=true;fb.textContent="Sending…";try{let {data:{session}}=await db.auth.getSession();if(!session)throw Error("Admin session expired. Sign in again.");let resp=await fetch("https://hweczhwoggmsrwhkktrx.supabase.co/functions/v1/send-worker-message",{method:"POST",headers:{"Authorization":"Bearer "+session.access_token,"apikey":"sb_publishable_D0o90HRJ1AfROf_DAj7ZAg_uaPDwqvV","Content-Type":"application/json"},body:JSON.stringify({worker_id:$("mcRecipient").value,subject:$("mcSubject").value.trim(),message:$("mcMessage").value.trim()})});let j=await resp.json().catch(()=>({}));if(!resp.ok||!j.success)throw Error(j.error||"Message could not be sent.");fb.className="form-feedback success";fb.textContent=j.message||"Message sent.";await loadAll(true);loadPage("Communication Centre","COMMUNICATION CENTRE")}catch(err){fb.textContent=err.message}finally{btn.disabled=false}};
@@ -1035,15 +1023,23 @@ window.loadEzelexManagementPage = (page, group) => {
     "Employee Management":"workers", "Employee Administration":"workers", "Create Employee":"workers", "Employee Directory":"workers", "Create Worker":"workers", "Create Driver":"workers", "Delete Worker":"workers", "Delete Driver":"workers", "Communication Centre":"communication"
   };
   const section = sectionMap[page] || sectionMap[group] || "overview";
-  const frame = document.createElement("iframe");
-  frame.title = "EZELEX complete administrator operations";
-  frame.src = "admin-operations.html?section=" + encodeURIComponent(section) + "&page=" + encodeURIComponent(page || "");
-  frame.style.cssText = "display:block;width:100%;min-height:1180px;border:0;border-radius:14px;background:transparent";
-  frame.setAttribute("loading", "eager");
-  frame.addEventListener("load", () => {
-    try { const h = frame.contentDocument.documentElement.scrollHeight; if (h > 600) frame.style.height = Math.min(h + 40, 6000) + "px"; } catch (_) {}
-  });
-  host.replaceChildren(frame);
+  let frame = host.querySelector("iframe[data-ezelex-operations]");
+  if(!frame){
+    frame=document.createElement("iframe");
+    frame.title="EZELEX complete administrator operations";
+    frame.dataset.ezelexOperations="true";
+    frame.style.cssText="display:block;width:100%;min-height:1180px;border:0;border-radius:14px;background:transparent";
+    frame.setAttribute("loading","eager");
+    frame.addEventListener("load",()=>{
+      try{const h=frame.contentDocument.documentElement.scrollHeight;if(h>600)frame.style.height=Math.min(h+40,6000)+"px";}catch(_){}
+      const pending=frame.dataset.pendingRoute;if(pending){try{frame.contentWindow.postMessage(JSON.parse(pending),location.origin);delete frame.dataset.pendingRoute;}catch(_){}}
+    });
+    frame.src="admin-operations.html?section="+encodeURIComponent(section)+"&page="+encodeURIComponent(page||"");
+    host.replaceChildren(frame);
+  }else{
+    const route={type:"ezelex-management-navigate",section,page:page||"",group:group||""};
+    try{frame.contentWindow.postMessage(route,location.origin);}catch(_){}
+  }
 };
 })();
 </script>
