@@ -417,7 +417,7 @@ function showLogin(){$("loginSection").classList.remove("hidden");$("dashboard")
 async function loadWorkers(){
  const r=await db.from("worker_profiles").select("*").order("full_name",{ascending:true});if(r.error){msg("dashMsg",r.error.message,"error");return}
  workers=(r.data||[]).filter(w=>w.role!=="admin");$("activeWorkers").textContent=workers.filter(w=>w.active).length;$("pendingWorkers").textContent=workers.filter(isPendingWorker).length;
- ["workerFilter","invWorkerFilter"].forEach(id=>{const s=$(id);s.innerHTML='<option value="">All workers</option>';workers.forEach(w=>{const o=document.createElement("option");o.value=w.user_id||w.id;o.textContent=`${w.full_name||"Worker"} (${w.worker_id||""})`;s.appendChild(o)})});
+ ["workerFilter","invWorkerFilter"].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">All workers</option>';workers.forEach(w=>{const o=document.createElement("option");o.value=w.user_id||w.id;o.textContent=`${w.full_name||"Worker"} (${w.worker_id||""})`;s.appendChild(o)})});
  const recipient=$("commRecipient");if(recipient){const prior=recipient.value;recipient.innerHTML='<option value="ALL">All Active Workers &amp; Drivers</option>';const activePeople=workers.filter(w=>w.active===true);["worker","driver"].forEach(role=>{const group=document.createElement("optgroup");group.label=role==="driver"?"Drivers":"Workers";activePeople.filter(w=>String(w.role||"worker").trim().toLowerCase()===role).forEach(w=>{const o=document.createElement("option");o.value=w.user_id||w.id;o.textContent=`${w.full_name||role} (${w.worker_id||""})`;group.appendChild(o)});if(group.children.length)recipient.appendChild(group)});if([...recipient.options].some(o=>o.value===prior))recipient.value=prior;}
  renderWorkers();if($("triWorker"))triPopulateSelects()
 }
@@ -662,8 +662,14 @@ document.querySelectorAll("[data-employee-view]").forEach(btn=>btn.addEventListe
 $("loginBtn").onclick=async()=>{msg("loginMsg","Signing in...");const r=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(r.error){msg("loginMsg",r.error.message,"error");return}await adminCheck()}
 $("forgotBtn").onclick=async()=>{const email=$("email").value.trim();if(!email){msg("loginMsg","Enter your admin email first.","error");return}const r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.href});msg("loginMsg",r.error?r.error.message:"Password recovery email sent. Check your inbox.",r.error?"error":"ok")}
 $("logoutBtn").onclick=()=>window.parent.ezelexManagementLogout()
-$("refreshBtn").onclick=async()=>{await loadWorkers();await Promise.all([loadInventory(),triLoadAll(),loadStockHistory(),loadAdminCredits(),loadBusinessCapital()]);ezelexInitReportFilters()}
-$("refreshWorkers").onclick=loadWorkers;$("applyFilters").onclick=applyFilters;$("statusFilter").onchange=applyFilters;$("workerFilter").onchange=applyFilters;$("refreshInventory").onclick=loadInventory;$("applyInvFilters").onclick=applyInvFilters;$("invWorkerFilter").onchange=applyInvFilters
+if($("refreshBtn"))$("refreshBtn").onclick=async()=>{await loadWorkers();await Promise.all([loadInventory(),triLoadAll(),loadStockHistory(),loadAdminCredits(),loadBusinessCapital()]);ezelexInitReportFilters()}
+if($("refreshWorkers"))$("refreshWorkers").onclick=loadWorkers;
+if($("applyFilters"))$("applyFilters").onclick=applyFilters;
+if($("statusFilter"))$("statusFilter").onchange=applyFilters;
+if($("workerFilter"))$("workerFilter").onchange=applyFilters;
+if($("refreshInventory"))$("refreshInventory").onclick=loadInventory;
+if($("applyInvFilters"))$("applyInvFilters").onclick=applyInvFilters;
+if($("invWorkerFilter"))$("invWorkerFilter").onchange=applyInvFilters;
 const _loadWorkersWithDeleteSelect=loadWorkers;loadWorkers=async function(){await _loadWorkersWithDeleteSelect();populateDeleteWorkerSelect()};
 const adminSectionHistory=[];
 function navigateAdminSection(section,fromBack=false){const current=document.querySelector(".page:not(.hidden)");if(!fromBack&&current&&current.id!==section)adminSectionHistory.push(current.id);document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));const target=$(section);if(target)target.classList.remove("hidden");document.querySelectorAll(".dashboard-nav button").forEach(x=>x.classList.toggle("active",x.dataset.section===section));$("adminMenu").classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu";if(section==="workers")window.scrollTo({top:0,behavior:"smooth"})}
