@@ -132,6 +132,30 @@ body.ezx-dark .status-row span,body.ezx-dark .overview-intro p,body.ezx-dark .sh
 body.ezx-compact .shell{padding-top:16px}
 body.ezx-compact .panel,body.ezx-compact .overview-shortcuts,body.ezx-compact .page-card{padding:14px}
 
+
+/* Additive grouped Management Overview; existing dashboard components are retained. */
+.management-overview-groups{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 18px}
+.overview-group-card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:20px;box-shadow:0 7px 22px rgba(16,36,62,.055);min-width:0}
+.overview-group-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:14px;border-bottom:1px solid #e9eef3}
+.overview-group-kicker{font-size:9px;font-weight:900;letter-spacing:1.5px;color:#138477}
+.overview-group-heading h3{margin:5px 0 3px;font-size:17px;color:#172b45}
+.overview-group-heading p{margin:0;color:#718197;font-size:11px}
+.overview-group-tag{padding:6px 9px;border-radius:20px;background:#e8f7ef;color:#16734a;font-size:9px;font-weight:900;letter-spacing:1px}
+.overview-group-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:13px}
+.overview-metric{min-width:0;border:1px solid #e8edf2;background:#f8fafc;border-radius:10px;padding:11px 12px}
+.overview-metric small{display:block;color:#75859a;font-size:9px;font-weight:800;letter-spacing:.55px;text-transform:uppercase}
+.overview-metric strong{display:block;color:#1c3c5c;font-size:17px;margin-top:5px;overflow-wrap:anywhere}
+.overview-live-ticker{display:flex;align-items:center;gap:12px;min-height:42px;margin:0 0 19px;padding:9px 14px;border-radius:10px;background:#102b46;color:#e8f1f8;overflow:hidden}
+.ticker-label{flex:0 0 auto;color:#f0d18b;font-size:9px;font-weight:900;letter-spacing:1.1px}
+#overviewLiveTicker{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.ezx-dark .overview-group-card{background:#17263a;border-color:#2c4058}
+body.ezx-dark .overview-group-heading{border-color:#30445d}
+body.ezx-dark .overview-group-heading h3,body.ezx-dark .overview-metric strong{color:#e7eef7}
+body.ezx-dark .overview-metric{background:#1d3048;border-color:#354b64}
+body.ezx-dark .overview-group-heading p,body.ezx-dark .overview-metric small{color:#a8b7ca}
+@media(max-width:850px){.management-overview-groups{grid-template-columns:1fr}}
+@media(max-width:480px){.overview-group-card{padding:15px}.overview-group-grid{gap:7px}.overview-metric{padding:10px}.overview-metric strong{font-size:15px}.overview-group-heading h3{font-size:15px}}
+
 </style>
 
 <link rel="manifest" href="./manifest.webmanifest">
@@ -185,6 +209,17 @@ body.ezx-compact .panel,body.ezx-compact .overview-shortcuts,body.ezx-compact .p
     <span class="overview-date" id="overviewDate">LIVE BUSINESS POSITION</span>
    </div>
    <div class="section-head"><div><h2>Management Overview</h2><p>Business position and operational monitoring at a glance.</p></div><span class="live-badge">CONNECTING TO LIVE BUSINESS DATA</span></div>
+   <section class="management-overview-groups" aria-label="Grouped live management overview">
+    <article class="overview-group-card">
+     <div class="overview-group-heading"><div><span class="overview-group-kicker">FLEET &amp; CONTRACTS</span><h3>Tricycle &amp; Account Overview</h3><p>Contract values, payments, balances and weekly driver reporting.</p></div><span class="overview-group-tag">LIVE</span></div>
+     <div class="overview-group-grid" id="tricycleOverviewMetrics"></div>
+    </article>
+    <article class="overview-group-card">
+     <div class="overview-group-heading"><div><span class="overview-group-kicker">BUSINESS PERFORMANCE</span><h3>Business Overview</h3><p>Capital, cash, stock, sales, customer credit and profitability.</p></div><span class="overview-group-tag">LIVE</span></div>
+     <div class="overview-group-grid" id="businessOverviewMetrics"></div>
+    </article>
+   </section>
+   <div class="overview-live-ticker" role="status" aria-live="polite"><span class="ticker-label">LIVE BUSINESS PULSE</span><span id="overviewLiveTicker">Connecting to existing EZELEX business records…</span></div>
    <div class="kpis">
     <button class="kpi dashboard-link" type="button" data-page="Business Capital" data-group="Business Finance &amp; Capital"><small>Business Capital</small><strong id="mcCapital">—</strong><p>Original business capital · Open details →</p></button>
     <button class="kpi dashboard-link" type="button" data-page="Cash in Hand" data-group="Business Finance &amp; Capital"><small>Available Cash</small><strong id="mcCash">—</strong><p>Administrator-confirmed cash · Open details →</p></button>
@@ -871,13 +906,7 @@ const pending=w=>!w.active&&!w.activated_at;
 function calc(r){let total=Number(r.total_quantity||0),sold=Number(r.sold_quantity||0),damage=Number(r.damage_quantity||0),loss=Number(r.loss_quantity||0),unit=Number(r.cost_per_unit||0),remaining=Number(r.remaining_quantity??Math.max(0,total-sold-damage-loss)),revenue=Number(r.sales_revenue??sold*Number(r.selling_price_per_unit||0)),damageValue=Number(r.damage_value??damage*unit),lossValue=Number(r.loss_value??loss*unit),profit=Number(r.profit_loss??revenue-sold*unit-damageValue-lossValue);return{total,sold,damage,loss,unit,remaining,revenue,damageValue,lossValue,profit}}
 function balance(c){return Math.max(0,Number(c.total_contract_amount||0)-Number(c.opening_paid_amount||0)-D.payments.filter(p=>String(p.contract_id)===String(c.id)).reduce((n,p)=>n+Number(p.amount||0),0))}
 async function tableRead(name){const {data,error}=await db.from(name).select("*").limit(2000);if(error)throw new Error(name+": "+error.message);return data||[]}
-let lastSuccessfulReadAt=0,liveReadInFlight=null;
-async function loadAll(forceRefresh=false){
- if(!forceRefresh&&lastSuccessfulReadAt&&Date.now()-lastSuccessfulReadAt<20000){updateOverview();return[];}
- if(liveReadInFlight)return liveReadInFlight;
- liveReadInFlight=(async()=>{const defs=[["profiles","worker_profiles"],["sales","sales"],["batches","worker_stock_batches"],["weeks","worker_stock_weeks"],["credits","worker_stock_credit_sales"],["history","worker_stock_edit_history"],["contracts","tricycle_contracts"],["reports","tricycle_weekly_reports"],["payments","tricycle_contract_payments"],["privateCosts","tricycle_contract_private_financials"],["communications","communications"]];let errors=[];const rs=await Promise.allSettled(defs.map(d=>tableRead(d[1])));rs.forEach((r,i)=>{if(r.status==="fulfilled")D[defs[i][0]]=r.value;else{D[defs[i][0]]=[];errors.push(r.reason.message)}});const cap=await db.from("ezelex_business_capital").select("id,original_capital,current_cash").eq("id",1).maybeSingle();if(cap.error)errors.push("ezelex_business_capital: "+cap.error.message);D.capital=cap.data||null;const badge=document.querySelector(".live-badge");if(badge)badge.textContent=errors.length?"LIVE DATA PARTIALLY UNAVAILABLE":"LIVE DATA CONNECTED";if(!errors.length)lastSuccessfulReadAt=Date.now();updateOverview();return errors})();
- try{return await liveReadInFlight;}finally{liveReadInFlight=null;}
-}
+async function loadAll(){const defs=[["profiles","worker_profiles"],["sales","sales"],["batches","worker_stock_batches"],["weeks","worker_stock_weeks"],["credits","worker_stock_credit_sales"],["history","worker_stock_edit_history"],["contracts","tricycle_contracts"],["reports","tricycle_weekly_reports"],["payments","tricycle_contract_payments"],["privateCosts","tricycle_contract_private_financials"],["communications","communications"]];let errors=[];const rs=await Promise.allSettled(defs.map(d=>tableRead(d[1])));rs.forEach((r,i)=>{if(r.status==="fulfilled")D[defs[i][0]]=r.value;else{D[defs[i][0]]=[];errors.push(r.reason.message)}});const cap=await db.from("ezelex_business_capital").select("id,original_capital,current_cash").eq("id",1).maybeSingle();if(cap.error)errors.push("ezelex_business_capital: "+cap.error.message);D.capital=cap.data||null;const badge=document.querySelector(".live-badge");if(badge)badge.textContent=errors.length?"LIVE DATA PARTIALLY UNAVAILABLE":"LIVE DATA CONNECTED";updateOverview();return errors}
 function updateOverview(){const cap=Number(D.capital?.original_capital??20000),cash=Number(D.capital?.current_cash||0),credit=D.credits.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0),stock=D.batches.reduce((n,r)=>{let x=calc(r);return n+x.remaining*x.unit},0),profit=D.batches.reduce((n,r)=>n+calc(r).profit,0),contractDebt=D.contracts.reduce((n,c)=>n+balance(c),0);$("mcCapital").textContent=money(cap);$("mcCash").textContent=money(cash);$("mcOutstanding").textContent=money(credit+contractDebt);$("mcProfit").textContent=money(profit);
 const chartHost=$("mcPerformanceChart");
 if(chartHost){
@@ -893,10 +922,17 @@ if(chartHost){
 }
 const od=$("overviewDate");if(od)od.textContent="UPDATED "+new Date().toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"});
 
-let old=$("overviewLiveSummary");if(old)old.remove();let el=document.createElement("div");el.id="overviewLiveSummary";el.className="overview-grid";
-const stockUnits=D.batches.reduce((n,r)=>n+calc(r).remaining,0),soldUnits=D.batches.reduce((n,r)=>n+calc(r).sold,0),soldValue=D.batches.reduce((n,r)=>n+calc(r).revenue,0),damageLossValue=D.batches.reduce((n,r)=>n+calc(r).damageValue+calc(r).lossValue,0),profitLoss=D.batches.reduce((n,r)=>n+calc(r).profit,0),contractBalance=D.contracts.reduce((n,c)=>n+balance(c),0);
-el.innerHTML=`<article class="panel"><h3>Live operational snapshot</h3><div class="live-data-grid">${stat("Active accounts",num(D.profiles.filter(x=>x.active).length))}${stat("Pending accounts",num(D.profiles.filter(pending).length))}${stat("Tricycle contracts",num(D.contracts.length))}${stat("Reports awaiting review",num(D.reports.filter(x=>x.status==="pending").length))}${stat("Outstanding contract balance",money(contractBalance))}${stat("Weekly shortfalls",num(D.reports.filter(x=>x.status==="pending"&&Number(x.shortfall_amount||x.shortfall||0)>0).length))}${stat("Stock remaining (units)",num(stockUnits))}${stat("Damage & loss value",money(damageLossValue))}${stat("Sold quantity",num(soldUnits))}${stat("Sold value",money(soldValue))}${stat("Profit / loss",money(profitLoss))}${stat("Customer credit outstanding",money(credit))}</div><p style="font-size:10px;color:#8291a2">Live figures use existing EZELEX records. Weekly shortfalls count pending reports with a recorded shortfall field; contract balances are calculated from the existing payment ledger. No new database values are estimated.</p></article><article class="panel"><h3>Connected business records</h3><div class="status-list">${statusRow("Worker profiles",D.profiles.length)}${statusRow("Sales records",D.sales.length)}${statusRow("Stock batches",D.batches.length)}${statusRow("Customer credit records",D.credits.length)}${statusRow("Driver contracts",D.contracts.length)}${statusRow("Communications",D.communications.length)}</div><button class="live-refresh" id="refreshLiveData" type="button">↻ Refresh live data</button></article>`;$("overviewPage").appendChild(el);$("refreshLiveData").onclick=async()=>{let b=$("refreshLiveData");b.disabled=true;b.textContent="Refreshing…";let e=await loadAll(true);b.disabled=false;b.textContent="↻ Refresh live data";if(e.length)alert("Some tables could not be read:\n"+e.join("\n"))}}
-function stat(a,b){let action=/pending|awaiting|invitation/i.test(a),profit=/profit|loss/i.test(a),contract=/tricycle|contract|shortfall/i.test(a),stockMetric=/stock remaining|damage|sold quantity|sold value/i.test(a),creditMetric=/credit/i.test(a);let target=action?"Pending Actions":profit?"Profit & Loss":contract?"Driver Contracts":stockMetric?"Stock & Performance":/employee|account/i.test(a)?"Employee Directory":creditMetric?"Outstanding Customer Credit":"";let group=action?"Reports &amp; Approvals":profit||stockMetric?"Stock &amp; Inventory":contract?"Driver Contracts":/employee|account/i.test(a)?"Employee Management":creditMetric?"Payments &amp; Risk":"";return target?`<button type="button" class="live-data-stat dashboard-link ${action?'action-shortcut':profit?'profit-kpi':''}" data-page="${target}" data-group="${group}"><small>${a}</small><strong>${b}</strong><em>Open page →</em></button>`:`<div class="live-data-stat"><small>${a}</small><strong>${b}</strong></div>`}
+const contractTotal=D.contracts.reduce((n,c)=>n+Number(c.total_contract_amount||0),0);
+ const paidTotal=D.contracts.reduce((n,c)=>n+Number(c.opening_paid_amount||0),0)+D.payments.reduce((n,p)=>n+Number(p.amount||0),0);
+ const approvedSales=D.sales.filter(x=>String(x.status||"pending").toLowerCase()==="approved").reduce((n,x)=>n+Number(x.sale_amount||0),0);
+ const activeContracts=D.contracts.filter(c=>String(c.status||"").toLowerCase()==="active").length;
+ const setMetrics=(id,items)=>{const host=$(id);if(host)host.innerHTML=items.map(([label,value])=>`<div class="overview-metric"><small>${label}</small><strong>${value}</strong></div>`).join("")};
+ setMetrics("tricycleOverviewMetrics",[["Active contracts",num(activeContracts)],["Total contract value",money(contractTotal)],["Total payments received",money(paidTotal)],["Outstanding contract balance",money(contractDebt)],["Weekly reports pending",num(D.reports.filter(x=>String(x.status||"").toLowerCase()==="pending").length)],["Payment records",num(D.payments.length)]]);
+ setMetrics("businessOverviewMetrics",[["Original business capital",money(cap)],["Available cash",money(cash)],["Remaining stock value",money(stock)],["Customer credit outstanding",money(credit)],["Approved sales",money(approvedSales)],["Stock profit / loss",money(profit)]]);
+ const ticker=$("overviewLiveTicker");if(ticker)ticker.textContent=`${num(D.profiles.filter(x=>x.active).length)} active employees  •  ${num(D.contracts.length)} tricycle contracts  •  ${money(contractDebt)} contract balance outstanding  •  ${num(D.reports.filter(x=>x.status==="pending").length)} driver reports awaiting review  •  ${money(approvedSales)} approved sales  •  ${money(profit)} stock profit / loss`;
+
+ let old=$("overviewLiveSummary");if(old)old.remove();let el=document.createElement("div");el.id="overviewLiveSummary";el.className="overview-grid";el.innerHTML=`<article class="panel"><h3>Live operational snapshot</h3><div class="live-data-grid">${stat("Active employees",num(D.profiles.filter(x=>x.active).length))}${stat("Pending invitations",num(D.profiles.filter(pending).length))}${stat("Sales awaiting review",num(D.sales.filter(x=>(x.status||"pending")==="pending").length))}${stat("Driver reports pending",num(D.reports.filter(x=>x.status==="pending").length))}${stat("Remaining stock value",money(stock))}${stat("Customer credit outstanding",money(credit))}</div><p style="font-size:10px;color:#8291a2">Figures are read from existing EZELEX tables. Contract balances are included in the outstanding KPI above.</p></article><article class="panel"><h3>Connected business records</h3><div class="status-list">${statusRow("Worker profiles",D.profiles.length)}${statusRow("Sales records",D.sales.length)}${statusRow("Stock batches",D.batches.length)}${statusRow("Customer credit records",D.credits.length)}${statusRow("Driver contracts",D.contracts.length)}${statusRow("Communications",D.communications.length)}</div><button class="live-refresh" id="refreshLiveData" type="button">↻ Refresh live data</button></article>`;$("overviewPage").appendChild(el);$("refreshLiveData").onclick=async()=>{let b=$("refreshLiveData");b.disabled=true;b.textContent="Refreshing…";let e=await loadAll();b.disabled=false;b.textContent="↻ Refresh live data";if(e.length)alert("Some tables could not be read:\n"+e.join("\n"))}}
+function stat(a,b){let action=/pending|awaiting|invitation/i.test(a),profit=/profit/i.test(a);let target=action?"Pending Actions":profit?"Profit & Loss":/employee/i.test(a)?"Employee Directory":/stock value/i.test(a)?"Remaining Stock Value":/credit/i.test(a)?"Outstanding Customer Credit":"";let group=action?"Reports &amp; Approvals":profit?"Stock &amp; Inventory":/employee/i.test(a)?"Employee Management":/stock value/i.test(a)?"Stock &amp; Inventory":/credit/i.test(a)?"Business Finance &amp; Capital":"";return target?`<button type="button" class="live-data-stat dashboard-link ${action?'action-shortcut':profit?'profit-kpi':''}" data-page="${target}" data-group="${group}"><small>${a}</small><strong>${b}</strong><em>Open page →</em></button>`:`<div class="live-data-stat"><small>${a}</small><strong>${b}</strong></div>`}
 function statusRow(a,n){return `<div class="status-row"><span>${a}</span><b>${num(n)} RECORDS</b></div>`}
 function panel(title,heads,rows){return `<article class="live-data-panel"><h3>${title}</h3><div class="live-data-table-wrap"><table class="live-data-table"><thead><tr>${heads.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows.length?rows.join(""):`<tr><td colspan="${heads.length}">No records found.</td></tr>`}</tbody></table></div></article>`}
 function statGrid(items){return `<div class="live-data-grid">${items.map(x=>stat(x[0],x[1])).join("")}</div>`}
