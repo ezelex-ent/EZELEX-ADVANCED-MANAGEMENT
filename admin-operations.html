@@ -385,9 +385,9 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
  <div class="section hidden" id="triPaymentMonitorPanel"><h2>Weekly Driver Payment Monitoring — Critical Control</h2><p class="muted">Daily control of every completed Monday–Sunday contract week. The payment ledger is the source of confirmed receipts; a report submission alone never counts as money received.</p>
  <div id="triMonitorCriticalBanner" role="alert" aria-live="assertive" style="border:2px solid #b42318;background:linear-gradient(110deg,#fff0ef,#fff8f7);border-left:9px solid #b42318;border-radius:14px;padding:17px 18px;margin:14px 0 18px;box-shadow:0 8px 24px rgba(180,35,24,.12)"><div style="font-size:12px;font-weight:900;letter-spacing:.12em;color:#a11b1b">CRITICAL PAYMENT CONTROL · ADMIN ACTION REQUIRED</div><div id="triMonitorCriticalHeadline" style="font-size:clamp(19px,3vw,26px);font-weight:900;color:#7f1d1d;margin:5px 0">Checking completed payment weeks…</div><div id="triMonitorCriticalDetail" style="color:#7f1d1d">Refresh monitoring to verify current ledger records.</div></div>
  <div class="toolbar"><select id="triMonitorContractFilter" style="max-width:320px"><option value="">All drivers / contracts</option></select><select id="triMonitorStatusFilter" style="max-width:260px"><option value="">All payment risks</option><option value="attention">All action required</option><option value="OVERDUE — NO PAYMENT">Overdue — no payment</option><option value="OVERDUE — PART PAYMENT">Overdue — part payment</option><option value="LATE REPORT">Late report</option><option value="PENDING APPROVAL">Pending approval</option><option value="PAID">Paid</option><option value="LOCKED">Locked</option></select><button type="button" class="soft" id="triMonitorRefresh">Refresh Monitoring</button></div>
- <div class="cards" style="grid-template-columns:repeat(4,1fr)"><div class="card"><div class="label">Overdue — No Payment</div><div class="value" id="triMonitorMissing">0</div><small>Completed weeks with zero ledger receipts</small></div><button type="button" class="card" id="triMonitorLateCard" style="text-align:left;cursor:pointer;border:2px solid #b42318;background:#fff1f0;width:100%;box-shadow:0 6px 22px rgba(180,35,24,.14)" aria-label="Open critical overdue and late payment action list"><div class="label" style="color:#a11b1b;font-weight:900">OVERDUE / LATE · ACTION NOW</div><div class="value" id="triMonitorLate" style="color:#b42318">0</div><small style="color:#912018;font-weight:800">Tap to open prioritised action queue</small></button><div class="card"><div class="label">Pending Approval</div><div class="value" id="triMonitorPending">0</div><small>Not counted as confirmed payment</small></div><div class="card"><div class="label">Total Weekly Exposure</div><div class="value" id="triMonitorShortfall">GH₵0.00</div><small>Outstanding across completed weeks</small></div></div>
+ <div class="cards" style="grid-template-columns:repeat(4,1fr)"><div class="card"><div class="label">Overdue — No Payment</div><div class="value" id="triMonitorMissing">0</div><small>Completed weeks with zero ledger receipts</small></div><button type="button" class="card" id="triMonitorLateCard" style="text-align:left;cursor:pointer;border:2px solid #b42318;background:#fff1f0;width:100%;box-shadow:0 6px 22px rgba(180,35,24,.14)" aria-label="Open critical overdue and late payment action list"><div class="label" style="color:#a11b1b;font-weight:900">OVERDUE / LATE · ACTION NOW</div><div class="value" id="triMonitorLate" style="color:#b42318">0</div><small style="color:#912018;font-weight:800">Tap to open prioritised action queue</small></button><div class="card"><div class="label">Pending Approval</div><div class="value" id="triMonitorPending">0</div><small>Not counted as confirmed payment</small></div><div class="card"><div class="label">Total Overdue Payment Exposure</div><div class="value" id="triMonitorShortfall">GH₵0.00</div><small>Overdue payment only; report shortfalls are separate</small></div></div>
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0 9px"><h3 style="margin:0;color:#8b1e1e">Priority action queue</h3><span id="triMonitorQueueMeta" class="muted">Oldest and highest unpaid amounts appear first.</span></div>
- <div class="tablebox"><table style="min-width:1150px"><thead><tr><th>Priority / Driver</th><th>Week (Monday–Sunday)</th><th>Days overdue</th><th>Expected</th><th>Ledger paid</th><th>Outstanding</th><th>Report status / submitted</th><th>Payment risk</th><th>Action</th></tr></thead><tbody id="triPaymentMonitorBody"><tr><td colspan="9" class="empty">Loading payment monitoring…</td></tr></tbody></table></div>
+ <div class="tablebox"><table style="min-width:1150px"><thead><tr><th>Priority / Driver</th><th>Week (Monday–Sunday)</th><th>Days overdue</th><th>Expected</th><th>Ledger paid</th><th>Overdue payment</th><th>Weekly report shortfall</th><th>Report status / submitted</th><th>Payment risk</th><th>Action</th></tr></thead><tbody id="triPaymentMonitorBody"><tr><td colspan="10" class="empty">Loading payment monitoring…</td></tr></tbody></table></div>
  <div class="ez-week-control" style="margin-top:18px"><div><b>Lock / unlock a previous week</b><p class="muted">Lock only a completed Sunday week. This admin control writes the lock record; driver-side blocking is effective only if the database enforcement trigger/policy is installed and verified.</p></div><div class="ez-week-fields"><select id="triMonitorLockContract"><option value="">Select contract</option></select><input id="triMonitorLockEnd" type="date" aria-label="Sunday week ending date"><button type="button" class="danger" id="triMonitorLockBtn">Lock Previous Week</button><button type="button" class="soft" id="triMonitorUnlockBtn">Unlock Week</button></div></div><div id="triMonitorLockMessage" class="msg" role="status" aria-live="polite">Select a driver and a Sunday week-ending date.</div></div>
  <div class="section hidden" id="triLedgerPanel"><h2>Full Payment Ledger</h2><p class="muted">Includes historical payments and payments confirmed by weekly report approval.</p><div class="tablebox"><table><thead><tr><th>Date</th><th>Driver / Vehicle</th><th>Amount</th><th>Type</th><th>Method</th><th>Reference</th><th>Notes</th></tr></thead><tbody id="triPaymentsBody"><tr><td colspan="7" class="empty">Loading payments...</td></tr></tbody></table></div></div>
 </section>
@@ -876,45 +876,53 @@ if(shortfallsCard)shortfallsCard.addEventListener('click',function(){
 })();
 
 
-// Weekly payment monitoring. Completed weeks are derived from contract dates in Monday–Sunday blocks.
+// Weekly payment monitoring. Payment due and weekly report shortfall are deliberately separate.
+function triGhanaClock(){
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Accra',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
+ const v={};parts.forEach(x=>{if(x.type!=='literal')v[x.type]=x.value;});
+ const iso=`${v.year}-${v.month}-${v.day}`,time=`${v.hour}:${v.minute}:${v.second}`;
+ return {iso,time,nowMs:Date.parse(`${iso}T${time}Z`)};
+}
+function triAddDaysISO(iso,n){const d=new Date(iso+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+function triPaymentDueAt(weekEnd){return Date.parse(triAddDaysISO(weekEnd,1)+'T16:00:00Z');}
 function triMonitorRows(){
- const today=new Date();today.setHours(0,0,0,0);
- const currentMonday=new Date(today);currentMonday.setDate(currentMonday.getDate()-((currentMonday.getDay()+6)%7));
+ const gh=triGhanaClock(),today=new Date(gh.iso+'T12:00:00Z');
+ const currentMonday=new Date(today);currentMonday.setUTCDate(currentMonday.getUTCDate()-((currentMonday.getUTCDay()+6)%7));
  const rows=[];
  triContracts.forEach(c=>{
-  const start=new Date(String(c.contract_start_date||'').slice(0,10)+'T00:00:00');if(Number.isNaN(start.getTime()))return;
-  let wsDate=new Date(start);wsDate.setDate(wsDate.getDate()-((wsDate.getDay()+6)%7));
+  const startISO=String(c.contract_start_date||'').slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(startISO))return;
+  const start=new Date(startISO+'T00:00:00Z');
+  let wsDate=new Date(start);wsDate.setUTCDate(wsDate.getUTCDate()-((wsDate.getUTCDay()+6)%7));
   for(let guard=0;guard<520;guard++){
-   const weDate=new Date(wsDate);weDate.setDate(weDate.getDate()+6);if(weDate>=currentMonday)break;
-   const ws=wsDate.getFullYear()+'-'+String(wsDate.getMonth()+1).padStart(2,'0')+'-'+String(wsDate.getDate()).padStart(2,'0');
-   const we=weDate.getFullYear()+'-'+String(weDate.getMonth()+1).padStart(2,'0')+'-'+String(weDate.getDate()).padStart(2,'0');
+   const weDate=new Date(wsDate);weDate.setUTCDate(weDate.getUTCDate()+6);
+   if(weDate>=currentMonday)break;
+   const ws=wsDate.toISOString().slice(0,10),we=weDate.toISOString().slice(0,10);
    if(c.contract_end_date&&ws>String(c.contract_end_date).slice(0,10))break;
+   const dueAt=triPaymentDueAt(we),isOverdue=gh.nowMs>=dueAt;
    const weekReports=triReports.filter(r=>String(r.contract_id)===String(c.id)&&String(r.week_start||'').slice(0,10)===ws&&String(r.week_end||'').slice(0,10)===we);
    const report=weekReports.slice().sort((x,y)=>String(y.submitted_at||'').localeCompare(String(x.submitted_at||'')))[0]||null;
-   // SAME RULE AS DRIVER PORTAL: ledger payments allocated by payment_date to this
-   // Monday-Sunday week; approved report payments are fallback only if ledger is zero.
    const weekLedger=triPayments.filter(p=>String(p.contract_id)===String(c.id)&&String(p.payment_date||p.created_at||'').slice(0,10)>=ws&&String(p.payment_date||p.created_at||'').slice(0,10)<=we);
    const ledgerPaid=weekLedger.reduce((n,p)=>n+Math.max(0,Number(p.amount||0)),0);
    const approvedReport=weekReports.filter(r=>String(r.status||'').toLowerCase()==='approved').reduce((n,r)=>n+Math.max(0,Number(r.payment_amount||0)),0);
-   const lock=ezWeekLocks.find(x=>String(x.contract_id)===String(c.id)&&String(x.week_end).slice(0,10)===we&&x.is_locked);
-   const activeStart=new Date(Math.max(wsDate.getTime(),start.getTime())),contractEnd=c.contract_end_date?new Date(String(c.contract_end_date).slice(0,10)+'T00:00:00'):null,activeEnd=contractEnd&&contractEnd<weDate?contractEnd:weDate;
+   const activeStart=new Date(Math.max(wsDate.getTime(),start.getTime())),contractEnd=c.contract_end_date?new Date(String(c.contract_end_date).slice(0,10)+'T00:00:00Z'):null,activeEnd=contractEnd&&contractEnd<weDate?contractEnd:weDate;
    const activeDays=Math.max(0,Math.floor((activeEnd-activeStart)/86400000)+1);
-   const daily=Number(c.daily_target||0),weekly=Number(c.weekly_target||daily*7);
-   const expected=activeDays>=7?weekly:daily*activeDays;
-   const confirmed=ledgerPaid>0?ledgerPaid:approvedReport;
-   const outstanding=Math.max(0,expected-confirmed),daysOverdue=Math.max(0,Math.floor((today-weDate)/86400000));
+   const daily=Number(c.daily_target||0),weekly=Number(c.weekly_target||daily*7),expected=activeDays>=7?weekly:daily*activeDays;
+   const confirmed=ledgerPaid>0?ledgerPaid:approvedReport,outstanding=Math.max(0,expected-confirmed);
+   const lock=ezWeekLocks.find(x=>String(x.contract_id)===String(c.id)&&String(x.week_end).slice(0,10)===we&&x.is_locked);
    const submitted=report?.submitted_at?new Date(report.submitted_at):null;
-   const reportStatus=report?String(report.status||'unknown').toUpperCase():'NOT SUBMITTED';
-   const lateReport=!!(submitted&&submitted>new Date(we+'T23:59:59'));
+   const reportLate=!report||!submitted||submitted.getTime()>dueAt;
+   const reportStatus=report?(String(report.status||'unknown').toUpperCase()+(reportLate?' · LATE SUBMISSION':'')):'NOT SUBMITTED · LATE';
+   const weeklyShortfall=Math.max(0,Number(report?.shortage_amount??report?.shortfall??0));
    let risk='PAID';
-   if(lock)risk='LOCKED';
-   else if(outstanding>0&&confirmed<=0)risk='OVERDUE — NO PAYMENT';
-   else if(outstanding>0)risk='OVERDUE — PART PAYMENT';
-   else if(lateReport)risk='LATE REPORT';
-   else if(weekReports.some(r=>String(r.status||'').toLowerCase()==='pending'))risk='PENDING APPROVAL';
-   const priority=risk==='OVERDUE — NO PAYMENT'?4:risk==='OVERDUE — PART PAYMENT'?3:risk==='LATE REPORT'?2:risk==='PENDING APPROVAL'?1:0;
-   rows.push({c,ws,we,report,expected,reported:Number(report?.payment_amount||0),confirmed,outstanding,submitted,reportStatus,risk,priority,daysOverdue,lock,ledgerPaid,lateReport,weekReports});
-   wsDate.setDate(wsDate.getDate()+7);
+   if(isOverdue&&outstanding>0.009)risk=confirmed<=0?'OVERDUE — NO PAYMENT':'OVERDUE — PART PAYMENT';
+   else if(!isOverdue&&outstanding>0.009)risk='NOT DUE UNTIL MONDAY 4 PM';
+   else if(lock)risk='LOCKED';
+   const priority=risk==='OVERDUE — NO PAYMENT'?4:risk==='OVERDUE — PART PAYMENT'?3:0;
+   // Keep completed weeks visible so an unsubmitted week is never omitted from monitoring.
+   if(isOverdue||report||weeklyShortfall>0){
+    rows.push({c,ws,we,report,expected,reported:Number(report?.payment_amount||0),confirmed,outstanding,submitted,reportStatus,risk,priority,daysOverdue:isOverdue?Math.max(0,Math.floor((gh.nowMs-dueAt)/86400000)):0,lock,ledgerPaid,reportLate,weeklyShortfall,weekReports,isOverdue});
+   }
+   wsDate.setUTCDate(wsDate.getUTCDate()+7);
   }
  });
  return rows.sort((a,b)=>b.priority-a.priority||b.daysOverdue-a.daysOverdue||b.outstanding-a.outstanding||b.we.localeCompare(a.we));
@@ -922,22 +930,19 @@ function triMonitorRows(){
 function triRenderPaymentMonitor(){
  const body=$('triPaymentMonitorBody');if(!body)return;
  const rows=triMonitorRows(),cf=$('triMonitorContractFilter')?.value||'',sf=$('triMonitorStatusFilter')?.value||'';
- const attention=rows.filter(x=>x.priority>=2&&x.outstanding>0);
- const shown=rows.filter(x=>(!cf||String(x.c.id)===cf)&&(!sf||(sf==='attention'?(x.priority>=2||x.risk==='PENDING APPROVAL'):x.risk===sf)));
+ const shown=rows.filter(x=>(!cf||String(x.c.id)===cf)&&(!sf||(sf==='attention'?(x.priority>=2):x.risk===sf)));
  const noPay=rows.filter(x=>x.risk==='OVERDUE — NO PAYMENT').length;
  const partial=rows.filter(x=>x.risk==='OVERDUE — PART PAYMENT').length;
- const late=rows.filter(x=>x.risk==='LATE REPORT').length;
- const pending=rows.filter(x=>x.risk==='PENDING APPROVAL').length;
- const exposure=rows.reduce((n,x)=>n+x.outstanding,0);
- const driverExposure=new Map();rows.forEach(x=>driverExposure.set(String(x.c.id),(driverExposure.get(String(x.c.id))||0)+x.outstanding));
+ const pending=rows.filter(x=>x.isOverdue&&x.report&&String(x.report.status||'').toLowerCase()==='pending').length;
+ const exposure=rows.filter(x=>x.isOverdue).reduce((n,x)=>n+x.outstanding,0);
  $('triMonitorMissing').textContent=noPay;
- $('triMonitorLate').textContent=noPay+partial+late;
+ $('triMonitorLate').textContent=noPay+partial;
  $('triMonitorPending').textContent=pending;
  $('triMonitorShortfall').textContent=money(exposure);
  const banner=$('triMonitorCriticalBanner'),headline=$('triMonitorCriticalHeadline'),detail=$('triMonitorCriticalDetail');
- if(headline&&detail){if(noPay+partial+late){headline.textContent=`${noPay+partial+late} completed week(s) need urgent payment action`;detail.textContent=`${noPay} with no ledger payment · ${partial} with partial payment · ${late} late reports · ${money(attention.reduce((n,x)=>n+x.outstanding,0))} currently unpaid in this priority queue. Review the oldest cases first.`;if(banner)banner.style.borderLeftColor='#b42318';}else{headline.textContent='No overdue or late payment exceptions found';detail.textContent=`${pending} report(s) still await review. Total outstanding across all completed weeks: ${money(exposure)}.`;if(banner){banner.style.borderLeftColor='#067647';banner.style.background='linear-gradient(110deg,#ecfdf3,#f6fffa)';}}}
- const meta=$('triMonitorQueueMeta');if(meta)meta.textContent=`${shown.length} of ${rows.length} completed contract-weeks · prioritised by risk, age and amount`;
- body.innerHTML=shown.length?shown.map(x=>{const critical=x.priority>=3,submitted=x.submitted?x.submitted.toLocaleString():'Not submitted';const badge=x.risk==='PAID'?'approved':x.risk==='PENDING APPROVAL'?'pending':x.risk==='LOCKED'?'pending':'rejected';const priorityLabel=x.risk==='OVERDUE — NO PAYMENT'?'CRITICAL':x.risk==='OVERDUE — PART PAYMENT'?'HIGH':x.risk==='LATE REPORT'?'LATE':'REVIEW';return `<tr style="${critical?'background:#fff7f6':''}"><td><b style="color:${critical?'#a11b1b':'#172b4d'}">${priorityLabel}</b><br><b>${esc(x.c.driver_name||'Driver')}</b><br><small>${esc(x.c.vehicle_id||'—')}</small><br><small style="font-weight:800;color:#8b1e1e">Driver total outstanding: ${money(driverExposure.get(String(x.c.id))||0)}</small></td><td>${esc(x.ws)} → ${esc(x.we)}</td><td><b style="color:${x.daysOverdue>=7&&x.outstanding>0?'#b42318':'inherit'}">${x.daysOverdue} day(s)</b></td><td>${money(x.expected)}</td><td>${money(x.confirmed)}</td><td><b style="color:${x.outstanding>0?'#b42318':'#067647'}">${money(x.outstanding)}</b></td><td>${esc(x.reportStatus)}<br><small>${esc(submitted)}</small></td><td><span class="badge ${badge}" style="white-space:normal">${esc(x.risk)}</span></td><td>${x.lock?`<button type="button" class="soft" onclick="triMonitorLockWeek('${esc(x.c.id)}','${esc(x.we)}',false)">Unlock</button>`:`<button type="button" class="danger" onclick="triMonitorLockWeek('${esc(x.c.id)}','${esc(x.we)}',true)">Lock week</button>`}${x.report?`<br><button type="button" class="soft" style="margin-top:5px" onclick="window.openEzelexTriPanel&&window.openEzelexTriPanel('triReportsPanel')">Review report</button>`:''}${x.outstanding>0?`<br><button type="button" class="danger" style="margin-top:5px" onclick="triSendOverdueReminder('${esc(x.c.id)}','${esc(x.ws)}','${esc(x.we)}',this)">Email payment warning</button>`:''}</td></tr>`}).join(''):'<tr><td colspan="9" class="empty">No completed weeks match this filter.</td></tr>';
+ if(headline&&detail){if(noPay+partial){headline.textContent=`${noPay+partial} overdue payment week(s) need action`;detail.textContent=`${noPay} with no confirmed payment · ${partial} with partial payment · ${money(exposure)} overdue payment balance. Weekly report shortfalls are shown separately and are not added to this amount.`;if(banner)banner.style.borderLeftColor='#b42318';}else{headline.textContent='No overdue payment balance after the Monday 4:00 PM Ghana deadline';detail.textContent=`${pending} overdue-week report(s) still await review. Weekly report shortfalls remain separate.`;if(banner){banner.style.borderLeftColor='#067647';banner.style.background='linear-gradient(110deg,#ecfdf3,#f6fffa)';}}}
+ const meta=$('triMonitorQueueMeta');if(meta)meta.textContent=`${shown.length} of ${rows.length} completed contract-weeks · overdue payment and report shortfall tracked separately`;
+ body.innerHTML=shown.length?shown.map(x=>{const critical=x.priority>=3,submitted=x.submitted?x.submitted.toLocaleString():'Not submitted';const badge=x.risk==='PAID'?'approved':x.risk==='NOT DUE UNTIL MONDAY 4 PM'?'pending':x.risk==='LOCKED'?'pending':'rejected';const priorityLabel=x.risk==='OVERDUE — NO PAYMENT'?'CRITICAL':x.risk==='OVERDUE — PART PAYMENT'?'HIGH':x.risk==='NOT DUE UNTIL MONDAY 4 PM'?'NOT DUE':x.reportLate?'REPORT LATE':'PAID';return `<tr style="${critical?'background:#fff7f6':''}"><td><b style="color:${critical?'#a11b1b':'#172b4d'}">${priorityLabel}</b><br><b>${esc(x.c.driver_name||'Driver')}</b><br><small>${esc(x.c.vehicle_id||'—')}</small></td><td>${esc(x.ws)} → ${esc(x.we)}</td><td><b style="color:${critical?'#b42318':'inherit'}">${x.isOverdue?x.daysOverdue+' day(s)':'Not overdue'}</b></td><td>${money(x.expected)}</td><td>${money(x.confirmed)}</td><td><b style="color:${x.isOverdue&&x.outstanding>0?'#b42318':'#067647'}">${money(x.isOverdue?x.outstanding:0)}</b></td><td>${money(x.weeklyShortfall)}</td><td>${esc(x.reportStatus)}<br><small>${esc(submitted)}</small></td><td><span class="badge ${badge}" style="white-space:normal">${esc(x.risk)}</span></td><td>${x.lock?`<button type="button" class="soft" onclick="triMonitorLockWeek('${esc(x.c.id)}','${esc(x.we)}',false)">Unlock</button>`:`<button type="button" class="danger" onclick="triMonitorLockWeek('${esc(x.c.id)}','${esc(x.we)}',true)">Lock week</button>`}${x.report?`<br><button type="button" class="soft" style="margin-top:5px" onclick="window.openEzelexTriPanel&&window.openEzelexTriPanel('triReportsPanel')">Review report</button>`:''}${x.isOverdue&&x.outstanding>0?`<br><button type="button" class="danger" style="margin-top:5px" onclick="triSendOverdueReminder('${esc(x.c.id)}','${esc(x.ws)}','${esc(x.we)}',this)">Email payment warning</button>`:''}</td></tr>`}).join(''):'<tr><td colspan="10" class="empty">No overdue weeks or separate report shortfalls to display.</td></tr>';
 }
 window.triSendOverdueReminder=async function(contractId,weekStart,weekEnd,button){
  if(!confirm("Send an official overdue-payment warning to this driver's registered email for "+weekStart+" to "+weekEnd+"?"))return;
