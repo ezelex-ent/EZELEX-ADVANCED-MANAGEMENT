@@ -238,10 +238,10 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 <div class="cards" style="grid-template-columns:repeat(3,1fr)">
 <div class="card"><div class="label">Original Business Capital</div><div class="value" id="originalCapitalValue">GH₵20,000.00</div><div class="muted">Editable by admin when additional capital is invested</div></div>
 <div class="card"><div class="label">Cash In Hand (admin-confirmed)</div><div class="value" id="currentCashValue">GH₵0.00</div><div class="muted">Enter the actual cash held</div></div>
-<div class="card"><div class="label">Remaining Stock Value</div><div class="value" id="capitalStockValue">GH₵0.00</div><div class="muted">Estimated at recorded unit cost</div></div>
+<div class="card"><div class="label">Projected Remaining Stock Value</div><div class="value" id="capitalStockValue">GH₵0.00</div><div class="muted">Remaining crates + unpaid on-credit crates, valued at recorded purchase cost. <strong id="capitalProjectedUnits">0 crates</strong></div></div>
 <div class="card"><div class="label">Outstanding Customer Credit</div><div class="value" id="capitalCreditValue">GH₵0.00</div><div class="muted">Unpaid balances only</div></div>
 <div class="card"><div class="label">Total Current Assets</div><div class="value" id="capitalAssetsValue">GH₵0.00</div><div class="muted">Cash + stock value + outstanding credit</div></div>
-<div class="card"><div class="label">Assets Compared With Original Capital</div><div class="value" id="capitalDifferenceValue">GH₵0.00</div><div class="muted">Current assets minus GH₵20,000; not a profit calculation</div></div>
+<div class="card"><div class="label">Assets Compared With Original Capital</div><div class="value" id="capitalDifferenceValue">GH₵0.00</div><div class="muted">Total recorded current assets minus the original capital entered above. This is not a profit calculation.</div></div>
 </div>
 <div class="section" style="margin-top:16px"><h3>Update business capital</h3><p class="muted">When you add more capital to the business, enter the new total capital invested and save it. This does not change weekly stock or Profit/Loss calculations.</p><div class="grid2"><div><label>Original / Total Capital Invested (GH₵)</label><input id="originalCapitalInput" type="number" min="0" step="0.01" placeholder="Enter total capital invested"></div><div style="display:flex;align-items:end"><button id="saveOriginalCapitalBtn" class="primary" type="button">Save Business Capital</button></div></div></div><div class="section" style="margin-top:16px"><h3>Update actual cash held</h3><p class="muted">Enter the total cash physically available to the business now. This is a cash-count input, not sales revenue, so updating it will not change Profit/Loss.</p><div class="grid2"><div><label>Actual Cash In Hand (GH₵)</label><input id="currentCashInput" type="number" min="0" step="0.01" placeholder="Enter cash currently held"></div><div style="display:flex;align-items:end"><button id="saveCapitalCashBtn" class="primary" type="button">Save Cash Balance</button></div></div></div>
 </div></section>
@@ -471,10 +471,17 @@ async function loadBusinessCapital(){
  updateBusinessCapitalSummary();
 }
 function updateBusinessCapitalSummary(){
- const stockValue=allInventory.reduce((n,r)=>{const c=invCalc(r);return n+Math.max(0,c.remaining)*Math.max(0,c.unit)},0);
+ // Projected inventory is the current active stock position: physical remaining
+ // crates plus unpaid on-credit crates. Exclude archived rows and historical
+ // purchase/carry-forward duplicates from earlier weeks.
+ const currentRows=(allInventory||[]).filter(r=>!r.deleted_at&&currentWeekIds.has(String(r.week_id||"")));
+ const projectedUnits=currentRows.reduce((n,r)=>n+Math.max(0,invCalc(r).remaining),0);
+ const stockValue=currentRows.reduce((n,r)=>{const c=invCalc(r);return n+Math.max(0,c.remaining)*Math.max(0,c.unit)},0);
  const credit=adminCreditRows.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0);
- const cash=Number(businessCapitalRow?.current_cash||0),original=Number(businessCapitalRow?.original_capital||20000),assets=cash+stockValue+credit,diff=assets-original;
- $("capitalStockValue").textContent=money(stockValue);$("capitalCreditValue").textContent=money(credit);$("capitalAssetsValue").textContent=money(assets);$("capitalDifferenceValue").textContent=money(diff);$("capitalDifferenceValue").className="value "+(diff<0?"loss":diff>0?"profit":"");
+ const cash=Number(businessCapitalRow?.current_cash||0),original=Number(businessCapitalRow?.original_capital??20000),assets=cash+stockValue+credit,diff=assets-original;
+ $("capitalStockValue").textContent=money(stockValue);
+ const unitsEl=$("capitalProjectedUnits");if(unitsEl)unitsEl.textContent=projectedUnits.toLocaleString()+" projected crates (remaining + on credit)";
+ $("capitalCreditValue").textContent=money(credit);$("capitalAssetsValue").textContent=money(assets);$("capitalDifferenceValue").textContent=money(diff);$("capitalDifferenceValue").className="value "+(diff<0?"loss":diff>0?"profit":"");
 }
 async function saveBusinessCash(){
  const cash=Number($("currentCashInput").value);if(!Number.isFinite(cash)||cash<0){msg("capitalMsg","Enter a valid cash balance of zero or more.","error");return}
