@@ -6,6 +6,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>EZELEX Enterprise — Admin Command Centre</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* EZELEX shared worker-stock accounting rules. Read-only calculation layer. */
+(function(root){'use strict';
+ const n=v=>{const x=Number(v);return Number.isFinite(x)?x:0},money=v=>Math.round((n(v)+Number.EPSILON)*100)/100;
+ const unpaid=c=>Math.max(0,n(c.amount_due)-n(c.amount_paid));
+ function creditForBatch(id,rows){const matches=(rows||[]).filter(c=>String(c.stock_batch_id||'')===String(id||'')&&unpaid(c)>0.009);return{units:matches.reduce((s,c)=>s+Math.max(0,n(c.quantity)),0),amount:money(matches.reduce((s,c)=>s+unpaid(c),0))};}
+ function stockBatch(b,credits){const total=Math.max(0,n(b.total_quantity)),sold=Math.max(0,n(b.sold_quantity)),damage=Math.max(0,n(b.damage_quantity)),loss=Math.max(0,n(b.loss_quantity)),unit=Math.max(0,n(b.cost_per_unit)),cr=creditForBatch(b.id,credits);const physical=b.remaining_quantity==null?Math.max(0,total-sold-damage-loss-cr.units):Math.max(0,n(b.remaining_quantity));const revenue=money(b.sales_revenue==null?sold*n(b.selling_price_per_unit):b.sales_revenue),soldCost=money(b.sold_cost==null?sold*unit:b.sold_cost),damageValue=money(b.damage_value==null?damage*unit:b.damage_value),lossValue=money(b.loss_value==null?loss*unit:b.loss_value);return{total,sold,damage,loss,unit,physicalRemaining:physical,creditUnits:cr.units,projectedRemaining:physical+cr.units,physicalValue:money(physical*unit),remainingValue:money((physical+cr.units)*unit),revenue,soldCost,damageValue,lossValue,profit:money(b.profit_loss==null?revenue-soldCost-damageValue-lossValue:b.profit_loss),creditAmount:cr.amount};}
+ function stockPosition(rows,credits){return(rows||[]).filter(r=>!r.deleted_at).reduce((a,r)=>{const c=stockBatch(r,credits);a.physicalUnits+=c.physicalRemaining;a.creditUnits+=c.creditUnits;a.projectedUnits+=c.projectedRemaining;a.physicalValue+=c.physicalValue;a.projectedValue+=c.remainingValue;return a;},{physicalUnits:0,creditUnits:0,projectedUnits:0,physicalValue:0,projectedValue:0});}
+ const api=Object.freeze({money,unpaid,creditForBatch,stockBatch,stockPosition});root.EZELEXAccounting=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#f4f7fb;color:#17202a}
@@ -409,7 +421,7 @@ const status=s=>String(s.status||"pending").toLowerCase();
 function msg(id,t,type=""){ $(id).innerHTML=t?`<div class="msg ${type}">${esc(t)}</div>`:"" }
 function workerInfo(id){return workers.find(x=>x.user_id===id)||workers.find(x=>x.id===id)||{}}
 function unpaidCreditUnitsForBatch(batchId){return (adminCreditRows||[]).filter(c=>String(c.stock_batch_id||'')===String(batchId||'')&&Number(c.amount_paid||0)<Number(c.amount_due||0)).reduce((n,c)=>n+Math.max(0,Number(c.quantity||0)),0)}
-function invCalc(r){const total=Number(r.total_quantity||0),purchase=Number(r.purchase_total||0),price=Number(r.selling_price_per_unit||0),sold=Number(r.sold_quantity||0),damage=Number(r.damage_quantity||0),loss=Number(r.loss_quantity||0),unit=Number(r.cost_per_unit||0),physicalRemaining=Number(r.remaining_quantity??Math.max(0,total-sold-damage-loss)),remaining=physicalRemaining+unpaidCreditUnitsForBatch(r.id),revenue=Number(r.sales_revenue??(sold*price)),damageValue=Number(r.damage_value??(damage*unit)),lossValue=Number(r.loss_value??(loss*unit)),profit=Number(r.profit_loss??(revenue-sold*unit-damageValue-lossValue));return{total,purchase,price,sold,damage,loss,unit,remaining,revenue,damageValue,lossValue,profit,remainingValue:Number((physicalRemaining+unpaidCreditUnitsForBatch(r.id))*unit)}}
+function invCalc(r){const x=window.EZELEXAccounting.stockBatch(r,adminCreditRows);return{total:x.total,purchase:Number(r.purchase_total||0),price:Number(r.selling_price_per_unit||0),sold:x.sold,damage:x.damage,loss:x.loss,unit:x.unit,physicalRemaining:x.physicalRemaining,creditUnits:x.creditUnits,remaining:x.projectedRemaining,revenue:x.revenue,damageValue:x.damageValue,lossValue:x.lossValue,profit:x.profit,remainingValue:x.remainingValue}}
 async function adminCheck(){
  const {data:{session:s}}=await db.auth.getSession();session=s;
  if(!s)throw new Error("The authenticated Management Centre session is unavailable. Please sign in again.");
@@ -420,6 +432,7 @@ async function adminCheck(){
  const results=await Promise.allSettled([loadInventory(),loadStockHistory(),loadAdminCredits(),loadBusinessCapital(),loadCommunication(),triLoadAll()]);
  results.forEach((result,index)=>{if(result.status==="rejected")console.error("Management Centre data load failed (task "+(index+1)+"):",result.reason)});
  ezelexInitReportFilters();
+ if(!window.ezelexWorkerSyncTimer){window.ezelexWorkerSyncTimer=setInterval(async()=>{if(document.visibilityState==="hidden")return;await Promise.all([loadInventory(),loadAdminCredits()]);},8000);}
  return true
 }
 function showLogin(){$("loginSection").classList.remove("hidden");$("dashboard").classList.add("hidden");$("logoutBtn").classList.add("hidden")}
@@ -476,11 +489,12 @@ function updateBusinessCapitalSummary(){
  // purchase/carry-forward duplicates from earlier weeks.
  const currentRows=(allInventory||[]).filter(r=>!r.deleted_at&&currentWeekIds.has(String(r.week_id||"")));
  const projectedUnits=currentRows.reduce((n,r)=>n+Math.max(0,invCalc(r).remaining),0);
- const stockValue=currentRows.reduce((n,r)=>{const c=invCalc(r);return n+Math.max(0,c.remaining)*Math.max(0,c.unit)},0);
+ const projectedStockValue=currentRows.reduce((n,r)=>{const c=invCalc(r);return n+Math.max(0,c.remaining)*Math.max(0,c.unit)},0);
+ const physicalStockValue=currentRows.reduce((n,r)=>{const c=invCalc(r);return n+Math.max(0,c.physicalRemaining)*Math.max(0,c.unit)},0);
  const credit=adminCreditRows.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0);
- const cash=Number(businessCapitalRow?.current_cash||0),original=Number(businessCapitalRow?.original_capital??20000),assets=cash+stockValue+credit,diff=assets-original;
- $("capitalStockValue").textContent=money(stockValue);
- const unitsEl=$("capitalProjectedUnits");if(unitsEl)unitsEl.textContent=projectedUnits.toLocaleString()+" projected crates (remaining + on credit)";
+ const cash=Number(businessCapitalRow?.current_cash||0),original=Number(businessCapitalRow?.original_capital??0),assets=cash+physicalStockValue+credit,diff=assets-original;
+ $("capitalStockValue").textContent=money(projectedStockValue);
+ const unitsEl=$("capitalProjectedUnits");if(unitsEl)unitsEl.textContent=projectedUnits.toLocaleString()+" projected crates (physical remaining + on credit)";
  $("capitalCreditValue").textContent=money(credit);$("capitalAssetsValue").textContent=money(assets);$("capitalDifferenceValue").textContent=money(diff);$("capitalDifferenceValue").className="value "+(diff<0?"loss":diff>0?"profit":"");
 }
 async function saveBusinessCash(){
