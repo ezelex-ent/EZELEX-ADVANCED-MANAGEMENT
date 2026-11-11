@@ -334,7 +334,7 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 </div></div>
 </section>
 
-<section id="stock" class="page hidden"><div class="stock-subnav" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px;padding:10px;background:#fff;border:1px solid #e3eaf2;border-radius:12px"><span style="font-weight:800;align-self:center;margin-right:8px">Stock &amp; Inventory</span><button type="button" class="primary" data-stock-tab="overview">Stock Overview</button></div><div id="stockOverviewPanel"><div class="section"><h2>Central Stock, Profit, Loss & Damage</h2><p class="muted">Every worker stock batch is sent here automatically. Figures are calculated from the quantities and values entered by workers.</p>
+<section id="stock" class="page hidden"><div id="stockOverviewPanel"><div class="section"><h2>Central Stock, Profit, Loss & Damage</h2><p class="muted">Every worker stock batch is sent here automatically. Figures are calculated from the quantities and values entered by workers.</p>
 <div class="cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
 <div class="card"><div class="label">Stock Available (Opening + Purchases)</div><div class="value" id="invTotal">0</div></div><div class="card"><div class="label">Units Remaining</div><div class="value" id="invRemain">0</div></div><div class="card"><div class="label">Damage Value</div><div class="value" id="invDamage">GH₵0.00</div></div><div class="card"><div class="label">Profit / Loss</div><div class="value" id="invProfit">GH₵0.00</div></div>
 </div>
@@ -583,19 +583,19 @@ $("adminStockSave").onclick=async()=>{
 };
 window.adminArchiveStock=async id=>{
  const r=allInventory.find(x=>String(x.id)===String(id));if(!r)return;
- if(!confirm("Archive this stock batch? It will be removed from active totals but retained in the worker's deleted-stock history and admin audit."))return;
+ if(!confirm("Delete this stock batch from the active worker stock book? It will be hidden from active stock totals and retained as a recoverable audit record."))return;
  try{
   const now=new Date().toISOString();
   const saved=await db.from("worker_stock_batches").update({deleted_at:now,deleted_by:session?.user?.id||null}).eq("id",r.id).eq("worker_id",r.worker_id).is("deleted_at",null).select("id").single();
   if(saved.error)throw saved.error;
-  const h=await db.from("worker_stock_edit_history").insert({worker_id:r.worker_id,stock_batch_id:r.id,product_service:r.product_service||"Stock",action:"Admin archived stock",sold_before:Number(r.sold_quantity||0),sold_after:Number(r.sold_quantity||0),damage_before:Number(r.damage_quantity||0),damage_after:Number(r.damage_quantity||0),remaining_before:Number(r.remaining_quantity||0),remaining_after:0,selling_price_per_unit:Number(r.selling_price_per_unit||0),notes:"Archived by administrator",changed_at:now});
+  const h=await db.from("worker_stock_edit_history").insert({worker_id:r.worker_id,stock_batch_id:r.id,product_service:r.product_service||"Stock",action:"Admin deleted stock",sold_before:Number(r.sold_quantity||0),sold_after:Number(r.sold_quantity||0),damage_before:Number(r.damage_quantity||0),damage_after:Number(r.damage_quantity||0),remaining_before:Number(r.remaining_quantity||0),remaining_after:0,selling_price_per_unit:Number(r.selling_price_per_unit||0),notes:"Deleted by administrator (recoverable archive)",changed_at:now});
   await loadInventory();await loadAdminCredits();await loadStockHistory();
-  msg("dashMsg",h.error?"Stock archived; audit insert failed: "+h.error.message:"Stock archived in the shared worker database.","success");
- }catch(e){msg("dashMsg","Archive failed: "+(e.message||String(e)),"error")}
+  msg("dashMsg",h.error?"Stock deleted; audit insert failed: "+h.error.message:"Stock deleted from the active shared worker stock book; audit retained.","success");
+ }catch(e){msg("dashMsg","Delete failed: "+(e.message||String(e)),"error")}
 };
 function applyInvFilters(){const wid=$("invWorkerFilter").value,from=$("invFromDate").value,to=$("invToDate").value;filteredInventory=allInventory.filter(r=>!r.deleted_at).filter(r=>{let d=dateOnly(r.stock_date||r.created_at);return(!wid||workerOwnsRow(workerInfo(wid),r.worker_id))&&(!from||d>=from)&&(!to||d<=to)});renderInventory();updateInventorySummary()}
 function renderInventory(){
- $("inventoryBody").innerHTML=filteredInventory.length?filteredInventory.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id),pc=c.profit<0?"loss":"profit";return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${c.total}</td><td>${c.sold}</td><td>${c.damage}</td><td><b>${c.remaining}</b></td><td>${money(c.purchase)}</td><td>${money(c.revenue)}</td><td>${money(c.damageValue)}</td><td class="${pc}">${money(c.profit)}</td><td><button type="button" class="soft" onclick="adminEditStock('${esc(r.id)}')">Edit</button> <button type="button" class="reject" onclick="adminArchiveStock('${esc(r.id)}')">Archive</button></td></tr>`}).join(""):'<tr><td colspan="13" class="empty">No stock records found.</td></tr>'
+ $("inventoryBody").innerHTML=filteredInventory.length?filteredInventory.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id),pc=c.profit<0?"loss":"profit";return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${c.total}</td><td>${c.sold}</td><td>${c.damage}</td><td><b>${c.remaining}</b></td><td>${money(c.purchase)}</td><td>${money(c.revenue)}</td><td>${money(c.damageValue)}</td><td class="${pc}">${money(c.profit)}</td><td><button type="button" class="soft" onclick="adminEditStock('${esc(r.id)}')">Edit</button> <button type="button" class="reject" onclick="adminArchiveStock('${esc(r.id)}')">Delete</button></td></tr>`}).join(""):'<tr><td colspan="13" class="empty">No stock records found.</td></tr>'
 }
 function updateInventorySummary(){
  const latestIds=latestWorkerWeekIds();
@@ -891,7 +891,7 @@ if($("invWorkerFilter"))$("invWorkerFilter").onchange=applyInvFilters;
 const _loadWorkersWithDeleteSelect=loadWorkers;loadWorkers=async function(){await _loadWorkersWithDeleteSelect();populateDeleteWorkerSelect()};
 
 const adminSectionHistory=[];
-function navigateAdminSection(section,fromBack=false){const current=document.querySelector(".page:not(.hidden)");if(!fromBack&&current&&current.id!==section)adminSectionHistory.push(current.id);document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));const target=$(section);if(target)target.classList.remove("hidden");document.querySelectorAll(".dashboard-nav button").forEach(x=>x.classList.toggle("active",x.dataset.section===section));$("adminMenu").classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu";if(section==="workers")window.scrollTo({top:0,behavior:"smooth"});if(section==="stock"){ $("stockOverviewPanel").classList.remove("hidden");$("weekData").classList.add("hidden");document.querySelectorAll("[data-stock-tab]").forEach((b,i)=>{b.classList.toggle("primary",i===0);b.classList.toggle("soft",i!==0);});}}
+function navigateAdminSection(section,fromBack=false){const current=document.querySelector(".page:not(.hidden)");if(!fromBack&&current&&current.id!==section)adminSectionHistory.push(current.id);document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));const target=$(section);if(target)target.classList.remove("hidden");document.querySelectorAll(".dashboard-nav button").forEach(x=>x.classList.toggle("active",x.dataset.section===section));$("adminMenu").classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu";if(section==="workers")window.scrollTo({top:0,behavior:"smooth"});if(section==="stock"){ $("stockOverviewPanel").classList.remove("hidden");}}
 $("operationsBackButton").onclick=()=>{const previous=adminSectionHistory.pop()||"dashboard";navigateAdminSection(previous,true)};
 document.querySelectorAll("[data-section]").forEach(b=>b.onclick=()=>navigateAdminSection(b.dataset.section));
 $("menuToggle").onclick=()=>{const open=$("adminMenu").classList.toggle("hidden")===false;$("menuToggle").setAttribute("aria-expanded",String(open));$("menuToggle").textContent=open?"✕ Close Menu":"☰ Open Menu"};
@@ -1204,12 +1204,13 @@ const ezOriginalTriLoadAll=triLoadAll;triLoadAll=async function(){await ezOrigin
 
 function openEzelexRoute(route){if(!route||route.type!=="ezelex-management-navigate")return;const section=route.section;if(section&&$(section))navigateAdminSection(section);const page=route.page||"";
 if(page==="Daily Sales Performance"){document.querySelector('[data-sales-tab="stockOverview"]')?.click();}
-else if(page==="Sales Reviews & Approval"||page==="Sales Review & Approval"){document.querySelector('[data-sales-tab="reports"]')?.click();}
+else if(page==="Sales Reviews & Approval"||page==="Sales Review & Approval"||page==="Approve / Disapprove Sales"){document.querySelector('[data-sales-tab="reports"]')?.click();}
+else if(page==="Central Sales Management"){document.querySelector('[data-sales-tab="reports"]')?.click();}
 if(page==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();if(page==="Delete Worker")document.querySelector('[data-employee-view="delete-worker"]')?.click();if(page==="Delete Driver")document.querySelector('[data-employee-view="delete-driver"]')?.click();if(page==="Create Worker")document.querySelector('[data-employee-view="create-worker"]')?.click();if(page==="Employee Directory")document.querySelector('[data-employee-view="directory"]')?.click();const panels={"Create Tricycle Contract":"triCreatePanel","Record Historical Payment":"triHistoricalPanel","Payment Ledger Calendar":"triCalendarPanel","Tricycle Contract Management":"triManagementPanel","Private Tricycle Profit":"triPrivateProfitSection","Contract Register & Balances":"triRegisterPanel","Weekly Report — Review & Approval":"triReportsPanel","Owing / Weekly Shortfalls":"triOwingPanel","Weekly Driver Payment Monitoring":"triPaymentMonitorPanel","Full Payment Ledger":"triLedgerPanel","Delete Contract":"triManagementPanel"};if(panels[page])window.openEzelexTriPanel(panels[page]);}
 window.addEventListener("message",event=>{if(event.origin!==location.origin||event.source!==window.parent)return;openEzelexRoute(event.data)});
 (async()=>{try{if(window.parent===window||window.parent.location.origin!==window.location.origin)throw new Error("Open this page from the authenticated Management Centre.");await window.parent.verifyEzelexLiveDataSession();await adminCheck();const p=new URLSearchParams(location.search);const s=p.get("section");if(s&&$(s))navigateAdminSection(s);
 if(p.get("page")==="Daily Sales Performance")document.querySelector('[data-sales-tab="stockOverview"]')?.click();
-if(p.get("page")==="Sales Reviews & Approval"||p.get("page")==="Sales Review & Approval")document.querySelector('[data-sales-tab="reports"]')?.click();
+if(p.get("page")==="Sales Reviews & Approval"||p.get("page")==="Sales Review & Approval"||p.get("page")==="Approve / Disapprove Sales"||p.get("page")==="Central Sales Management")document.querySelector('[data-sales-tab="reports"]')?.click();
 if(p.get("page")==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();
 if(p.get("page")==="Delete Worker")document.querySelector('[data-employee-view="delete-worker"]')?.click();
 if(p.get("page")==="Delete Driver")document.querySelector('[data-employee-view="delete-driver"]')?.click();
