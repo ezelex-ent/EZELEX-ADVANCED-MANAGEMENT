@@ -283,6 +283,18 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 }
 </style>
 
+
+<style id="ezelex-stock-clean-week-ui">
+#stock .stock-system-heading .muted{margin:5px 0 0}
+#stock .stock-filterbar{align-items:end}
+#stock #stockWeekSelect{min-width:260px}
+#stock .stock-kpi-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+#stock .stock-panel-title p,#stock .stock-calculation-note,#stock .stock-insight-grid{display:none!important}
+#stock .stock-view-panel{padding-top:0}
+#stock .stock-system-heading{margin-bottom:12px}
+@media(max-width:700px){#stock #stockWeekSelect{width:100%;min-width:0}}
+</style>
+
 </head>
 <body>
 <header><div class="brand"><div class="logo">EZ</div><div><h1>Ezelex Enterprise</h1><small>Administrator Dashboard</small></div></div><div class="header-actions"><button id="operationsBackButton" class="soft hidden" type="button" aria-label="Go back to previous management section">← Back</button><button id="menuToggle" class="menu-toggle hidden" aria-expanded="false" aria-controls="adminMenu">☰ Open Menu</button><button id="logoutBtn" class="danger hidden">Log out</button><div id="adminMenu" class="admin-menu hidden" role="menu">
@@ -391,7 +403,7 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
    <div>
     <span class="eyebrow">STOCK &amp; INVENTORY</span>
     <h2>Business Stock Control Centre</h2>
-    <p class="muted">Live stock intelligence from every worker's weekly stock books, purchases, sales, customer credit, stock adjustments and audit history.</p>
+    <p class="muted">Select a worker and week to inspect the matching stock records.</p>
    </div>
    <div class="stock-live-status"><span class="live-dot"></span><span id="stockFeedStatus">Connecting to worker stock records…</span></div>
   </div>
@@ -400,11 +412,8 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
    <label>Worker
     <select id="invWorkerFilter"><option value="">All workers</option></select>
    </label>
-   <label>From
-    <input id="invFromDate" type="date">
-   </label>
-   <label>To
-    <input id="invToDate" type="date">
+   <label>Week
+    <select id="stockWeekSelect"><option value="">Current week · All workers</option></select>
    </label>
    <button id="applyInvFilters" type="button" class="primary">Apply filters</button>
    <button id="refreshInventory" type="button" class="soft">Sync worker data</button>
@@ -422,14 +431,11 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
   </div>
 
   <div class="stock-view-panel" data-stock-panel="position">
-   <div class="stock-panel-title"><div><h3>Live Business Stock Position</h3><p class="muted">Current and previous Monday–Sunday books are calculated separately. Unpaid credit is not treated as paid sales.</p></div><span class="stock-period-chip" id="stockCurrentPeriod">Current week</span></div>
+   <div class="stock-panel-title"><div><h3>Selected Week Stock Position</h3></div><span class="stock-period-chip" id="stockCurrentPeriod">Current week</span></div>
    <div class="stock-kpi-grid">
-    <article class="card stock-kpi"><span class="label">Current Week Purchases</span><strong class="value" id="invCurrentPurchased">0</strong><small>New purchases only; carry-forward excluded</small></article>
-    <article class="card stock-kpi"><span class="label">Current Week Sold</span><strong class="value" id="invCurrentSold">0</strong><small>Sold quantities from worker books</small></article>
-    <article class="card stock-kpi profit-kpi"><span class="label">Current Week Realised Profit / Loss</span><strong class="value" id="invCurrentProfit">GH₵0.00</strong><small>Same stock-batch calculation used by workers</small></article>
-    <article class="card stock-kpi"><span class="label">Previous Week Purchases</span><strong class="value" id="invPreviousPurchased">0</strong><small>Previous Monday–Sunday book</small></article>
-    <article class="card stock-kpi"><span class="label">Previous Week Sold</span><strong class="value" id="invPreviousSold">0</strong><small>Previous Monday–Sunday book</small></article>
-    <article class="card stock-kpi profit-kpi"><span class="label">Previous Week Realised Profit / Loss</span><strong class="value" id="invPreviousProfit">GH₵0.00</strong><small>Previous week's worker-recorded profit</small></article>
+    <article class="card stock-kpi"><span class="label">Selected Week Purchases</span><strong class="value" id="invCurrentPurchased">0</strong><small>New purchases only; carry-forward excluded</small></article>
+    <article class="card stock-kpi"><span class="label">Selected Week Sold</span><strong class="value" id="invCurrentSold">0</strong><small>Sold quantities from worker books</small></article>
+    <article class="card stock-kpi profit-kpi"><span class="label">Selected Week Realised Profit / Loss</span><strong class="value" id="invCurrentProfit">GH₵0.00</strong><small>Same stock-batch calculation used by workers</small></article>
     <article class="card stock-kpi"><span class="label">Physical Stock Remaining</span><strong class="value" id="invPhysicalRemaining">0</strong><small>Stock physically available</small></article>
     <article class="card stock-kpi"><span class="label">Projected Stock</span><strong class="value" id="invProjectedRemaining">0</strong><small>Physical stock + unpaid credit crates</small></article>
     <article class="card stock-kpi warning-kpi"><span class="label">Unpaid Credit Crates</span><strong class="value" id="invCreditUnits">0</strong><small id="invCreditAmount">GH₵0.00 outstanding</small></article>
@@ -439,31 +445,25 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
     <article class="card stock-kpi"><span class="label">All-Time Damage &amp; Loss Value</span><strong class="value" id="invDamage">GH₵0.00</strong><small>Cost value of damaged and lost units</small></article>
     <article class="card stock-kpi"><span class="label">Stock Purchase Value Remaining</span><strong class="value" id="invRemainingValue">GH₵0.00</strong><small>Physical stock at original unit cost</small></article>
    </div>
-   <p class="stock-calculation-note" id="stockPeriodNote">Waiting for worker stock data…</p>
-   <div class="stock-insight-grid">
-    <article class="stock-insight"><h4>Stock reconciliation</h4><p>Opening stock + new purchases − sold − damage − loss − unpaid credit crates = physical stock available. Projected stock adds unpaid credit back separately.</p></article>
-    <article class="stock-insight"><h4>Profit recognition</h4><p>Only realised sales profit is included in realised profit. Unpaid customer credit remains separately visible until payments are recorded.</p></article>
-    <article class="stock-insight"><h4>Audit protection</h4><p>Admin edits and recoverable deletions are written to the shared worker records and stock edit history. Archived records remain available for audit.</p></article>
-   </div>
   </div>
 
   <div class="stock-view-panel hidden" data-stock-panel="weekly">
-   <div class="stock-panel-title"><div><h3>Worker Weekly Stock Books</h3><p class="muted">Every Monday–Sunday stock book, including previous weeks, opening carry-forward, new purchases, sold, credit, damage, loss and profit.</p></div><span class="stock-period-chip">Worker source records</span></div>
+   <div class="stock-panel-title"><div><h3>Worker Weekly Stock Books</h3><p class="muted">Select a worker's weekly book to review its stock figures.</p></div><span class="stock-period-chip">Worker source records</span></div>
    <div class="tablebox"><table><thead><tr><th>Week</th><th>Worker</th><th>Status</th><th>Opening Stock</th><th>New Purchases</th><th>Sold</th><th>Unpaid Credit</th><th>Damage</th><th>Loss</th><th>Physical Remaining</th><th>Realised Profit/Loss</th></tr></thead><tbody id="stockWeeklyBody"><tr><td colspan="11" class="empty">Loading worker weekly books…</td></tr></tbody></table></div>
   </div>
 
   <div class="stock-view-panel hidden" data-stock-panel="purchases">
-   <div class="stock-panel-title"><div><h3>Purchase Register</h3><p class="muted">New purchases by worker and date. Opening carry-forward is displayed separately and never counted as a new purchase.</p></div></div>
+   <div class="stock-panel-title"><div><h3>Purchase Register</h3><p class="muted">Itemised worker purchases. Carry-forward is excluded.</p></div></div>
    <div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Item</th><th>Quantity Purchased</th><th>Cost / Unit</th><th>Purchase Value</th><th>Week</th></tr></thead><tbody id="stockPurchasesBody"><tr><td colspan="8" class="empty">Loading purchases…</td></tr></tbody></table></div>
   </div>
 
   <div class="stock-view-panel hidden" data-stock-panel="sales">
-   <div class="stock-panel-title"><div><h3>Sales &amp; Profit Register</h3><p class="muted">Worker-reported sold quantities, sales revenue, realised profit and originating stock week.</p></div></div>
+   <div class="stock-panel-title"><div><h3>Sales &amp; Profit Register</h3><p class="muted">Worker sales, revenue and realised profit.</p></div></div>
    <div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Item</th><th>Sold</th><th>Selling Price / Unit</th><th>Revenue</th><th>Realised Profit/Loss</th><th>Week</th></tr></thead><tbody id="stockSalesBody"><tr><td colspan="9" class="empty">Loading sales…</td></tr></tbody></table></div>
   </div>
 
   <div class="stock-view-panel hidden" data-stock-panel="credit">
-   <div class="stock-panel-title"><div><h3>Customer On-Credit Register</h3><p class="muted">Individual customer transactions, partial payments and outstanding crates. Each distinct credit transaction remains visible; exact duplicate rows are excluded from totals.</p></div></div>
+   <div class="stock-panel-title"><div><h3>Customer On-Credit Register</h3><p class="muted">Customer balances, crate payments and outstanding credit.</p></div></div>
    <div class="stock-credit-kpis">
     <article class="card"><span class="label">Open Customer Records</span><strong class="value" id="stockCreditRecords">0</strong></article>
     <article class="card"><span class="label">Outstanding Crates</span><strong class="value" id="stockCreditCrates">0</strong></article>
@@ -473,16 +473,16 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
   </div>
 
   <div class="stock-view-panel hidden" data-stock-panel="adjustments">
-   <div class="stock-panel-title"><div><h3>Damage &amp; Loss Register</h3><p class="muted">Track damaged and lost quantities and their original purchase-cost impact.</p></div></div>
+   <div class="stock-panel-title"><div><h3>Damage &amp; Loss Register</h3><p class="muted">Damaged and lost stock quantities and values.</p></div></div>
    <div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Item</th><th>Damaged</th><th>Lost</th><th>Cost / Unit</th><th>Damage Value</th><th>Loss Value</th><th>Notes</th></tr></thead><tbody id="stockAdjustmentsBody"><tr><td colspan="9" class="empty">Loading adjustments…</td></tr></tbody></table></div>
   </div>
 
   <div class="stock-view-panel hidden" data-stock-panel="records">
-   <div class="stock-panel-title"><div><h3>Worker Stock Batch Register</h3><p class="muted">Select any worker to inspect their active batches. Admin edits write back to the same stock records used by the Worker Portal. Delete is recoverable and retained for audit.</p></div></div>
+   <div class="stock-panel-title"><div><h3>Worker Stock Batch Register</h3><p class="muted">Admin can edit or archive a worker's stock batch.</p></div></div>
    <div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Product</th><th>Opening / Total</th><th>Sold</th><th>On-Credit</th><th>Damaged</th><th>Lost</th><th>Physical Remaining</th><th>Projected</th><th>Purchase Value</th><th>Revenue</th><th>Profit/Loss</th><th>Admin Actions</th></tr></thead><tbody id="inventoryBody"><tr><td colspan="15" class="empty">Loading worker stock batches…</td></tr></tbody></table></div>
    <div id="adminStockEditor" class="section hidden" style="margin-top:16px">
     <h3>Edit Worker Stock Record</h3>
-    <p class="muted">Changes save to the same Supabase stock batch read by the Worker Portal. The worker's next refresh receives the updated figures.</p>
+    <p class="muted">Edits update the shared worker stock record.</p>
     <input type="hidden" id="adminStockEditId">
     <div class="toolbar">
      <select id="adminStockEditWorker"><option value="">Select worker</option></select>
@@ -705,7 +705,9 @@ async function loadInventory(){
   const weeks=await readAllRows("worker_stock_weeks","week_start");
   allInventory=batches;allStockWeeks=weeks;inventoryLoaded=true;
   currentWeekIds=latestWorkerWeekIds();
-  applyInvFilters();updateInventorySummary();if(businessCapitalRow)updateBusinessCapitalSummary();if(allInventory.length)applyInvFilters();
+  const workerSel=$("invWorkerFilter"),priorWorker=workerSel?.value||"";
+  if(workerSel){workerSel.innerHTML='<option value="">All workers</option>'+workers.filter(w=>String(w.role||"worker").toLowerCase()==="worker").map(w=>`<option value="${esc(w.user_id||w.id)}">${esc(w.full_name||"Worker")} (${esc(w.worker_id||"")})</option>`).join("");if(priorWorker)workerSel.value=priorWorker;}
+  renderStockWeekOptions();applyInvFilters();if(businessCapitalRow)updateBusinessCapitalSummary();
   if($("weekData").classList.contains("hidden")===false)renderWeekData();
  }catch(e){inventoryLoaded=false;msg("dashMsg","Stock tracker could not load all worker records: "+e.message+". Credit totals and Week Data are paused until the stock feed is available.","error");}
 }
@@ -772,7 +774,12 @@ window.adminArchiveStock=async id=>{
   msg("dashMsg",h.error?"Stock deleted; audit insert failed: "+h.error.message:"Stock deleted from the active shared worker stock book; audit retained.","success");
  }catch(e){msg("dashMsg","Delete failed: "+(e.message||String(e)),"error")}
 };
-function applyInvFilters(){const wid=$("invWorkerFilter").value,from=$("invFromDate").value,to=$("invToDate").value;filteredInventory=allInventory.filter(r=>!r.deleted_at).filter(r=>{let d=dateOnly(r.stock_date||r.created_at);return(!wid||workerOwnsRow(workerInfo(wid),r.worker_id))&&(!from||d>=from)&&(!to||d<=to)});renderInventory();updateInventorySummary()}
+function applyInvFilters(){
+ const wid=$("invWorkerFilter")?.value||"",weekId=$("stockWeekSelect")?.value||"",week=(allStockWeeks||[]).find(w=>String(w.id)===weekId);
+ filteredInventory=(allInventory||[]).filter(r=>!r.deleted_at).filter(r=>!wid||workerOwnsRow(workerInfo(wid),r.worker_id))
+ .filter(r=>!weekId||(week&&(String(r.week_id||"")===weekId||(!r.week_id&&dateOnly(r.stock_date||r.created_at)>=String(week.week_start||"")&&dateOnly(r.stock_date||r.created_at)<=String(week.week_end||week.week_start||"")&&workerOwnsRow(workerInfo(week.worker_id),r.worker_id)))));
+ renderInventory();updateInventorySummary();
+}
 function renderInventory(){
  const body=$("inventoryBody");if(!body)return;
  body.innerHTML=filteredInventory.length?filteredInventory.map(r=>{
@@ -780,43 +787,55 @@ function renderInventory(){
   return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${num(c.total)}</td><td>${num(c.sold)}</td><td>${num(c.creditUnits)}</td><td>${num(c.damage)}</td><td>${num(c.loss)}</td><td><b>${num(c.physicalRemaining)}</b></td><td>${num(c.remaining)}</td><td>${money(c.purchase)}</td><td>${money(c.revenue)}</td><td class="${pc}">${money(c.profit)}</td><td><button type="button" class="soft" onclick="adminEditStock('${esc(r.id)}')">Edit</button> <button type="button" class="reject" onclick="adminArchiveStock('${esc(r.id)}')">Delete</button></td></tr>`;
  }).join(""):'<tr><td colspan="15" class="empty">No active worker stock records match these filters.</td></tr>';
 }
+
+function stockWeekBounds(offsetWeeks=0){
+ const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7)+(offsetWeeks*7));
+ const start=dateOnly(d);d.setDate(d.getDate()+6);return{start,end:dateOnly(d)};
+}
+function stockRowsForWeek(weekRows,bounds){
+ const ids=new Set((weekRows||[]).map(w=>String(w.id)));
+ const owners=(weekRows||[]).map(w=>w.worker_id).filter(Boolean);
+ return (allInventory||[]).filter(r=>{
+  if(r.deleted_at)return false;
+  if(r.week_id&&ids.has(String(r.week_id)))return true;
+  if(r.week_id)return false;
+  const d=dateOnly(r.stock_date||r.created_at);
+  return d>=bounds.start&&d<=bounds.end&&owners.some(id=>workerOwnsRow(workerInfo(id),r.worker_id));
+ });
+}
+function stockSumRows(rows){
+ return (rows||[]).reduce((a,r)=>{
+  const c=invCalc(r),carry=String(r.stock_type||"").toLowerCase()==="carry_forward";
+  a.opening+=carry?c.total:0;if(!carry)a.purchased+=c.total;
+  a.sold+=c.sold;a.damage+=c.damage;a.loss+=c.loss;a.physical+=c.physicalRemaining;
+  a.profit+=c.profit;a.purchaseValue+=carry?0:c.total*c.unit;a.revenue+=c.revenue;return a;
+ },{opening:0,purchased:0,sold:0,damage:0,loss:0,physical:0,profit:0,purchaseValue:0,revenue:0});
+}
+
+function renderStockWeekOptions(){
+ const sel=$("stockWeekSelect");if(!sel)return;const previous=sel.value,selectedWorker=$("invWorkerFilter")?.value||"";
+ const weeks=(allStockWeeks||[]).filter(w=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id)).slice().sort((a,b)=>String(b.week_start||"").localeCompare(String(a.week_start||"")));
+ sel.innerHTML='<option value="">Current week · All workers</option>'+weeks.map(w=>{const owner=workerInfo(w.worker_id);return `<option value="${esc(w.id)}">${esc(owner.full_name||"Worker")} · ${esc(w.week_start||"")}${w.week_end?" – "+esc(w.week_end):""}</option>`}).join("");
+ if(previous&&weeks.some(w=>String(w.id)===previous))sel.value=previous;
+}
 function updateInventorySummary(){
- const selectedWorker=$("invWorkerFilter")?.value||"";
- const currentBounds=stockWeekBounds(0),previousBounds=stockWeekBounds(-1);
- const workerWeeks=(allStockWeeks||[]).filter(w=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id));
- const currentWeekRows=workerWeeks.filter(w=>String(w.week_start||"")===currentBounds.start);
- const previousWeekRows=workerWeeks.filter(w=>String(w.week_start||"")===previousBounds.start);
- const currentRows=stockRowsForWeek(currentWeekRows,currentBounds);
- const previousRows=stockRowsForWeek(previousWeekRows,selectedWorker);
- const cur=stockSumRows(currentRows),prev=stockSumRows(previousRows);
- const allRows=(allInventory||[]).filter(r=>!r.deleted_at&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),r.worker_id)));
- const all=stockSumRows(allRows);
- const creditRows=(accountingCreditRows||[]).filter(c=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),c.worker_id));
- const creditUnits=creditRows.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0);
- const creditAmount=creditRows.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0);
- const currentCreditRows=creditRows.filter(c=>currentRows.some(r=>String(r.id)===String(c.stock_batch_id)));
- const currentCreditUnits=currentCreditRows.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0);
- const positionRows=currentRows;
- const physical=cur.physical;
- const projected=physical+creditUnits;
- const remainingValue=positionRows.reduce((n,r)=>n+invCalc(r).physicalRemaining*invCalc(r).unit,0);
+ const selectedWorker=$("invWorkerFilter")?.value||"",selectedWeekId=$("stockWeekSelect")?.value||"",bounds=stockWeekBounds(0);
+ let selectedWeek=null,selectedRows=[];
+ if(selectedWeekId){selectedWeek=(allStockWeeks||[]).find(w=>String(w.id)===selectedWeekId)||null;if(selectedWeek)selectedRows=stockRowsForWeek([selectedWeek],{start:String(selectedWeek.week_start||""),end:String(selectedWeek.week_end||selectedWeek.week_start||"")});}
+ else{const weeks=(allStockWeeks||[]).filter(w=>String(w.week_start||"")===bounds.start&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id)));selectedRows=stockRowsForWeek(weeks,bounds);}
+ const selected=stockSumRows(selectedRows),allRows=(allInventory||[]).filter(r=>!r.deleted_at&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),r.worker_id))),all=stockSumRows(allRows);
+ const creditRows=(accountingCreditRows||[]).filter(c=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),c.worker_id)),creditUnits=creditRows.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0),creditAmount=creditRows.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0);
+ const selectedIds=new Set(selectedRows.map(r=>String(r.id))),selectedCredit=creditRows.filter(c=>selectedIds.has(String(c.stock_batch_id||""))),selectedCreditUnits=selectedCredit.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0);
+ const physical=selected.physical,projected=physical+selectedCreditUnits,remainingValue=selectedRows.reduce((n,r)=>n+invCalc(r).physicalRemaining*invCalc(r).unit,0),damageLossValue=allRows.reduce((n,r)=>{const c=invCalc(r);return n+c.damageValue+c.lossValue;},0);
  const set=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
- set("invCurrentPurchased",num(cur.purchased));set("invCurrentSold",num(cur.sold));set("invCurrentProfit",money(cur.profit));
- set("invPreviousPurchased",num(prev.purchased));set("invPreviousSold",num(prev.sold));set("invPreviousProfit",money(prev.profit));
- set("invPhysicalRemaining",num(physical));set("invProjectedRemaining",num(projected));set("invCreditUnits",num(creditUnits));set("invCreditAmount",money(creditAmount)+" outstanding");
- set("invAllPurchased",num(all.purchased));set("invAllSold",num(all.sold));set("invAllProfit",money(all.profit));set("invDamage",money(all.damage*0+all.loss*0+allRows.reduce((n,r)=>{const c=invCalc(r);return n+c.damageValue+c.lossValue;},0)));
- set("invRemainingValue",money(remainingValue));
- set("invTotal",num(cur.purchased));set("invRemain",num(physical));set("invProfit",money(cur.profit));
- set("stockRemaining",num(physical));set("damageValue",money(allRows.reduce((n,r)=>{const c=invCalc(r);return n+c.damageValue+c.lossValue;},0)));set("profitValue",money(cur.profit));
- if($("profitValue"))$("profitValue").className=cur.profit<0?"value loss":"value profit";
- set("reviewPurchase",num(all.purchased));set("reviewSold",num(all.sold));set("reviewProfit",money(all.profit));
- if($("reviewProfit"))$("reviewProfit").className="value "+(all.profit<0?"loss":"profit");
- const curWeekText=currentBounds.start+" – "+currentBounds.end;
- set("stockCurrentPeriod",curWeekText);
- const note=$("stockPeriodNote");
- if(note)note.textContent=`Current week (${curWeekText}): ${num(cur.purchased)} purchased · ${num(cur.sold)} sold · ${money(cur.profit)} realised profit/loss. Previous week (${previousBounds.start} – ${previousBounds.end}): ${num(prev.purchased)} purchased · ${num(prev.sold)} sold · ${money(prev.profit)} realised profit/loss. Business-wide open customer credit: ${num(creditUnits)} crates / ${money(creditAmount)}. ${currentCreditUnits?num(currentCreditUnits)+" of the outstanding crates originate in the current week. ":""}Carry-forward stock is excluded from purchase totals.`;
- const status=$("stockFeedStatus");
- if(status)status.textContent=inventoryLoaded?`${allInventory.filter(r=>!r.deleted_at).length.toLocaleString()} active worker stock batches · ${allStockWeeks.length.toLocaleString()} weekly books · ${accountingCreditRows.length.toLocaleString()} unique active credit records`:"Worker stock feed unavailable";
+ set("invCurrentPurchased",num(selected.purchased));set("invCurrentSold",num(selected.sold));set("invCurrentProfit",money(selected.profit));
+ set("invPhysicalRemaining",num(physical));set("invProjectedRemaining",num(projected));set("invCreditUnits",num(selectedCreditUnits));set("invCreditAmount",money(selectedCredit.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0))+" outstanding");
+ set("invAllPurchased",num(all.purchased));set("invAllSold",num(all.sold));set("invAllProfit",money(all.profit));set("invDamage",money(damageLossValue));set("invRemainingValue",money(remainingValue));
+ set("invTotal",num(selected.purchased));set("invRemain",num(physical));set("invProfit",money(selected.profit));set("stockRemaining",num(physical));set("damageValue",money(damageLossValue));set("profitValue",money(selected.profit));
+ if($("profitValue"))$("profitValue").className=selected.profit<0?"value loss":"value profit";
+ set("reviewPurchase",num(all.purchased));set("reviewSold",num(all.sold));set("reviewProfit",money(all.profit));if($("reviewProfit"))$("reviewProfit").className="value "+(all.profit<0?"loss":"profit");
+ set("stockCurrentPeriod",selectedWeek?`${selectedWeek.week_start||""}${selectedWeek.week_end?" – "+selectedWeek.week_end:""}`:`${bounds.start} – ${bounds.end}`);
+ const status=$("stockFeedStatus");if(status)status.textContent=inventoryLoaded?`${allRows.length.toLocaleString()} worker stock batches · ${(allStockWeeks||[]).length.toLocaleString()} weekly books`:"Worker stock feed unavailable";
  renderStockWeeklyRegister();renderStockAdditionalRegisters();
 }
 let businessCapitalRow=null;
@@ -1096,6 +1115,9 @@ if($("applyFilters"))$("applyFilters").onclick=applyFilters;
 if($("statusFilter"))$("statusFilter").onchange=applyFilters;
 if($("workerFilter"))$("workerFilter").onchange=applyFilters;
 if($("refreshInventory"))$("refreshInventory").onclick=loadInventory;
+ if($("invWorkerFilter"))$("invWorkerFilter").onchange=()=>{renderStockWeekOptions();applyInvFilters()};
+ if($("stockWeekSelect"))$("stockWeekSelect").onchange=applyInvFilters;
+ if($("applyInvFilters"))$("applyInvFilters").onclick=applyInvFilters;
  if($("weekDataWorker"))$("weekDataWorker").onchange=()=>{const s=$("weekDataWeek");s.value="";renderWeekData()};
  if($("weekDataWorker"))$("weekDataWorker").onchange=()=>{const old= $("weekDataWeek").value;renderWeekData();if(old&&[...$("weekDataWeek").options].some(o=>o.value===old))$("weekDataWeek").value=old;renderWeekData();};
  if($("weekDataWeek"))$("weekDataWeek").onchange=renderWeekData;
