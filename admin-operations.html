@@ -1281,6 +1281,7 @@ const triDate=v=>v?String(v).slice(0,10):'';
 function triHistoricalAllocationInfo(p){
  if(!p||!String(p.source_type||'').toLowerCase().includes('historical'))return null;
  const note=String(p.notes||''),reference=String(p.reference||'');
+ if(/historical excess credit/i.test(note))return null;
  const m=note.match(/Historical allocation period (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2});\s*(\d+)\s*day\(s\);\s*target\s*([0-9.]+)/i);
  const fallback=reference.match(/(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})/i);
  const start=m?.[1]||fallback?.[1],end=m?.[2]||fallback?.[2];
@@ -1298,31 +1299,59 @@ function triHistoricalWeeksForContract(contractId){
  return map;
 }
 
+function triContractScheduledPeriods(c){
+ const startISO=triDate(c?.contract_start_date),endISO=triDate(c?.contract_end_date);
+ if(!startISO||!endISO||endISO<startISO)return [];
+ const daily=Number(c.daily_target||200),weekly=Number(c.weekly_target||daily*7);
+ if(!(daily>0)||!(weekly>0))return [];
+ const out=[];
+ let cursor=new Date(startISO+'T12:00:00Z');
+ const last=new Date(endISO+'T12:00:00Z');
+ while(cursor<=last){
+  const periodStart=new Date(cursor);
+  const daysToSunday=(7-periodStart.getUTCDay())%7;
+  let periodEnd=new Date(periodStart);
+  periodEnd.setUTCDate(periodEnd.getUTCDate()+daysToSunday);
+  if(periodEnd>last)periodEnd=new Date(last);
+  const days=Math.floor((periodEnd-periodStart)/86400000)+1;
+  const fullMondayWeek=days===7&&periodStart.getUTCDay()===1;
+  const target=fullMondayWeek?weekly:days*daily;
+  const start=periodStart.toISOString().slice(0,10),end=periodEnd.toISOString().slice(0,10);
+  out.push({start,end,days,target,key:start+'|'+end});
+  cursor=new Date(periodEnd);cursor.setUTCDate(cursor.getUTCDate()+1);
+ }
+ return out;
+}
 function triContractWeeksRemaining(c){
- if(!c||!c.contract_start_date||!c.contract_end_date)return '—';
- const start=new Date(String(c.contract_start_date).slice(0,10)+'T00:00:00Z');
- const end=new Date(String(c.contract_end_date).slice(0,10)+'T00:00:00Z');
- if(!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||end<start)return '—';
- const totalDays=Math.floor((end-start)/86400000)+1;
- const totalWeeks=Math.ceil(totalDays/7);
- // Contract weeks are consumed by confirmed money received, not by calendar time passing.
- // Historical ledger entries are already confirmed receipts; approved reports are used as
- // a fallback in case an approval exists but its ledger trigger did not create a payment row.
- const ledgerPaid=Number(c.opening_paid_amount||0)+triPayments
-  .filter(p=>String(p.contract_id)===String(c.id))
-  .reduce((n,p)=>n+Math.max(0,Number(p.amount||0)),0);
- const approvedReportPaid=triReports
-  .filter(r=>String(r.contract_id)===String(c.id)&&String(r.status||'').toLowerCase()==='approved')
-  .reduce((n,r)=>n+Math.max(0,Number(r.payment_amount||0)),0);
- const confirmedPaid=Math.max(ledgerPaid,Number(c.opening_paid_amount||0)+approvedReportPaid);
- const weeklyTarget=Number(c.weekly_target||0)>0
-  ?Number(c.weekly_target)
-  :Number(c.daily_target||0)>0
-   ?Number(c.daily_target)*7
-   :Number(c.total_contract_amount||0)/Math.max(1,totalWeeks);
- if(!(weeklyTarget>0))return totalWeeks;
- const completedWeeks=Math.min(totalWeeks,Math.floor((confirmedPaid+0.009)/weeklyTarget));
- return Math.max(0,totalWeeks-completedWeeks);
+ if(!c)return '—';
+ const periods=triContractScheduledPeriods(c);
+ if(!periods.length)return '—';
+ const historical=triHistoricalWeeksForContract(c.id);
+ const completedKeys=new Set();
+
+ // Each contract period is completed independently. A payment for one period
+ // cannot be carried forward to hide a different unpaid or overdue period.
+ periods.forEach(period=>{
+  const h=historical.get(period.key);
+  const historicalPaid=h?Math.max(0,Number(h.paid||0)):0;
+
+  // Only approved reports count. Use the largest approved report amount for
+  // this exact period so duplicate approval rows cannot consume two weeks.
+  const approvedReportPaid=triReports
+   .filter(r=>String(r.contract_id)===String(c.id)
+    &&String(r.status||'').toLowerCase()==='approved'
+    &&triDate(r.week_start)===period.start
+    &&triDate(r.week_end)===period.end)
+   .reduce((best,r)=>Math.max(best,Math.max(0,Number(r.payment_amount||0))),0);
+
+  const confirmedForThisPeriod=Math.max(historicalPaid,approvedReportPaid);
+  if(period.target>0&&confirmedForThisPeriod+0.009>=period.target)completedKeys.add(period.key);
+ });
+
+ // Opening paid amount is not assigned to a week unless its stored opening
+ // notes explicitly identify a covered period. Do not silently use it to
+ // consume an arbitrary current or future week.
+ return Math.max(0,periods.length-completedKeys.size);
 }
 function triTimeRemaining(c){
  const weeks=triContractWeeksRemaining(c);
