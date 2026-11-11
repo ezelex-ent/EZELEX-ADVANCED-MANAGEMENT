@@ -818,6 +818,36 @@ function renderStockWeekOptions(){
  sel.innerHTML='<option value="">Current week · All workers</option>'+weeks.map(w=>{const owner=workerInfo(w.worker_id);return `<option value="${esc(w.id)}">${esc(owner.full_name||"Worker")} · ${esc(w.week_start||"")}${w.week_end?" – "+esc(w.week_end):""}</option>`}).join("");
  if(previous&&weeks.some(w=>String(w.id)===previous))sel.value=previous;
 }
+
+function renderStockWeeklyRegister(){
+ const body=$("stockWeeklyBody");if(!body)return;
+ const weeks=(allStockWeeks||[]).slice().sort((a,b)=>String(b.week_start||"").localeCompare(String(a.week_start||"")));
+ if(!weeks.length){body.innerHTML='<tr><td colspan="11" class="empty">No worker weekly stock books were returned.</td></tr>';return;}
+ body.innerHTML=weeks.map(w=>{
+  const owner=workerInfo(w.worker_id),bounds={start:String(w.week_start||""),end:String(w.week_end||w.week_start||"")};
+  const rows=stockRowsForWeek([w],bounds),tot=stockSumRows(rows);
+  const credit=(accountingCreditRows||[]).filter(c=>rows.some(r=>String(r.id)===String(c.stock_batch_id||"")));
+  const unpaid=credit.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0);
+  return `<tr><td>${esc(bounds.start)}${bounds.end&&bounds.end!==bounds.start?" – "+esc(bounds.end):""}</td><td>${esc(owner.full_name||"Worker")}<br><small>${esc(owner.worker_id||"")}</small></td><td>${esc(w.status||"—")}</td><td>${num(tot.opening)}</td><td>${num(tot.purchased)}</td><td>${num(tot.sold)}</td><td>${num(unpaid)}</td><td>${num(tot.damage)}</td><td>${num(tot.loss)}</td><td><b>${num(tot.physical)}</b></td><td class="${tot.profit<0?"loss":"profit"}">${money(tot.profit)}</td></tr>`;
+ }).join("");
+}
+function renderStockAdditionalRegisters(){
+ const rows=(filteredInventory||[]).filter(r=>!r.deleted_at);
+ const purchases=rows.filter(r=>String(r.stock_type||"").toLowerCase()!=="carry_forward");
+ const sales=rows.filter(r=>invCalc(r).sold>0);
+ const credit=(accountingCreditRows||[]).filter(c=>rows.some(r=>String(r.id)===String(c.stock_batch_id||"")));
+ const adjustments=rows.filter(r=>invCalc(r).damage>0||invCalc(r).loss>0);
+ const setBody=(id,html,cols,empty)=>{const el=$(id);if(el)el.innerHTML=html||`<tr><td colspan="${cols}" class="empty">${empty}</td></tr>`;};
+ setBody("stockPurchasesBody",purchases.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id);return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"Worker")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${num(c.total)}</td><td>${money(c.unit)}</td><td>${money(c.total*c.unit)}</td><td>${esc(r.week_id||dateOnly(r.stock_date||r.created_at))}</td></tr>`}).join(""),8,"No purchases found for this worker/week selection.");
+ setBody("stockSalesBody",sales.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id);return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"Worker")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${num(c.sold)}</td><td>${money(c.price)}</td><td>${money(c.revenue)}</td><td class="${c.profit<0?"loss":"profit"}">${money(c.profit)}</td><td>${esc(r.week_id||dateOnly(r.stock_date||r.created_at))}</td></tr>`}).join(""),9,"No sales found for this worker/week selection.");
+ setBody("stockCreditBody",credit.map(c=>{const w=workerInfo(c.worker_id),batch=rows.find(r=>String(r.id)===String(c.stock_batch_id||"")),due=Number(c.amount_due||0),paid=Number(c.amount_paid||0),unpaid=window.EZELEXAccounting.unpaidCrates(c);return `<tr><td>${esc(dateOnly(c.credit_date||c.created_at))}</td><td>${esc(w.full_name||"Worker")}</td><td>${esc(c.customer_name||"")}</td><td>${esc(c.product_service||batch?.product_service||"")}</td><td>${num(c.quantity)}</td><td>${num(c.crates_paid)}</td><td>${num(unpaid)}</td><td>${money(due)}</td><td>${money(paid)}</td><td>${money(Math.max(0,due-paid))}</td><td>${Math.max(0,due-paid)>0.009?"Outstanding":"Paid"}</td></tr>`}).join(""),11,"No customer credit records for this worker/week selection.");
+ const creditOpen=credit.filter(c=>window.EZELEXAccounting.unpaid(c)>0.009||window.EZELEXAccounting.unpaidCrates(c)>0);
+ const set=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
+ set("stockCreditRecords",creditOpen.length);set("stockCreditCrates",num(creditOpen.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0)));
+ set("stockCreditBalance",money(creditOpen.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0)));
+ setBody("stockAdjustmentsBody",adjustments.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id);return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"Worker")}</td><td>${esc(r.product_service||"")}</td><td>${num(c.damage)}</td><td>${num(c.loss)}</td><td>${money(c.unit)}</td><td>${money(c.damageValue)}</td><td>${money(c.lossValue)}</td><td>${esc(r.notes||"")}</td></tr>`}).join(""),9,"No damage or loss records for this worker/week selection.");
+}
+
 function updateInventorySummary(){
  const selectedWorker=$("invWorkerFilter")?.value||"",selectedWeekId=$("stockWeekSelect")?.value||"",bounds=stockWeekBounds(0);
  let selectedWeek=null,selectedRows=[];
@@ -909,6 +939,8 @@ async function loadAdminCredits(){
   if(businessCapitalRow)updateBusinessCapitalSummary();
   if(!$('weekData').classList.contains('hidden'))renderWeekData();
  }catch(e){$('adminCreditBody').innerHTML=`<tr><td colspan="10" class="empty">Credit records unavailable: ${esc(e.message)}</td></tr>`;}
+
+  if(inventoryLoaded){renderStockAdditionalRegisters();updateInventorySummary();}
 }
 async function loadStockHistory(){
  try{
