@@ -700,16 +700,27 @@ window.approveSale=async id=>{if(!confirm("Approve this worker sale?"))return;co
 window.rejectSale=async id=>{const reason=prompt("Reason for disapproving this sale:");if(reason===null)return;const r=await db.from("sales").update({status:"rejected",rejection_reason:reason.trim()||"No reason provided",approved_at:null}).eq("id",id);if(r.error){msg("dashMsg",r.error.message,"error");return}try{await sendSaleNotice("rejected",id);msg("dashMsg","Sale disapproved and worker email sent.","ok")}catch(e){msg("dashMsg","Sale disapproved, but worker email failed: "+e.message,"error")}await loadSales()}
 window.adminDeleteApprovedSale=async id=>{const sale=allSales.find(x=>String(x.id)===String(id));if(!sale||status(sale)!=="approved"){msg("dashMsg","Only approved sales can be deleted from this admin action.","error");return}const reason=prompt("Required: explain why this approved sale is being deleted. This reason will be emailed to the worker:");if(reason===null)return;if(!reason.trim()){alert("Please enter a reason before deleting the approved sale.");return}if(!confirm("Delete this approved sale and email the worker the reason? This cannot be undone."))return;let emailStatus="Worker email sent.";try{await sendSaleNotice("approved_deleted",id,{reason:reason.trim()})}catch(e){emailStatus="Worker email could not be sent ("+e.message+")."}const r=await db.from("sales").delete().eq("id",id).eq("status","approved");if(r.error){msg("dashMsg","Could not delete approved sale: "+r.error.message+(emailStatus.startsWith("Worker email sent")?" Email was sent.":""),"error");return}msg("dashMsg","Approved sale deleted. "+emailStatus,"ok");await loadSales()}
 async function loadInventory(){
+ let batches, weeks;
  try{
-  const batches=await readAllRows("worker_stock_batches","stock_date");
-  const weeks=await readAllRows("worker_stock_weeks","week_start");
-  allInventory=batches;allStockWeeks=weeks;inventoryLoaded=true;
-  currentWeekIds=latestWorkerWeekIds();
-  const workerSel=$("invWorkerFilter"),priorWorker=workerSel?.value||"";
-  if(workerSel){workerSel.innerHTML='<option value="">All workers</option>'+workers.filter(w=>String(w.role||"worker").toLowerCase()==="worker").map(w=>`<option value="${esc(w.user_id||w.id)}">${esc(w.full_name||"Worker")} (${esc(w.worker_id||"")})</option>`).join("");if(priorWorker)workerSel.value=priorWorker;}
-  renderStockWeekOptions();applyInvFilters();if(businessCapitalRow)updateBusinessCapitalSummary();
-  if($("weekData").classList.contains("hidden")===false)renderWeekData();
- }catch(e){inventoryLoaded=false;msg("dashMsg","Stock tracker could not load all worker records: "+e.message+". Credit totals and Week Data are paused until the stock feed is available.","error");}
+  batches=await readAllRows("worker_stock_batches","stock_date");
+  weeks=await readAllRows("worker_stock_weeks","week_start");
+ }catch(e){
+  inventoryLoaded=false;
+  msg("dashMsg","Stock tracker could not load worker records: "+(e.message||String(e))+". Check the stock table access and try Sync worker data again.","error");
+  return;
+ }
+ allInventory=batches||[];allStockWeeks=weeks||[];inventoryLoaded=true;
+ currentWeekIds=latestWorkerWeekIds();
+ const workerSel=$("invWorkerFilter"),priorWorker=workerSel?.value||"";
+ if(workerSel){
+  workerSel.innerHTML='<option value="">All workers</option>'+workers.filter(w=>String(w.role||"worker").toLowerCase()==="worker").map(w=>`<option value="${esc(w.user_id||w.id)}">${esc(w.full_name||"Worker")} (${esc(w.worker_id||"")})</option>`).join("");
+  if(priorWorker)workerSel.value=priorWorker;
+ }
+ renderStockWeekOptions();
+ applyInvFilters();
+ if(businessCapitalRow)updateBusinessCapitalSummary();
+ const weekDataEl=$("weekData");
+ if(weekDataEl&&!weekDataEl.classList.contains("hidden"))renderWeekData();
 }
 function fillAdminStockWorkerSelect(selectedId){
  const sel=$("adminStockEditWorker");if(!sel)return;
@@ -821,8 +832,14 @@ function renderStockWeekOptions(){
 
 function renderStockWeeklyRegister(){
  const body=$("stockWeeklyBody");if(!body)return;
- const weeks=(allStockWeeks||[]).slice().sort((a,b)=>String(b.week_start||"").localeCompare(String(a.week_start||"")));
- if(!weeks.length){body.innerHTML='<tr><td colspan="11" class="empty">No worker weekly stock books were returned.</td></tr>';return;}
+ const selectedWorker=$("invWorkerFilter")?.value||"";
+ const selectedWeekId=$("stockWeekSelect")?.value||"";
+ const currentBounds=stockWeekBounds(0);
+ let weeks=(allStockWeeks||[]).filter(w=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id));
+ if(selectedWeekId)weeks=weeks.filter(w=>String(w.id)===selectedWeekId);
+ else weeks=weeks.filter(w=>String(w.week_start||"")===currentBounds.start);
+ weeks=weeks.slice().sort((a,b)=>String(b.week_start||"").localeCompare(String(a.week_start||"")));
+ if(!weeks.length){body.innerHTML='<tr><td colspan="11" class="empty">No weekly stock book found for this selection.</td></tr>';return;}
  body.innerHTML=weeks.map(w=>{
   const owner=workerInfo(w.worker_id),bounds={start:String(w.week_start||""),end:String(w.week_end||w.week_start||"")};
   const rows=stockRowsForWeek([w],bounds),tot=stockSumRows(rows);
@@ -1155,7 +1172,7 @@ if($("refreshInventory"))$("refreshInventory").onclick=loadInventory;
  if($("weekDataWeek"))$("weekDataWeek").onchange=renderWeekData;
  if($("weekDataRefresh"))$("weekDataRefresh").onclick=async()=>{const b=$("weekDataRefresh");b.disabled=true;b.textContent="Refreshing…";await loadWorkers();await loadInventory();await Promise.all([loadAdminCredits(),loadStockHistory()]);renderWeekData();b.disabled=false;b.textContent="Refresh Week Data"};
 if($("applyInvFilters"))$("applyInvFilters").onclick=applyInvFilters;
-if($("invWorkerFilter"))$("invWorkerFilter").onchange=applyInvFilters;
+if($("invWorkerFilter"))$("invWorkerFilter").onchange=()=>{renderStockWeekOptions();applyInvFilters()};
 const _loadWorkersWithDeleteSelect=loadWorkers;loadWorkers=async function(){await _loadWorkersWithDeleteSelect();populateDeleteWorkerSelect()};
 
 const adminSectionHistory=[];
