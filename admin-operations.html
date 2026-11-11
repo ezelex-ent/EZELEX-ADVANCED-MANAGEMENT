@@ -617,7 +617,7 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
  <div class="tablebox"><table><thead><tr><th>Driver</th><th>Vehicle</th><th>Report period (Mon–Sun)</th><th>Submitted at (actual)</th><th>Sales reported</th><th>Payment reported</th><th>Reference / Notes</th><th>Status</th><th>Rejection reason</th><th>Action</th></tr></thead><tbody id="triReportsBody"><tr><td colspan="10" class="empty">Loading reports...</td></tr></tbody></table></div><div class="tablebox"><table><thead><tr><th>Driver</th><th>Vehicle</th><th>Report period</th><th>Sales reported</th><th>Payment reported</th><th>Reference / Notes</th><th>Status</th><th>Rejection reason</th><th>Action</th></tr></thead><tbody id="triReportsBody"><tr><td colspan="9" class="empty">Loading reports...</td></tr></tbody></table></div></div>
  <div class="section hidden" id="triCalendarPanel"><h2>Payment Ledger Calendar</h2><p class="muted">Choose a contract and month. Click any date to see payments recorded for that day and the daily target from the contract start date.</p><div class="toolbar"><select id="triCalendarContract" style="max-width:340px"><option value="">Select contract</option></select><button class="soft" id="triCalPrev">‹ Previous month</button><input id="triCalendarMonth" type="month" style="max-width:190px"><button class="soft" id="triCalNext">Next month ›</button></div><div id="triCalendar" class="tri-calendar"></div><div id="triCalendarDayDetail" class="msg">Choose a date in the calendar to view details.</div></div>
  <div class="section hidden" id="triOwingPanel"><h2>Owing / Weekly Shortfalls</h2><p class="muted">Each driver’s assigned contract target is used to calculate weekly shortfalls. When accumulated owing reaches or exceeds that driver’s weekly target, review the debt and consider whether the contract end date needs to be extended. This does not change a contract automatically.</p><div id="triDebtThresholdPrompt" class="msg error hidden" role="alert" aria-live="polite"></div><div class="section" style="margin:12px 0;border:1px solid #f2c9c9;background:#fffafa"><h3>Contracts Requiring Review</h3><p class="muted">Drivers appear here when accumulated owing reaches or exceeds their own assigned weekly target. Enter a new end date to extend a contract. Saving updates the tricycle contract and the driver profile contract end date.</p><div class="tablebox"><table style="min-width:900px"><thead><tr><th>Driver / Vehicle</th><th>Accumulated Owing</th><th>Assigned Weekly Target</th><th>Current End Date</th><th>New Contract End Date</th><th>Action</th></tr></thead><tbody id="triDebtThresholdContractsBody"><tr><td colspan="6" class="empty">No contracts currently require review.</td></tr></tbody></table></div></div><div class="cards" style="grid-template-columns:repeat(2,1fr)"><div class="card"><div class="label">Total Recorded Shortfall</div><div class="value" id="triOwingTotal">GH₵0.00</div></div><div class="card"><div class="label">Periods Below Target</div><div class="value" id="triOwingCount">0</div></div></div><div class="tablebox"><table><thead><tr><th>Driver</th><th>Period</th><th>Expected</th><th>Recorded</th><th>Owing</th><th>Report Status</th></tr></thead><tbody id="triOwingBody"></tbody></table></div></div>
- <div class="section hidden" id="triPaymentMonitorPanel"><h2>Weekly Driver Payment Monitoring — Critical Control</h2><p class="muted">Every completed Monday–Sunday contract week is checked. The previous week becomes overdue at 3:00 PM Ghana time on Monday if the driver has not submitted payment. A submitted payment remains pending until Admin approves it. Contract duration reduces only after approval of the full weekly payment. Owing / Weekly Shortfalls remains separate.</p>
+ <div class="section hidden" id="triPaymentMonitorPanel"><h2>Weekly Driver Payment Monitoring — Critical Control</h2><p class="muted">Every completed Monday–Sunday contract week is checked. The previous week becomes overdue at 3:00 PM Ghana time on Monday if the driver has not submitted payment. Historical ledger allocations are matched to their saved period and original target, and fully covered historical weeks are treated as paid. New weekly submissions remain pending until Admin approves them. Owing / Weekly Shortfalls remains separate.</p>
  <div id="triMonitorCriticalBanner" role="alert" aria-live="assertive" style="border:2px solid #b42318;background:linear-gradient(110deg,#fff0ef,#fff8f7);border-left:9px solid #b42318;border-radius:14px;padding:17px 18px;margin:14px 0 18px;box-shadow:0 8px 24px rgba(180,35,24,.12)"><div style="font-size:12px;font-weight:900;letter-spacing:.12em;color:#a11b1b">CRITICAL PAYMENT CONTROL · ADMIN ACTION REQUIRED</div><div id="triMonitorCriticalHeadline" style="font-size:clamp(19px,3vw,26px);font-weight:900;color:#7f1d1d;margin:5px 0">Checking completed payment weeks…</div><div id="triMonitorCriticalDetail" style="color:#7f1d1d">Refresh monitoring to verify current ledger records.</div></div>
  <div class="toolbar"><select id="triMonitorContractFilter" style="max-width:320px"><option value="">All drivers / contracts</option></select><select id="triMonitorStatusFilter" style="max-width:260px"><option value="">All payment risks</option><option value="attention">All action required</option><option value="OVERDUE — NO PAYMENT">Overdue — no payment</option><option value="OVERDUE — REJECTED">Overdue — rejected</option><option value="OVERDUE — PART PAYMENT">Overdue — part payment</option><option value="OVERDUE — PENDING APPROVAL">Overdue — pending approval</option><option value="DUE — DEADLINE MONDAY 3 PM">Due — deadline Monday 3 PM</option><option value="LATE REPORT">Late submission</option><option value="PENDING APPROVAL">Pending approval</option><option value="PAID">Paid</option><option value="LOCKED">Locked</option></select><button type="button" class="soft" id="triMonitorRefresh">Refresh Monitoring</button></div>
  <div class="cards" style="grid-template-columns:repeat(4,1fr)"><div class="card"><div class="label">Overdue — No Payment</div><div class="value" id="triMonitorMissing">0</div><small>Overdue weeks with zero confirmed receipts</small></div><button type="button" class="card" id="triMonitorLateCard" style="text-align:left;cursor:pointer;border:2px solid #b42318;background:#fff1f0;width:100%;box-shadow:0 6px 22px rgba(180,35,24,.14)" aria-label="Open critical overdue and late payment action list"><div class="label" style="color:#a11b1b;font-weight:900">OVERDUE PAYMENTS / LATE REPORTS · ACTION NOW</div><div class="value" id="triMonitorLate" style="color:#b42318">0</div><small style="color:#912018;font-weight:800">Tap to open prioritised action queue</small></button><div class="card"><div class="label">Pending Approval</div><div class="value" id="triMonitorPending">0</div><small>Not counted as confirmed payment</small></div><div class="card"><div class="label">Total Overdue Payment Exposure</div><div class="value" id="triMonitorShortfall">GH₵0.00</div><small>Overdue payment only; report shortfalls are separate</small></div></div>
@@ -1278,13 +1278,34 @@ $("saveCapitalCashBtn").onclick=saveBusinessCash;$("saveOriginalCapitalBtn").onc
 // TRICYCLE CONTRACT MODULE — intentionally isolated from the existing sales/stock/profit logic.
 let triContracts=[],triReports=[],triPayments=[],triPrivateCosts=[];window.triReports=triReports;
 const triDate=v=>v?String(v).slice(0,10):'';
+function triHistoricalAllocationInfo(p){
+ if(!p||!String(p.source_type||'').toLowerCase().includes('historical'))return null;
+ const note=String(p.notes||''),reference=String(p.reference||'');
+ const m=note.match(/Historical allocation period (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2});\s*(\d+)\s*day\(s\);\s*target\s*([0-9.]+)/i);
+ const fallback=reference.match(/(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})/i);
+ const start=m?.[1]||fallback?.[1],end=m?.[2]||fallback?.[2];
+ const target=m?Number(m[4]):0,amount=Math.max(0,Number(p.amount||0));
+ if(!start||!end||!Number.isFinite(amount))return null;
+ return {start,end,days:m?Number(m[3]):0,target,amount,key:start+'|'+end};
+}
+function triHistoricalWeeksForContract(contractId){
+ const map=new Map();
+ triPayments.filter(p=>String(p.contract_id)===String(contractId)).forEach(p=>{
+  const h=triHistoricalAllocationInfo(p);if(!h)return;
+  const item=map.get(h.key)||{start:h.start,end:h.end,target:h.target,paid:0,rows:[]};
+  item.target=Math.max(item.target,h.target||h.amount);item.paid+=h.amount;item.rows.push(p);map.set(h.key,item);
+ });
+ return map;
+}
+
 function triContractWeeksRemaining(c){
  if(!c||!c.contract_start_date||!c.contract_end_date)return '—';
  const start=new Date(String(c.contract_start_date).slice(0,10)+'T00:00:00Z');
  const end=new Date(String(c.contract_end_date).slice(0,10)+'T00:00:00Z');
  if(!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||end<start)return '—';
  const totalWeeks=Math.ceil((Math.floor((end-start)/86400000)+1)/7);
- const grouped=new Map();
+ const periods=new Map();
+ // Approved weekly reports complete their original contract week.
  triReports.filter(r=>String(r.contract_id)===String(c.id)&&String(r.status||'').toLowerCase()==='approved'&&r.week_start&&r.week_end)
   .forEach(r=>{
    const ws=String(r.week_start).slice(0,10),we=String(r.week_end).slice(0,10),key=ws+'|'+we;
@@ -1296,24 +1317,20 @@ function triContractWeeksRemaining(c){
    if(!days)return;
    const daily=Number(c.daily_target||0),weekly=Number(c.weekly_target||daily*7);
    const expected=days>=7?weekly:daily*days;
-   const item=grouped.get(key)||{paid:0,expected};
-   item.paid+=Math.max(0,Number(r.payment_amount||0));
+   const item=periods.get(key)||{paid:0,expected};
+   item.paid=Math.max(item.paid,Math.max(0,Number(r.payment_amount||0)));
    item.expected=Math.max(item.expected,expected);
-   grouped.set(key,item);
+   periods.set(key,item);
   });
- // Historical payment allocations are already confirmed ledger receipts. Their saved notes
- // contain the exact allocation period and target; count only fully covered scheduled periods.
- triPayments.filter(p=>String(p.contract_id)===String(c.id)&&String(p.source_type||'').toLowerCase().includes('historical'))
-  .forEach(p=>{
-   const note=String(p.notes||'');
-   const match=note.match(/Historical allocation period (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2});\s*\d+ day\(s\);\s*target ([0-9.]+)/i);
-   if(!match)return;
-   const key=match[1]+'|'+match[2],target=Number(match[3]),amount=Math.max(0,Number(p.amount||0));
-   if(!(target>0))return;
-   const item=grouped.get(key)||{paid:0,expected:target};
-   item.paid+=amount;item.expected=Math.max(item.expected,target);grouped.set(key,item);
-  });
- const completed=[...grouped.values()].filter(x=>x.expected>0&&x.paid+0.009>=x.expected).length;
+ // Historical allocation rows carry the original period and target in their ledger notes.
+ // Their own target is authoritative; do not compare them to today's weekly target.
+ triHistoricalWeeksForContract(c.id).forEach(h=>{
+  const item=periods.get(h.key)||{paid:0,expected:h.target};
+  item.paid=Math.max(item.paid,h.paid);
+  item.expected=h.target||h.amount;
+  periods.set(h.key,item);
+ });
+ const completed=[...periods.values()].filter(x=>x.expected>0&&x.paid+0.009>=x.expected).length;
  return Math.max(0,totalWeeks-completed);
 }
 function triTimeRemaining(c){
@@ -1491,14 +1508,17 @@ function triMonitorRows(){
    const report=sortedReports[0]||null;
    const weekLedger=triPayments.filter(p=>String(p.contract_id)===String(c.id)&&String(p.payment_date||p.created_at||'').slice(0,10)>=ws&&String(p.payment_date||p.created_at||'').slice(0,10)<=we);
    const ledgerPaid=weekLedger.reduce((n,p)=>n+Math.max(0,Number(p.amount||0)),0);
+   const historicalWeeks=triHistoricalWeeksForContract(c.id);
+   const historical=historicalWeeks.get(ws+'|'+we)||null;
    const approvedReport=weekReports.filter(r=>String(r.status||'').toLowerCase()==='approved').reduce((n,r)=>n+Math.max(0,Number(r.payment_amount||0)),0);
    const activeStart=new Date(Math.max(wsDate.getTime(),start.getTime()));
    const contractEnd=c.contract_end_date?new Date(String(c.contract_end_date).slice(0,10)+'T00:00:00Z'):null;
    const activeEnd=contractEnd&&contractEnd<weDate?contractEnd:weDate;
    const activeDays=Math.max(0,Math.floor((activeEnd-activeStart)/86400000)+1);
    const daily=Number(c.daily_target||0),weekly=Number(c.weekly_target||daily*7);
-   const expected=activeDays>=7?weekly:daily*activeDays;
-   const confirmed=ledgerPaid>0?ledgerPaid:approvedReport;
+   const normalExpected=activeDays>=7?weekly:daily*activeDays;
+   const expected=historical?(historical.target||historical.paid):normalExpected;
+   const confirmed=historical?historical.paid:(ledgerPaid>0?ledgerPaid:approvedReport);
    const outstanding=Math.max(0,expected-confirmed);
    const lock=ezWeekLocks.find(x=>String(x.contract_id)===String(c.id)&&String(x.week_end).slice(0,10)===we&&x.is_locked);
    const submitted=report?.submitted_at?new Date(report.submitted_at):null;
@@ -1508,13 +1528,13 @@ function triMonitorRows(){
     return Number.isFinite(t)&&t<=dueAt;
    });
    const submittedAtAll=validSubmissions.length>0;
-   const reportLate=submittedAtAll&&!submittedByDeadline;
+   const reportLate=!historical&&submittedAtAll&&!submittedByDeadline;
    const pendingReport=String(report?.status||'').toLowerCase()==='pending';
    const rejectedReport=String(report?.status||'').toLowerCase()==='rejected';
    const reportStatus=report
     ?String(report.status||'unknown').toUpperCase()+(reportLate?' · LATE SUBMISSION':'')
     :'NOT SUBMITTED';
-   const approvedFull=expected>0&&approvedReport+0.009>=expected;
+   const approvedFull=expected>0&&(historical?historical.paid+0.009>=expected:approvedReport+0.009>=expected);
    let risk='DUE — DEADLINE MONDAY 3 PM';
    if(approvedFull)risk=reportLate?'PAID — LATE':'PAID';
    else if(pendingReport)risk=isOverdue&&!submittedByDeadline?'OVERDUE — PENDING APPROVAL':'PENDING APPROVAL';
