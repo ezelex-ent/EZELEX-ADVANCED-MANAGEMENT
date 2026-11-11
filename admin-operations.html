@@ -232,6 +232,57 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 <style id="ezelex-private-finance-upgrade">
 .ez-finance-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}.ez-finance-card{padding:17px;border:1px solid #dfe8f1;border-radius:14px;background:linear-gradient(145deg,#fff,#f4f8fc);box-shadow:0 7px 18px rgba(16,42,67,.06);display:flex;flex-direction:column;gap:6px}.ez-finance-card span{font-size:12px;color:#65758b}.ez-finance-card strong{font-size:clamp(18px,2vw,24px);color:#143b61}.ez-finance-card small{font-size:11px;color:#7b8796}.ez-subsection{margin:16px 0;border:1px solid #e5ebf2;box-shadow:none}.ez-week-control{display:grid;grid-template-columns:1fr 1.2fr;gap:14px;padding:15px;border:1px solid #e1e9f1;border-radius:12px;background:#f7f9fc;margin:12px 0}.ez-week-control p{margin:5px 0 0}.ez-week-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}.ez-week-fields button{margin:4px 0 12px}.ez-week-tag{display:inline-block;color:#174a7e;background:#e8f1fa;padding:3px 7px;border-radius:20px;margin-top:4px}@media(max-width:900px){.ez-finance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ez-week-control{grid-template-columns:1fr}}@media(max-width:600px){.ez-finance-grid{grid-template-columns:1fr 1fr;gap:8px}.ez-finance-card{padding:12px}.ez-week-fields{grid-template-columns:1fr}.ez-week-control{padding:12px}.ez-subsection{padding:12px!important}}
 </style>
+
+<style id="ezelex-advanced-stock-system-css">
+#stock .stock-system-shell{padding:clamp(16px,2.5vw,30px)}
+#stock .stock-system-heading{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:22px}
+#stock .stock-system-heading h2{margin:7px 0 8px;font-size:clamp(24px,3vw,34px);color:var(--ink,#172b45)}
+#stock .eyebrow{font-size:11px;letter-spacing:2px;font-weight:800;color:var(--teal,#138477)}
+#stock .stock-live-status{display:flex;align-items:center;gap:8px;border:1px solid var(--line,#e3eaf2);border-radius:999px;padding:10px 14px;font-size:12px;font-weight:700;color:var(--muted,#6b7b90);white-space:nowrap}
+#stock .live-dot{width:8px;height:8px;border-radius:50%;background:#16a36a;box-shadow:0 0 0 4px #16a36a20}
+#stock .stock-filterbar{display:flex;flex-wrap:wrap;align-items:end;gap:10px;padding:14px;background:#f7f9fc;border:1px solid var(--line,#e3eaf2);border-radius:14px;margin-bottom:16px}
+#stock .stock-filterbar label{display:grid;gap:5px;font-size:11px;font-weight:800;color:var(--muted,#6b7b90)}
+#stock .stock-filterbar select,#stock .stock-filterbar input{min-height:42px;border:1px solid #d7e1ed;border-radius:9px;padding:8px 10px;background:#fff;color:var(--ink,#172b45);min-width:150px}
+#stock .stock-section-nav{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 13px;margin-bottom:16px;border-bottom:1px solid var(--line,#e3eaf2)}
+#stock .stock-view-btn{flex:0 0 auto;border:1px solid #dbe4ef;background:#fff;color:#52647b;border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}
+#stock .stock-view-btn.active{background:#173d62;color:#fff;border-color:#173d62}
+#stock .stock-view-panel{padding:4px 0 12px}
+#stock .stock-view-panel.hidden{display:none!important}
+#stock .stock-panel-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:6px 0 16px}
+#stock .stock-panel-title h3{margin:0 0 5px;color:var(--ink,#172b45);font-size:20px}
+#stock .stock-period-chip{background:#eaf2fb;color:#1e5484;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;white-space:nowrap}
+#stock .stock-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:12px}
+#stock .stock-kpi{padding:17px;min-height:124px;border:1px solid var(--line,#e3eaf2);border-radius:14px;background:#fff}
+#stock .stock-kpi .label{display:block;font-size:11px;letter-spacing:.35px;font-weight:800;color:#687b91;margin-bottom:9px}
+#stock .stock-kpi .value{display:block;font-size:clamp(22px,2.4vw,29px);font-weight:850;color:var(--ink,#172b45);line-height:1.15}
+#stock .stock-kpi small{display:block;margin-top:8px;color:#718198;font-size:11px;line-height:1.45}
+#stock .stock-kpi.profit-kpi{background:#e9f8ef;border-color:#9edab5}
+#stock .stock-kpi.profit-kpi .value{color:#17683d}
+#stock .stock-kpi.warning-kpi{background:#fff8e8;border-color:#f0d69b}
+#stock .stock-kpi.warning-kpi .value{color:#8a5a10}
+#stock .stock-calculation-note{padding:13px 15px;background:#f3f7fb;border-left:4px solid #2d6da5;border-radius:8px;color:#52647b;font-size:12px;line-height:1.6;margin:16px 0}
+#stock .stock-insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+#stock .stock-insight{padding:15px;border:1px solid var(--line,#e3eaf2);border-radius:12px;background:#fff}
+#stock .stock-insight h4{margin:0 0 7px;color:#1b3654}
+#stock .stock-insight p{margin:0;color:#687b91;font-size:12px;line-height:1.55}
+#stock .stock-credit-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+#stock .stock-credit-kpis .card{padding:15px;border:1px solid var(--line,#e3eaf2);border-radius:12px}
+#stock .stock-credit-kpis .value{display:block;font-size:24px;font-weight:850;margin-top:7px}
+#stock .tablebox{max-width:100%;overflow:auto;border:1px solid var(--line,#e3eaf2);border-radius:12px}
+#stock table{min-width:900px}
+#stock th{position:sticky;top:0;z-index:1}
+@media(max-width:700px){
+ #stock .stock-system-heading{display:block}
+ #stock .stock-live-status{display:inline-flex;margin-top:10px}
+ #stock .stock-filterbar label{flex:1 1 42%}
+ #stock .stock-filterbar label select,#stock .stock-filterbar label input{width:100%;min-width:0}
+ #stock .stock-panel-title{align-items:flex-start;flex-direction:column}
+ #stock .stock-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #stock .stock-kpi{padding:12px;min-height:118px}
+ #stock .stock-kpi .value{font-size:21px}
+}
+</style>
+
 </head>
 <body>
 <header><div class="brand"><div class="logo">EZ</div><div><h1>Ezelex Enterprise</h1><small>Administrator Dashboard</small></div></div><div class="header-actions"><button id="operationsBackButton" class="soft hidden" type="button" aria-label="Go back to previous management section">← Back</button><button id="menuToggle" class="menu-toggle hidden" aria-expanded="false" aria-controls="adminMenu">☰ Open Menu</button><button id="logoutBtn" class="danger hidden">Log out</button><div id="adminMenu" class="admin-menu hidden" role="menu">
@@ -334,33 +385,134 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 </div></div>
 </section>
 
-<section id="stock" class="page hidden"><div id="stockOverviewPanel"><div class="section"><h2>Central Stock, Profit, Loss & Damage</h2><p class="muted">Every worker stock batch is sent here automatically. Figures are calculated from the quantities and values entered by workers.</p>
-<div class="cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
-<div class="card"><div class="label">Stock Available (Opening + Purchases)</div><div class="value" id="invTotal">0</div></div><div class="card"><div class="label">Units Remaining</div><div class="value" id="invRemain">0</div></div><div class="card"><div class="label">Damage Value</div><div class="value" id="invDamage">GH₵0.00</div></div><div class="card"><div class="label">Profit / Loss</div><div class="value" id="invProfit">GH₵0.00</div></div>
-</div>
-<div class="toolbar"><select id="invWorkerFilter" style="max-width:240px"><option value="">All workers</option></select><input id="invFromDate" type="date" style="max-width:170px"><input id="invToDate" type="date" style="max-width:170px"><button id="applyInvFilters" class="primary">Apply</button><button id="refreshInventory" class="soft">Refresh</button><button id="invCsvBtn" class="gold">CSV</button></div>
-<div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Product</th><th>Total</th><th>Sold</th><th>Damaged</th><th>Remaining</th><th>Purchase</th><th>Revenue</th><th>Damage Value</th><th>Profit/Loss</th><th>Admin Actions</th></tr></thead><tbody id="inventoryBody"></tbody></table></div><div id="adminStockEditor" class="section hidden" style="margin-top:16px">
-<h3>Edit Worker Stock Record</h3><p class="muted">Changes save to the same Supabase stock batch read by the Worker Portal. The worker's next refresh will receive the updated figures.</p>
-<input type="hidden" id="adminStockEditId">
-<div class="toolbar">
-<select id="adminStockEditWorker"><option value="">Select worker</option></select>
-<input id="adminStockEditDate" type="date" aria-label="Stock date">
-<input id="adminStockEditProduct" placeholder="Product">
-<input id="adminStockEditTotal" type="number" min="0" step="0.01" placeholder="Total units">
-<input id="adminStockEditSold" type="number" min="0" step="0.01" placeholder="Sold">
-<input id="adminStockEditDamage" type="number" min="0" step="0.01" placeholder="Damaged">
-<input id="adminStockEditLoss" type="number" min="0" step="0.01" placeholder="Lost">
-<input id="adminStockEditUnit" type="number" min="0" step="0.01" placeholder="Purchase cost / unit">
-<input id="adminStockEditPrice" type="number" min="0" step="0.01" placeholder="Selling price / unit">
-<input id="adminStockEditNote" maxlength="500" placeholder="Reason for admin edit">
-<button id="adminStockSave" type="button" class="primary">Save to Worker Portal</button>
-<button id="adminStockCancel" type="button" class="soft">Cancel</button>
-<div id="adminStockEditFeedback" class="msg" role="status"></div>
-</div></div>
-</div>
-<div class="section" style="margin-top:18px"><h2>All-Time Purchase, Sales & Profit Review</h2><p class="muted">Business-wide totals calculated from stock records. Total Purchase is the sum of Total Quantity Bought; Total Sold is the sum of sold quantities. These review totals do not change stock calculations.</p><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="label">All-Time Purchase (Units)</div><div class="value" id="reviewPurchase">0</div></div><div class="card"><div class="label">All-Time Sold (Units)</div><div class="value" id="reviewSold">0</div></div><div class="card"><div class="label">All-Time Profit / Loss</div><div class="value" id="reviewProfit">GH₵0.00</div></div></div></div>
-</div>
+<section id="stock" class="page hidden">
+ <div class="section stock-system-shell">
+  <div class="stock-system-heading">
+   <div>
+    <span class="eyebrow">STOCK &amp; INVENTORY</span>
+    <h2>Business Stock Control Centre</h2>
+    <p class="muted">Live stock intelligence from every worker's weekly stock books, purchases, sales, customer credit, stock adjustments and audit history.</p>
+   </div>
+   <div class="stock-live-status"><span class="live-dot"></span><span id="stockFeedStatus">Connecting to worker stock records…</span></div>
+  </div>
 
+  <div class="stock-filterbar">
+   <label>Worker
+    <select id="invWorkerFilter"><option value="">All workers</option></select>
+   </label>
+   <label>From
+    <input id="invFromDate" type="date">
+   </label>
+   <label>To
+    <input id="invToDate" type="date">
+   </label>
+   <button id="applyInvFilters" type="button" class="primary">Apply filters</button>
+   <button id="refreshInventory" type="button" class="soft">Sync worker data</button>
+   <button id="invCsvBtn" type="button" class="gold">Export CSV</button>
+  </div>
+
+  <div class="stock-section-nav" role="tablist" aria-label="Stock and inventory views">
+   <button type="button" class="stock-view-btn active" data-stock-view="position">Stock Position</button>
+   <button type="button" class="stock-view-btn" data-stock-view="weekly">Weekly Books</button>
+   <button type="button" class="stock-view-btn" data-stock-view="purchases">Purchases</button>
+   <button type="button" class="stock-view-btn" data-stock-view="sales">Sales &amp; Profit</button>
+   <button type="button" class="stock-view-btn" data-stock-view="credit">Customer Credit</button>
+   <button type="button" class="stock-view-btn" data-stock-view="adjustments">Damage &amp; Loss</button>
+   <button type="button" class="stock-view-btn" data-stock-view="records">Worker Stock Records</button>
+  </div>
+
+  <div class="stock-view-panel" data-stock-panel="position">
+   <div class="stock-panel-title"><div><h3>Live Business Stock Position</h3><p class="muted">Current and previous Monday–Sunday books are calculated separately. Unpaid credit is not treated as paid sales.</p></div><span class="stock-period-chip" id="stockCurrentPeriod">Current week</span></div>
+   <div class="stock-kpi-grid">
+    <article class="card stock-kpi"><span class="label">Current Week Purchases</span><strong class="value" id="invCurrentPurchased">0</strong><small>New purchases only; carry-forward excluded</small></article>
+    <article class="card stock-kpi"><span class="label">Current Week Sold</span><strong class="value" id="invCurrentSold">0</strong><small>Sold quantities from worker books</small></article>
+    <article class="card stock-kpi profit-kpi"><span class="label">Current Week Realised Profit / Loss</span><strong class="value" id="invCurrentProfit">GH₵0.00</strong><small>Same stock-batch calculation used by workers</small></article>
+    <article class="card stock-kpi"><span class="label">Previous Week Purchases</span><strong class="value" id="invPreviousPurchased">0</strong><small>Previous Monday–Sunday book</small></article>
+    <article class="card stock-kpi"><span class="label">Previous Week Sold</span><strong class="value" id="invPreviousSold">0</strong><small>Previous Monday–Sunday book</small></article>
+    <article class="card stock-kpi profit-kpi"><span class="label">Previous Week Realised Profit / Loss</span><strong class="value" id="invPreviousProfit">GH₵0.00</strong><small>Previous week's worker-recorded profit</small></article>
+    <article class="card stock-kpi"><span class="label">Physical Stock Remaining</span><strong class="value" id="invPhysicalRemaining">0</strong><small>Stock physically available</small></article>
+    <article class="card stock-kpi"><span class="label">Projected Stock</span><strong class="value" id="invProjectedRemaining">0</strong><small>Physical stock + unpaid credit crates</small></article>
+    <article class="card stock-kpi warning-kpi"><span class="label">Unpaid Credit Crates</span><strong class="value" id="invCreditUnits">0</strong><small id="invCreditAmount">GH₵0.00 outstanding</small></article>
+    <article class="card stock-kpi"><span class="label">All-Time Purchases</span><strong class="value" id="invAllPurchased">0</strong><small>Excludes opening carry-forward</small></article>
+    <article class="card stock-kpi"><span class="label">All-Time Sold</span><strong class="value" id="invAllSold">0</strong><small>Across all active worker books</small></article>
+    <article class="card stock-kpi profit-kpi"><span class="label">All-Time Realised Profit / Loss</span><strong class="value" id="invAllProfit">GH₵0.00</strong><small>Uses the shared worker stock calculation</small></article>
+    <article class="card stock-kpi"><span class="label">All-Time Damage &amp; Loss Value</span><strong class="value" id="invDamage">GH₵0.00</strong><small>Cost value of damaged and lost units</small></article>
+    <article class="card stock-kpi"><span class="label">Stock Purchase Value Remaining</span><strong class="value" id="invRemainingValue">GH₵0.00</strong><small>Physical stock at original unit cost</small></article>
+   </div>
+   <p class="stock-calculation-note" id="stockPeriodNote">Waiting for worker stock data…</p>
+   <div class="stock-insight-grid">
+    <article class="stock-insight"><h4>Stock reconciliation</h4><p>Opening stock + new purchases − sold − damage − loss − unpaid credit crates = physical stock available. Projected stock adds unpaid credit back separately.</p></article>
+    <article class="stock-insight"><h4>Profit recognition</h4><p>Only realised sales profit is included in realised profit. Unpaid customer credit remains separately visible until payments are recorded.</p></article>
+    <article class="stock-insight"><h4>Audit protection</h4><p>Admin edits and recoverable deletions are written to the shared worker records and stock edit history. Archived records remain available for audit.</p></article>
+   </div>
+  </div>
+
+  <div class="stock-view-panel hidden" data-stock-panel="weekly">
+   <div class="stock-panel-title"><div><h3>Worker Weekly Stock Books</h3><p class="muted">Every Monday–Sunday stock book, including previous weeks, opening carry-forward, new purchases, sold, credit, damage, loss and profit.</p></div><span class="stock-period-chip">Worker source records</span></div>
+   <div class="tablebox"><table><thead><tr><th>Week</th><th>Worker</th><th>Status</th><th>Opening Stock</th><th>New Purchases</th><th>Sold</th><th>Unpaid Credit</th><th>Damage</th><th>Loss</th><th>Physical Remaining</th><th>Realised Profit/Loss</th></tr></thead><tbody id="stockWeeklyBody"><tr><td colspan="11" class="empty">Loading worker weekly books…</td></tr></tbody></table></div>
+  </div>
+
+  <div class="stock-view-panel hidden" data-stock-panel="purchases">
+   <div class="stock-panel-title"><div><h3>Purchase Register</h3><p class="muted">New purchases by worker and date. Opening carry-forward is displayed separately and never counted as a new purchase.</p></div></div>
+   <div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Item</th><th>Quantity Purchased</th><th>Cost / Unit</th><th>Purchase Value</th><th>Week</th></tr></thead><tbody id="stockPurchasesBody"><tr><td colspan="8" class="empty">Loading purchases…</td></tr></tbody></table></div>
+  </div>
+
+  <div class="stock-view-panel hidden" data-stock-panel="sales">
+   <div class="stock-panel-title"><div><h3>Sales &amp; Profit Register</h3><p class="muted">Worker-reported sold quantities, sales revenue, realised profit and originating stock week.</p></div></div>
+   <div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Item</th><th>Sold</th><th>Selling Price / Unit</th><th>Revenue</th><th>Realised Profit/Loss</th><th>Week</th></tr></thead><tbody id="stockSalesBody"><tr><td colspan="9" class="empty">Loading sales…</td></tr></tbody></table></div>
+  </div>
+
+  <div class="stock-view-panel hidden" data-stock-panel="credit">
+   <div class="stock-panel-title"><div><h3>Customer On-Credit Register</h3><p class="muted">Individual customer transactions, partial payments and outstanding crates. Each distinct credit transaction remains visible; exact duplicate rows are excluded from totals.</p></div></div>
+   <div class="stock-credit-kpis">
+    <article class="card"><span class="label">Open Customer Records</span><strong class="value" id="stockCreditRecords">0</strong></article>
+    <article class="card"><span class="label">Outstanding Crates</span><strong class="value" id="stockCreditCrates">0</strong></article>
+    <article class="card"><span class="label">Outstanding Amount</span><strong class="value" id="stockCreditBalance">GH₵0.00</strong></article>
+   </div>
+   <div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Customer</th><th>Item</th><th>Crates</th><th>Crates Paid</th><th>Crates Unpaid</th><th>Amount Due</th><th>Amount Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody id="stockCreditBody"><tr><td colspan="11" class="empty">Loading customer credit…</td></tr></tbody></table></div>
+  </div>
+
+  <div class="stock-view-panel hidden" data-stock-panel="adjustments">
+   <div class="stock-panel-title"><div><h3>Damage &amp; Loss Register</h3><p class="muted">Track damaged and lost quantities and their original purchase-cost impact.</p></div></div>
+   <div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Item</th><th>Damaged</th><th>Lost</th><th>Cost / Unit</th><th>Damage Value</th><th>Loss Value</th><th>Notes</th></tr></thead><tbody id="stockAdjustmentsBody"><tr><td colspan="9" class="empty">Loading adjustments…</td></tr></tbody></table></div>
+  </div>
+
+  <div class="stock-view-panel hidden" data-stock-panel="records">
+   <div class="stock-panel-title"><div><h3>Worker Stock Batch Register</h3><p class="muted">Select any worker to inspect their active batches. Admin edits write back to the same stock records used by the Worker Portal. Delete is recoverable and retained for audit.</p></div></div>
+   <div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Product</th><th>Opening / Total</th><th>Sold</th><th>On-Credit</th><th>Damaged</th><th>Lost</th><th>Physical Remaining</th><th>Projected</th><th>Purchase Value</th><th>Revenue</th><th>Profit/Loss</th><th>Admin Actions</th></tr></thead><tbody id="inventoryBody"><tr><td colspan="15" class="empty">Loading worker stock batches…</td></tr></tbody></table></div>
+   <div id="adminStockEditor" class="section hidden" style="margin-top:16px">
+    <h3>Edit Worker Stock Record</h3>
+    <p class="muted">Changes save to the same Supabase stock batch read by the Worker Portal. The worker's next refresh receives the updated figures.</p>
+    <input type="hidden" id="adminStockEditId">
+    <div class="toolbar">
+     <select id="adminStockEditWorker"><option value="">Select worker</option></select>
+     <input id="adminStockEditDate" type="date" aria-label="Stock date">
+     <input id="adminStockEditProduct" placeholder="Product">
+     <input id="adminStockEditTotal" type="number" min="0" step="0.01" placeholder="Total units">
+     <input id="adminStockEditSold" type="number" min="0" step="0.01" placeholder="Sold">
+     <input id="adminStockEditDamage" type="number" min="0" step="0.01" placeholder="Damaged">
+     <input id="adminStockEditLoss" type="number" min="0" step="0.01" placeholder="Lost">
+     <input id="adminStockEditUnit" type="number" min="0" step="0.01" placeholder="Purchase cost / unit">
+     <input id="adminStockEditPrice" type="number" min="0" step="0.01" placeholder="Selling price / unit">
+     <input id="adminStockEditNote" maxlength="500" placeholder="Reason for admin edit">
+     <button id="adminStockSave" type="button" class="primary">Save to Worker Portal</button>
+     <button id="adminStockCancel" type="button" class="soft">Cancel</button>
+     <div id="adminStockEditFeedback" class="msg" role="status"></div>
+    </div>
+   </div>
+  </div>
+
+  <div class="stock-view-panel hidden" data-stock-panel="audit">
+   <div class="stock-panel-title"><div><h3>Stock Change &amp; Deletion Audit</h3><p class="muted">Review administrator and worker stock changes, including recoverable deleted batches.</p></div><button id="refreshStockHistory" type="button" class="soft">Refresh audit</button></div>
+   <div class="tablebox"><table><thead><tr><th>Date &amp; Time</th><th>Worker</th><th>Worker ID</th><th>Stock Item</th><th>Action</th><th>Sold Before / After</th><th>Damage Before / After</th><th>Remaining Before / After</th><th>Notes</th></tr></thead><tbody id="adminStockHistoryBody"><tr><td colspan="9" class="empty">Loading audit history…</td></tr></tbody></table></div>
+  </div>
+
+  <div class="stock-compatibility-values" hidden>
+   <span id="invTotal">0</span><span id="invRemain">0</span><span id="invProfit">GH₵0.00</span>
+   <span id="stockRemaining">0</span><span id="damageValue">GH₵0.00</span><span id="profitValue">GH₵0.00</span>
+   <span id="reviewPurchase">0</span><span id="reviewSold">0</span><span id="reviewProfit">GH₵0.00</span>
+  </div>
+ </div>
 </section>
 
 <section id="credits" class="page hidden"><div class="section"><h2>On-Credit Sales & Outstanding Balances</h2><p class="muted">Track crates supplied before payment. Outstanding amounts are excluded from cash-in-hand totals in the worker stock record until payment is marked received.</p><div id="adminCreditDedupNote" class="msg" role="status" aria-live="polite"></div><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="label">Outstanding Amount</div><div class="value" id="adminCreditAmount">GH₵0.00</div></div><div class="card"><div class="label">Crates Outstanding</div><div class="value" id="adminCreditUnits">0</div></div><div class="card"><div class="label">Customers Owing</div><div class="value" id="adminCreditCustomers">0</div></div></div><div class="tablebox" style="margin-top:14px"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Customer</th><th>Stock</th><th>Crates</th><th>Amount Due</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody id="adminCreditBody"><tr><td colspan="10" class="empty">Loading credit records...</td></tr></tbody></table></div></div></section>
@@ -493,6 +645,19 @@ function creditFingerprint(c){return[c.stock_batch_id,c.worker_id,String(c.custo
 async function readAllRows(table,orderColumn){const out=[];let from=0;for(;;){let q=db.from(table).select("*");if(orderColumn)q=q.order(orderColumn,{ascending:false});q=q.order("id",{ascending:true});const r=await q.range(from,from+999);if(r.error)throw new Error(table+": "+r.error.message);const page=r.data||[];out.push(...page);if(page.length<1000)break;from+=1000;}return out;}
 function latestWorkerWeekIds(){const latest=new Map();(allStockWeeks||[]).forEach(w=>{const k=canonicalWorkerKey(w.worker_id);const old=latest.get(k);if(!old||String(w.week_start||"")>String(old.week_start||""))latest.set(k,w);});return new Set([...latest.values()].map(w=>String(w.id)));}
 
+
+document.querySelectorAll("#stock .stock-view-btn").forEach(button=>{
+ button.addEventListener("click",()=>{
+  const view=button.dataset.stockView;
+  document.querySelectorAll("#stock .stock-view-btn").forEach(b=>b.classList.toggle("active",b===button));
+  document.querySelectorAll("#stock [data-stock-panel]").forEach(panel=>panel.classList.toggle("hidden",panel.dataset.stockPanel!==view));
+  if(view==="records"){renderInventory();}
+  if(view==="weekly"){renderStockWeeklyRegister();}
+  if(view==="purchases"||view==="sales"||view==="credit"||view==="adjustments"){renderStockAdditionalRegisters();}
+  if(view==="audit"){loadStockHistory();}
+ });
+});
+
 async function adminCheck(){
  const {data:{session:s}}=await db.auth.getSession();session=s;
  if(!s)throw new Error("The authenticated Management Centre session is unavailable. Please sign in again.");
@@ -506,7 +671,7 @@ async function adminCheck(){
  const results=await Promise.allSettled([loadStockHistory(),loadAdminCredits(),loadBusinessCapital(),loadCommunication(),triLoadAll()]);
  results.forEach((result,index)=>{if(result.status==="rejected")console.error("Management Centre data load failed (task "+(index+1)+"):",result.reason)});
  ezelexInitReportFilters();
- if(!window.ezelexWorkerSyncTimer){window.ezelexWorkerSyncTimer=setInterval(async()=>{if(document.visibilityState==="hidden")return;await loadInventory();await Promise.all([loadAdminCredits(),loadStockHistory()]);},8000);}
+ if(!window.ezelexWorkerSyncTimer){window.ezelexWorkerSyncTimer=setInterval(async()=>{if(document.visibilityState==="hidden")return;await loadInventory();await loadAdminCredits();await loadStockHistory();},8000);}
  return true
 }
 function showLogin(){$("loginSection").classList.remove("hidden");$("dashboard").classList.add("hidden");$("logoutBtn").classList.add("hidden")}
@@ -569,8 +734,22 @@ $("adminStockSave").onclick=async()=>{
  if(!workerOwnsRow(w,r.worker_id)){$("adminStockEditFeedback").textContent="Selected worker does not own this stock record.";return}
  const f={stock_date:$("adminStockEditDate").value,product_service:$("adminStockEditProduct").value.trim(),total_quantity:Number($("adminStockEditTotal").value),sold_quantity:Number($("adminStockEditSold").value),damage_quantity:Number($("adminStockEditDamage").value),loss_quantity:Number($("adminStockEditLoss").value),cost_per_unit:Number($("adminStockEditUnit").value),selling_price_per_unit:Number($("adminStockEditPrice").value)};
  if(!f.stock_date||!f.product_service||Object.values(f).some(v=>typeof v==="number"&&(!Number.isFinite(v)||v<0))){$("adminStockEditFeedback").textContent="Enter valid non-negative quantities and prices.";return}
- const unpaid=unpaidCreditUnitsForBatch(r.id),physical=Math.max(0,f.total_quantity-f.sold_quantity-f.damage_quantity-f.loss_quantity-unpaid);
- const patch={...f,remaining_quantity:physical,remaining_value:physical*f.cost_per_unit,updated_at:new Date().toISOString()};
+ const unpaid=unpaidCreditUnitsForBatch(r.id);
+ if(f.sold_quantity+f.damage_quantity+f.loss_quantity+unpaid>f.total_quantity){
+  $("adminStockEditFeedback").textContent="The quantities exceed the available batch. Sold + damaged + lost + unpaid credit cannot exceed total stock.";
+  return;
+ }
+ const physical=Math.max(0,f.total_quantity-f.sold_quantity-f.damage_quantity-f.loss_quantity-unpaid);
+ const revenue=Number((f.sold_quantity*f.selling_price_per_unit).toFixed(2));
+ const soldCost=Number((f.sold_quantity*f.cost_per_unit).toFixed(2));
+ const damageValue=Number((f.damage_quantity*f.cost_per_unit).toFixed(2));
+ const lossValue=Number((f.loss_quantity*f.cost_per_unit).toFixed(2));
+ const profitLoss=Number((revenue-soldCost-damageValue-lossValue).toFixed(2));
+ const patch={...f,
+  purchase_total:String(r.stock_type||"").toLowerCase()==="carry_forward"?Number(r.purchase_total||0):Number((f.total_quantity*f.cost_per_unit).toFixed(2)),
+  remaining_quantity:physical,remaining_value:Number((physical*f.cost_per_unit).toFixed(2)),
+  sales_revenue:revenue,sold_cost:soldCost,damage_value:damageValue,loss_value:lossValue,profit_loss:profitLoss,
+  updated_at:new Date().toISOString()};
  const btn=$("adminStockSave");btn.disabled=true;
  try{
   const saved=await db.from("worker_stock_batches").update(patch).eq("id",r.id).eq("worker_id",r.worker_id).is("deleted_at",null).select("*").single();
@@ -595,16 +774,50 @@ window.adminArchiveStock=async id=>{
 };
 function applyInvFilters(){const wid=$("invWorkerFilter").value,from=$("invFromDate").value,to=$("invToDate").value;filteredInventory=allInventory.filter(r=>!r.deleted_at).filter(r=>{let d=dateOnly(r.stock_date||r.created_at);return(!wid||workerOwnsRow(workerInfo(wid),r.worker_id))&&(!from||d>=from)&&(!to||d<=to)});renderInventory();updateInventorySummary()}
 function renderInventory(){
- $("inventoryBody").innerHTML=filteredInventory.length?filteredInventory.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id),pc=c.profit<0?"loss":"profit";return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${c.total}</td><td>${c.sold}</td><td>${c.damage}</td><td><b>${c.remaining}</b></td><td>${money(c.purchase)}</td><td>${money(c.revenue)}</td><td>${money(c.damageValue)}</td><td class="${pc}">${money(c.profit)}</td><td><button type="button" class="soft" onclick="adminEditStock('${esc(r.id)}')">Edit</button> <button type="button" class="reject" onclick="adminArchiveStock('${esc(r.id)}')">Delete</button></td></tr>`}).join(""):'<tr><td colspan="13" class="empty">No stock records found.</td></tr>'
+ const body=$("inventoryBody");if(!body)return;
+ body.innerHTML=filteredInventory.length?filteredInventory.map(r=>{
+  const c=invCalc(r),w=workerInfo(r.worker_id),pc=c.profit<0?"loss":"profit";
+  return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${num(c.total)}</td><td>${num(c.sold)}</td><td>${num(c.creditUnits)}</td><td>${num(c.damage)}</td><td>${num(c.loss)}</td><td><b>${num(c.physicalRemaining)}</b></td><td>${num(c.remaining)}</td><td>${money(c.purchase)}</td><td>${money(c.revenue)}</td><td class="${pc}">${money(c.profit)}</td><td><button type="button" class="soft" onclick="adminEditStock('${esc(r.id)}')">Edit</button> <button type="button" class="reject" onclick="adminArchiveStock('${esc(r.id)}')">Delete</button></td></tr>`;
+ }).join(""):'<tr><td colspan="15" class="empty">No active worker stock records match these filters.</td></tr>';
 }
 function updateInventorySummary(){
- const latestIds=latestWorkerWeekIds();
- const activeFiltered=filteredInventory.filter(r=>!r.deleted_at);
- const a=activeFiltered.reduce((x,r)=>{const c=invCalc(r),carry=String(r.stock_type||"").toLowerCase()==="carry_forward",current=latestIds.has(String(r.week_id||""));if(current)x.total+=c.total;if(!carry)x.profit+=c.profit;if(current)x.rem+=c.remaining;x.damage+=c.damageValue;return x},{total:0,rem:0,damage:0,profit:0});
- $("invTotal").textContent=Number(a.total.toFixed(2));$("invRemain").textContent=Number(a.rem.toFixed(2));$("invDamage").textContent=money(a.damage);$("invProfit").textContent=money(a.profit);
- $("stockRemaining").textContent=Number(a.rem.toFixed(2));$("damageValue").textContent=money(a.damage);$("profitValue").textContent=money(a.profit);$("profitValue").className=a.profit<0?"value loss":"value profit";
- const all=allInventory.filter(r=>!r.deleted_at).reduce((x,r)=>{const c=invCalc(r);if(String(r.stock_type||"").toLowerCase()!=="carry_forward"){x.purchase+=c.total;x.sold+=c.sold;x.profit+=c.profit;}return x},{purchase:0,sold:0,profit:0});
- if($("reviewPurchase"))$("reviewPurchase").textContent=Number(all.purchase.toFixed(2)).toLocaleString();if($("reviewSold"))$("reviewSold").textContent=Number(all.sold.toFixed(2)).toLocaleString();if($("reviewProfit")){$("reviewProfit").textContent=money(all.profit);$("reviewProfit").className="value "+(all.profit<0?"loss":"profit");}
+ const selectedWorker=$("invWorkerFilter")?.value||"";
+ const currentBounds=stockWeekBounds(0),previousBounds=stockWeekBounds(-1);
+ const workerWeeks=(allStockWeeks||[]).filter(w=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id));
+ const currentWeekRows=workerWeeks.filter(w=>String(w.week_start||"")===currentBounds.start);
+ const previousWeekRows=workerWeeks.filter(w=>String(w.week_start||"")===previousBounds.start);
+ const currentRows=stockRowsForWeek(currentWeekRows,currentBounds);
+ const previousRows=stockRowsForWeek(previousWeekRows,selectedWorker);
+ const cur=stockSumRows(currentRows),prev=stockSumRows(previousRows);
+ const allRows=(allInventory||[]).filter(r=>!r.deleted_at&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),r.worker_id)));
+ const all=stockSumRows(allRows);
+ const creditRows=(accountingCreditRows||[]).filter(c=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),c.worker_id));
+ const creditUnits=creditRows.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0);
+ const creditAmount=creditRows.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0);
+ const currentCreditRows=creditRows.filter(c=>currentRows.some(r=>String(r.id)===String(c.stock_batch_id)));
+ const currentCreditUnits=currentCreditRows.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0);
+ const positionRows=currentRows;
+ const physical=cur.physical;
+ const projected=physical+creditUnits;
+ const remainingValue=positionRows.reduce((n,r)=>n+invCalc(r).physicalRemaining*invCalc(r).unit,0);
+ const set=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
+ set("invCurrentPurchased",num(cur.purchased));set("invCurrentSold",num(cur.sold));set("invCurrentProfit",money(cur.profit));
+ set("invPreviousPurchased",num(prev.purchased));set("invPreviousSold",num(prev.sold));set("invPreviousProfit",money(prev.profit));
+ set("invPhysicalRemaining",num(physical));set("invProjectedRemaining",num(projected));set("invCreditUnits",num(creditUnits));set("invCreditAmount",money(creditAmount)+" outstanding");
+ set("invAllPurchased",num(all.purchased));set("invAllSold",num(all.sold));set("invAllProfit",money(all.profit));set("invDamage",money(all.damage*0+all.loss*0+allRows.reduce((n,r)=>{const c=invCalc(r);return n+c.damageValue+c.lossValue;},0)));
+ set("invRemainingValue",money(remainingValue));
+ set("invTotal",num(cur.purchased));set("invRemain",num(physical));set("invProfit",money(cur.profit));
+ set("stockRemaining",num(physical));set("damageValue",money(allRows.reduce((n,r)=>{const c=invCalc(r);return n+c.damageValue+c.lossValue;},0)));set("profitValue",money(cur.profit));
+ if($("profitValue"))$("profitValue").className=cur.profit<0?"value loss":"value profit";
+ set("reviewPurchase",num(all.purchased));set("reviewSold",num(all.sold));set("reviewProfit",money(all.profit));
+ if($("reviewProfit"))$("reviewProfit").className="value "+(all.profit<0?"loss":"profit");
+ const curWeekText=currentBounds.start+" – "+currentBounds.end;
+ set("stockCurrentPeriod",curWeekText);
+ const note=$("stockPeriodNote");
+ if(note)note.textContent=`Current week (${curWeekText}): ${num(cur.purchased)} purchased · ${num(cur.sold)} sold · ${money(cur.profit)} realised profit/loss. Previous week (${previousBounds.start} – ${previousBounds.end}): ${num(prev.purchased)} purchased · ${num(prev.sold)} sold · ${money(prev.profit)} realised profit/loss. Business-wide open customer credit: ${num(creditUnits)} crates / ${money(creditAmount)}. ${currentCreditUnits?num(currentCreditUnits)+" of the outstanding crates originate in the current week. ":""}Carry-forward stock is excluded from purchase totals.`;
+ const status=$("stockFeedStatus");
+ if(status)status.textContent=inventoryLoaded?`${allInventory.filter(r=>!r.deleted_at).length.toLocaleString()} active worker stock batches · ${allStockWeeks.length.toLocaleString()} weekly books · ${accountingCreditRows.length.toLocaleString()} unique active credit records`:"Worker stock feed unavailable";
+ renderStockWeeklyRegister();renderStockAdditionalRegisters();
 }
 let businessCapitalRow=null;
 async function loadBusinessCapital(){
@@ -673,6 +886,7 @@ async function loadAdminCredits(){
   $('adminCreditUnits').textContent=open.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0).toLocaleString();
   $('adminCreditCustomers').textContent=new Set(open.map(c=>String(c.worker_id||"")+"|"+String(c.customer_name||'').trim().toLowerCase())).size;
   $('adminCreditBody').innerHTML=accountingCreditRows.length?accountingCreditRows.map(c=>{const w=workerInfo(c.worker_id),bal=Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0));return `<tr><td>${esc(dateOnly(c.credit_date))}</td><td>${esc(w.full_name||'')}</td><td>${esc(w.worker_id||c.worker_id||'')}</td><td>${esc(c.customer_name||'')}</td><td>${esc(c.product_service||'Eggs')}</td><td>${Number(c.quantity||0)}</td><td>${money(c.amount_due)}</td><td>${money(c.amount_paid)}</td><td><b>${money(bal)}</b></td><td>${bal<=0.009&&Number(c.crates_paid||0)>=Number(c.quantity||0)?'<span class="badge approved">PAID</span>':Number(c.crates_paid||0)>0?'<span class="badge pending">PART PAID</span>':'<span class="badge pending">OUTSTANDING</span>'}</td></tr>`}).join(''):'<tr><td colspan="10" class="empty">No active on-credit sales recorded for current worker stock batches.</td></tr>';
+  renderInventory();updateInventorySummary();
   if(businessCapitalRow)updateBusinessCapitalSummary();
   if(!$('weekData').classList.contains('hidden'))renderWeekData();
  }catch(e){$('adminCreditBody').innerHTML=`<tr><td colspan="10" class="empty">Credit records unavailable: ${esc(e.message)}</td></tr>`;}
@@ -952,7 +1166,7 @@ $("refreshReports").onclick=async()=>{const b=$("refreshReports");b.disabled=tru
 $("csvBtn").onclick=ezelexDownloadCsv;
 $("shareReportsBtn").onclick=async()=>{try{const rows=ezelexCombinedReportRows(),csv=rows.map(r=>r.map(x=>`"${String(x??"").replace(/"/g,'""')}"`).join(",")).join("\r\n");const file=new File(["\ufeff",csv],"EZELEX-worker-stock-and-driver-weekly-reports.csv",{type:"text/csv"});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]})))await navigator.share({title:"Ezelex Enterprise — Current Portal Reports",text:"Worker weekly stock and Driver weekly reports",files:[file]});else{ezelexDownloadCsv();alert("The combined current-portal report has been downloaded. You can attach it to email or WhatsApp.");}}catch(e){if(e.name!=="AbortError")alert(e.message||"Could not share report.");}};
 $("pdfBtn").onclick=()=>{try{const JsPDF=window.jspdf?.jsPDF;if(!JsPDF)throw Error("PDF library did not load. Please use CSV or try again when online.");const doc=new JsPDF({orientation:"landscape",unit:"pt",format:"a3"});doc.setFontSize(16);doc.text("Ezelex Enterprise — Worker Stock & Driver Weekly Reports",32,34);doc.setFontSize(7);const rows=ezelexCombinedReportRows();let y=54;const widths=[83,105,90,64,58,52,48,42,54,72,65,72,68,55,58,120];rows.forEach((row,ri)=>{if(y>790){doc.addPage();y=34;}let x=24;row.forEach((v,i)=>{const txt=String(v??"").replace(/\s+/g," ").slice(0,35);doc.text(txt,x,y,{maxWidth:widths[i]-4});x+=widths[i];});y+=ri===0?18:13;});doc.save("EZELEX-worker-stock-and-driver-weekly-reports.pdf");}catch(e){alert(e.message||"Could not create PDF report.");}};
-$("invCsvBtn").onclick=()=>{const rows=[["Date","Worker","Worker ID","Product","Total","Sold","Damaged","Remaining","Purchase","Revenue","Damage Value","Profit/Loss"],...filteredInventory.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id);return[dateOnly(r.stock_date||r.created_at),w.full_name||"",w.worker_id||"",r.product_service||"",c.total,c.sold,c.damage,c.remaining,c.purchase.toFixed(2),c.revenue.toFixed(2),c.damageValue.toFixed(2),c.profit.toFixed(2)]})];const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="EZELEX-stock-profit-report.csv";a.click()}
+$("invCsvBtn").onclick=()=>{const rows=[["Date","Worker","Worker ID","Product","Total","Sold","Unpaid Credit","Damaged","Lost","Physical Remaining","Projected Remaining","Purchase Value","Revenue","Profit/Loss"],...filteredInventory.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id);return[dateOnly(r.stock_date||r.created_at),w.full_name||"",w.worker_id||"",r.product_service||"",c.total,c.sold,c.creditUnits,c.damage,c.loss,c.physicalRemaining,c.remaining,(c.total*c.unit).toFixed(2),c.revenue.toFixed(2),c.profit.toFixed(2)]})];const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="EZELEX-advanced-stock-inventory.csv";a.click()}
 $("saveCapitalCashBtn").onclick=saveBusinessCash;$("saveOriginalCapitalBtn").onclick=saveOriginalBusinessCapital;
 
 // TRICYCLE CONTRACT MODULE — intentionally isolated from the existing sales/stock/profit logic.
@@ -1203,12 +1417,15 @@ $('ezSaveExpense')?.addEventListener('click',ezSavePrivateExpense);$('ezWeekLock
 const ezOriginalTriLoadAll=triLoadAll;triLoadAll=async function(){await ezOriginalTriLoadAll();if(triContracts.length){ezPopulateAdminControls();await Promise.all([ezLoadPrivateFinance(),ezLoadWeekLocks()]);triRenderPaymentMonitor()}};
 
 function openEzelexRoute(route){if(!route||route.type!=="ezelex-management-navigate")return;const section=route.section;if(section&&$(section))navigateAdminSection(section);const page=route.page||"";
+const stockViews={"Worker Stock Management":"records","Stock & Performance":"position","Stock Edit History":"audit","Purchases & Sales":"purchases","Damage & Loss":"adjustments","Profit & Loss":"sales","All-Time Purchase & Sales Review":"purchases"};
+if(stockViews[page]){const button=document.querySelector(`#stock .stock-view-btn[data-stock-view="${stockViews[page]}"]`);button?.click();}
 if(page==="Daily Sales Performance"){document.querySelector('[data-sales-tab="stockOverview"]')?.click();}
 else if(page==="Sales Reviews & Approval"||page==="Sales Review & Approval"||page==="Approve / Disapprove Sales"){document.querySelector('[data-sales-tab="reports"]')?.click();}
 else if(page==="Central Sales Management"){document.querySelector('[data-sales-tab="reports"]')?.click();}
 if(page==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();if(page==="Delete Worker")document.querySelector('[data-employee-view="delete-worker"]')?.click();if(page==="Delete Driver")document.querySelector('[data-employee-view="delete-driver"]')?.click();if(page==="Create Worker")document.querySelector('[data-employee-view="create-worker"]')?.click();if(page==="Employee Directory")document.querySelector('[data-employee-view="directory"]')?.click();const panels={"Create Tricycle Contract":"triCreatePanel","Record Historical Payment":"triHistoricalPanel","Payment Ledger Calendar":"triCalendarPanel","Tricycle Contract Management":"triManagementPanel","Private Tricycle Profit":"triPrivateProfitSection","Contract Register & Balances":"triRegisterPanel","Weekly Report — Review & Approval":"triReportsPanel","Owing / Weekly Shortfalls":"triOwingPanel","Weekly Driver Payment Monitoring":"triPaymentMonitorPanel","Full Payment Ledger":"triLedgerPanel","Delete Contract":"triManagementPanel"};if(panels[page])window.openEzelexTriPanel(panels[page]);}
 window.addEventListener("message",event=>{if(event.origin!==location.origin||event.source!==window.parent)return;openEzelexRoute(event.data)});
 (async()=>{try{if(window.parent===window||window.parent.location.origin!==window.location.origin)throw new Error("Open this page from the authenticated Management Centre.");await window.parent.verifyEzelexLiveDataSession();await adminCheck();const p=new URLSearchParams(location.search);const s=p.get("section");if(s&&$(s))navigateAdminSection(s);
+const stockViews={"Worker Stock Management":"records","Stock & Performance":"position","Stock Edit History":"audit","Purchases & Sales":"purchases","Damage & Loss":"adjustments","Profit & Loss":"sales","All-Time Purchase & Sales Review":"purchases"};const requestedStockView=stockViews[p.get("page")||""];if(requestedStockView)document.querySelector(`#stock .stock-view-btn[data-stock-view="${requestedStockView}"]`)?.click();
 if(p.get("page")==="Daily Sales Performance")document.querySelector('[data-sales-tab="stockOverview"]')?.click();
 if(p.get("page")==="Sales Reviews & Approval"||p.get("page")==="Sales Review & Approval"||p.get("page")==="Approve / Disapprove Sales"||p.get("page")==="Central Sales Management")document.querySelector('[data-sales-tab="reports"]')?.click();
 if(p.get("page")==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();
