@@ -1303,35 +1303,26 @@ function triContractWeeksRemaining(c){
  const start=new Date(String(c.contract_start_date).slice(0,10)+'T00:00:00Z');
  const end=new Date(String(c.contract_end_date).slice(0,10)+'T00:00:00Z');
  if(!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||end<start)return '—';
- const totalWeeks=Math.ceil((Math.floor((end-start)/86400000)+1)/7);
- const periods=new Map();
- // Approved weekly reports complete their original contract week.
- triReports.filter(r=>String(r.contract_id)===String(c.id)&&String(r.status||'').toLowerCase()==='approved'&&r.week_start&&r.week_end)
-  .forEach(r=>{
-   const ws=String(r.week_start).slice(0,10),we=String(r.week_end).slice(0,10),key=ws+'|'+we;
-   const rs=new Date(ws+'T00:00:00Z'),re=new Date(we+'T00:00:00Z');
-   if(!Number.isFinite(rs.getTime())||!Number.isFinite(re.getTime())||re<rs)return;
-   const activeStart=new Date(Math.max(rs.getTime(),start.getTime()));
-   const activeEnd=new Date(Math.min(re.getTime(),end.getTime()));
-   const days=Math.max(0,Math.floor((activeEnd-activeStart)/86400000)+1);
-   if(!days)return;
-   const daily=Number(c.daily_target||0),weekly=Number(c.weekly_target||daily*7);
-   const expected=days>=7?weekly:daily*days;
-   const item=periods.get(key)||{paid:0,expected};
-   item.paid=Math.max(item.paid,Math.max(0,Number(r.payment_amount||0)));
-   item.expected=Math.max(item.expected,expected);
-   periods.set(key,item);
-  });
- // Historical allocation rows carry the original period and target in their ledger notes.
- // Their own target is authoritative; do not compare them to today's weekly target.
- triHistoricalWeeksForContract(c.id).forEach(h=>{
-  const item=periods.get(h.key)||{paid:0,expected:h.target};
-  item.paid=Math.max(item.paid,h.paid);
-  item.expected=h.target||h.amount;
-  periods.set(h.key,item);
- });
- const completed=[...periods.values()].filter(x=>x.expected>0&&x.paid+0.009>=x.expected).length;
- return Math.max(0,totalWeeks-completed);
+ const totalDays=Math.floor((end-start)/86400000)+1;
+ const totalWeeks=Math.ceil(totalDays/7);
+ // Contract weeks are consumed by confirmed money received, not by calendar time passing.
+ // Historical ledger entries are already confirmed receipts; approved reports are used as
+ // a fallback in case an approval exists but its ledger trigger did not create a payment row.
+ const ledgerPaid=Number(c.opening_paid_amount||0)+triPayments
+  .filter(p=>String(p.contract_id)===String(c.id))
+  .reduce((n,p)=>n+Math.max(0,Number(p.amount||0)),0);
+ const approvedReportPaid=triReports
+  .filter(r=>String(r.contract_id)===String(c.id)&&String(r.status||'').toLowerCase()==='approved')
+  .reduce((n,r)=>n+Math.max(0,Number(r.payment_amount||0)),0);
+ const confirmedPaid=Math.max(ledgerPaid,Number(c.opening_paid_amount||0)+approvedReportPaid);
+ const weeklyTarget=Number(c.weekly_target||0)>0
+  ?Number(c.weekly_target)
+  :Number(c.daily_target||0)>0
+   ?Number(c.daily_target)*7
+   :Number(c.total_contract_amount||0)/Math.max(1,totalWeeks);
+ if(!(weeklyTarget>0))return totalWeeks;
+ const completedWeeks=Math.min(totalWeeks,Math.floor((confirmedPaid+0.009)/weeklyTarget));
+ return Math.max(0,totalWeeks-completedWeeks);
 }
 function triTimeRemaining(c){
  const weeks=triContractWeeksRemaining(c);
