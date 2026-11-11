@@ -275,7 +275,13 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 </div></div>
 </section>
 
-<section id="sales" class="page hidden"><div class="section">
+<section id="sales" class="page hidden">
+<div class="stock-subnav" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px;padding:10px;background:#fff;border:1px solid #e3eaf2;border-radius:12px">
+<span style="font-weight:800;align-self:center;margin-right:8px">Sales &amp; Performance</span>
+<button type="button" class="primary" data-sales-tab="reports">Sales Reviews &amp; Approval</button>
+<button type="button" class="soft" data-sales-tab="stockOverview">Daily Sales Performance · Stock Overview</button>
+</div>
+<div id="salesReportsPanel"><div class="section">
 <h2>Worker Stock & Driver Weekly Reports</h2>
 <p class="muted">Reports are generated from the current Worker Portal weekly stock records and Driver Portal Monday–Sunday reports. The retired Central Sales Management / Product-Service sale records are not used here.</p>
 <div class="toolbar">
@@ -291,22 +297,10 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 </div>
 <div id="reportSummary" class="muted" style="margin:8px 0 12px">Loading current portal records…</div>
 <div class="tablebox"><table><thead><tr><th>Report</th><th>Week / Date</th><th>Worker / Driver</th><th>Employee ID</th><th>Purchased Units</th><th>Units Sold</th><th>Damage</th><th>Loss</th><th>Remaining</th><th>Sales Reported</th><th>Payment</th><th>Owing / Shortage</th><th>Profit / Loss</th><th>Status</th><th>Submitted</th></tr></thead><tbody id="portalReportsBody"><tr><td colspan="15" class="empty">Loading current portal records…</td></tr></tbody></table></div>
-</div></section>
-
-<section id="stock" class="page hidden"><div class="stock-subnav" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px;padding:10px;background:#fff;border:1px solid #e3eaf2;border-radius:12px"><span style="font-weight:800;align-self:center;margin-right:8px">Stock &amp; Inventory</span><button type="button" class="primary" data-stock-tab="overview">Stock Overview</button><button type="button" class="soft" data-stock-tab="weekData">Week Data</button></div><div id="stockOverviewPanel"><div class="section"><h2>Central Stock, Profit, Loss & Damage</h2><p class="muted">Every worker stock batch is sent here automatically. Figures are calculated from the quantities and values entered by workers.</p>
-<div class="cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
-<div class="card"><div class="label">Stock Available (Opening + Purchases)</div><div class="value" id="invTotal">0</div></div><div class="card"><div class="label">Units Remaining</div><div class="value" id="invRemain">0</div></div><div class="card"><div class="label">Damage Value</div><div class="value" id="invDamage">GH₵0.00</div></div><div class="card"><div class="label">Profit / Loss</div><div class="value" id="invProfit">GH₵0.00</div></div>
-</div>
-<div class="toolbar"><select id="invWorkerFilter" style="max-width:240px"><option value="">All workers</option></select><input id="invFromDate" type="date" style="max-width:170px"><input id="invToDate" type="date" style="max-width:170px"><button id="applyInvFilters" class="primary">Apply</button><button id="refreshInventory" class="soft">Refresh</button><button id="invCsvBtn" class="gold">CSV</button></div>
-<div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Product</th><th>Total</th><th>Sold</th><th>Damaged</th><th>Remaining</th><th>Purchase</th><th>Revenue</th><th>Damage Value</th><th>Profit/Loss</th></tr></thead><tbody id="inventoryBody"></tbody></table></div>
-</div>
-<div class="section" style="margin-top:18px"><h2>All-Time Purchase, Sales & Profit Review</h2><p class="muted">Business-wide totals calculated from stock records. Total Purchase is the sum of Total Quantity Bought; Total Sold is the sum of sold quantities. These review totals do not change stock calculations.</p><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="label">All-Time Purchase (Units)</div><div class="value" id="reviewPurchase">0</div></div><div class="card"><div class="label">All-Time Sold (Units)</div><div class="value" id="reviewSold">0</div></div><div class="card"><div class="label">All-Time Profit / Loss</div><div class="value" id="reviewProfit">GH₵0.00</div></div></div></div>
-</div>
-
-<div id="weekData" class="hidden">
+</div></div><div id="salesStockOverviewPanel" class="hidden"><div id="weekData">
  <div class="section">
-  <h2>Week Data — Worker Weekly Stock Books</h2>
-  <p class="muted">Live read-only view of each worker's Monday–Sunday stock book, including every previous week. Archived stock remains visible for audit but is excluded from active stock totals.</p>
+  <h2>Stock Overview — Worker Weekly Stock Books</h2>
+  <p class="muted">Live view of each worker's Monday–Sunday stock book, including previous weeks. Figures are read from the worker stock records; archived stock remains visible for audit but is excluded from active totals.</p>
   <div class="toolbar">
    <select id="weekDataWorker" style="max-width:280px"><option value="">All workers</option></select>
    <select id="weekDataWeek" style="max-width:360px"><option value="">Choose a week</option></select>
@@ -337,7 +331,37 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
  </div>
  <div class="section"><h2>Customer Credit Transactions for Selected Week</h2><p class="muted">Every customer transaction linked to stock batches in the selected weekly book. Partial payments are taken from the worker credit-payment ledger.</p><div class="tablebox"><table style="min-width:1100px"><thead><tr><th>Date</th><th>Worker</th><th>Customer</th><th>Stock Item</th><th>Crates</th><th>Crates Paid</th><th>Crates Outstanding</th><th>Amount Due</th><th>Amount Paid</th><th>Balance</th><th>Source Record</th></tr></thead><tbody id="weekDataCreditBody"><tr><td colspan="11" class="empty">Choose a week to load credit transactions.</td></tr></tbody></table></div></div>
  <div class="section"><h2>Weekly Stock Edit &amp; Deletion History</h2><p class="muted">All recorded edits, corrections and recoverable deletions associated with stock batches in this week.</p><div class="tablebox"><table style="min-width:1050px"><thead><tr><th>Date &amp; Time</th><th>Worker</th><th>Stock Item</th><th>Action</th><th>Sold Before</th><th>Sold After</th><th>Damage Before</th><th>Damage After</th><th>Remaining After</th><th>Notes</th></tr></thead><tbody id="weekDataHistoryBody"><tr><td colspan="10" class="empty">Choose a week to load stock history.</td></tr></tbody></table></div></div>
-</div></section>
+</div></div>
+</section>
+
+<section id="stock" class="page hidden"><div class="stock-subnav" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px;padding:10px;background:#fff;border:1px solid #e3eaf2;border-radius:12px"><span style="font-weight:800;align-self:center;margin-right:8px">Stock &amp; Inventory</span><button type="button" class="primary" data-stock-tab="overview">Stock Overview</button></div><div id="stockOverviewPanel"><div class="section"><h2>Central Stock, Profit, Loss & Damage</h2><p class="muted">Every worker stock batch is sent here automatically. Figures are calculated from the quantities and values entered by workers.</p>
+<div class="cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+<div class="card"><div class="label">Stock Available (Opening + Purchases)</div><div class="value" id="invTotal">0</div></div><div class="card"><div class="label">Units Remaining</div><div class="value" id="invRemain">0</div></div><div class="card"><div class="label">Damage Value</div><div class="value" id="invDamage">GH₵0.00</div></div><div class="card"><div class="label">Profit / Loss</div><div class="value" id="invProfit">GH₵0.00</div></div>
+</div>
+<div class="toolbar"><select id="invWorkerFilter" style="max-width:240px"><option value="">All workers</option></select><input id="invFromDate" type="date" style="max-width:170px"><input id="invToDate" type="date" style="max-width:170px"><button id="applyInvFilters" class="primary">Apply</button><button id="refreshInventory" class="soft">Refresh</button><button id="invCsvBtn" class="gold">CSV</button></div>
+<div class="tablebox"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Product</th><th>Total</th><th>Sold</th><th>Damaged</th><th>Remaining</th><th>Purchase</th><th>Revenue</th><th>Damage Value</th><th>Profit/Loss</th><th>Admin Actions</th></tr></thead><tbody id="inventoryBody"></tbody></table></div><div id="adminStockEditor" class="section hidden" style="margin-top:16px">
+<h3>Edit Worker Stock Record</h3><p class="muted">Changes save to the same Supabase stock batch read by the Worker Portal. The worker's next refresh will receive the updated figures.</p>
+<input type="hidden" id="adminStockEditId">
+<div class="toolbar">
+<select id="adminStockEditWorker"><option value="">Select worker</option></select>
+<input id="adminStockEditDate" type="date" aria-label="Stock date">
+<input id="adminStockEditProduct" placeholder="Product">
+<input id="adminStockEditTotal" type="number" min="0" step="0.01" placeholder="Total units">
+<input id="adminStockEditSold" type="number" min="0" step="0.01" placeholder="Sold">
+<input id="adminStockEditDamage" type="number" min="0" step="0.01" placeholder="Damaged">
+<input id="adminStockEditLoss" type="number" min="0" step="0.01" placeholder="Lost">
+<input id="adminStockEditUnit" type="number" min="0" step="0.01" placeholder="Purchase cost / unit">
+<input id="adminStockEditPrice" type="number" min="0" step="0.01" placeholder="Selling price / unit">
+<input id="adminStockEditNote" maxlength="500" placeholder="Reason for admin edit">
+<button id="adminStockSave" type="button" class="primary">Save to Worker Portal</button>
+<button id="adminStockCancel" type="button" class="soft">Cancel</button>
+<div id="adminStockEditFeedback" class="msg" role="status"></div>
+</div></div>
+</div>
+<div class="section" style="margin-top:18px"><h2>All-Time Purchase, Sales & Profit Review</h2><p class="muted">Business-wide totals calculated from stock records. Total Purchase is the sum of Total Quantity Bought; Total Sold is the sum of sold quantities. These review totals do not change stock calculations.</p><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="label">All-Time Purchase (Units)</div><div class="value" id="reviewPurchase">0</div></div><div class="card"><div class="label">All-Time Sold (Units)</div><div class="value" id="reviewSold">0</div></div><div class="card"><div class="label">All-Time Profit / Loss</div><div class="value" id="reviewProfit">GH₵0.00</div></div></div></div>
+</div>
+
+</section>
 
 <section id="credits" class="page hidden"><div class="section"><h2>On-Credit Sales & Outstanding Balances</h2><p class="muted">Track crates supplied before payment. Outstanding amounts are excluded from cash-in-hand totals in the worker stock record until payment is marked received.</p><div id="adminCreditDedupNote" class="msg" role="status" aria-live="polite"></div><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="label">Outstanding Amount</div><div class="value" id="adminCreditAmount">GH₵0.00</div></div><div class="card"><div class="label">Crates Outstanding</div><div class="value" id="adminCreditUnits">0</div></div><div class="card"><div class="label">Customers Owing</div><div class="value" id="adminCreditCustomers">0</div></div></div><div class="tablebox" style="margin-top:14px"><table><thead><tr><th>Date</th><th>Worker</th><th>Worker ID</th><th>Customer</th><th>Stock</th><th>Crates</th><th>Amount Due</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody id="adminCreditBody"><tr><td colspan="10" class="empty">Loading credit records...</td></tr></tbody></table></div></div></section>
 
@@ -454,6 +478,7 @@ const SUPABASE_URL="https://hweczhwoggmsrwhkktrx.supabase.co",SUPABASE_PUBLISHAB
 const db=window.parent.ezelexManagementDb,$=id=>document.getElementById(id);
 let session=null,allSales=[],filteredSales=[],workers=[],allInventory=[],filteredInventory=[],allStockWeeks=[],currentWeekIds=new Set(),inventoryLoaded=false;
 const money=n=>"GH₵"+Number(n||0).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2});
+const num=n=>Number(n||0).toLocaleString("en-GH",{maximumFractionDigits:2});
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const dateOnly=v=>v?String(v).slice(0,10):"";
 const amount=s=>Number(s.sale_amount??0);
@@ -511,16 +536,66 @@ window.rejectSale=async id=>{const reason=prompt("Reason for disapproving this s
 window.adminDeleteApprovedSale=async id=>{const sale=allSales.find(x=>String(x.id)===String(id));if(!sale||status(sale)!=="approved"){msg("dashMsg","Only approved sales can be deleted from this admin action.","error");return}const reason=prompt("Required: explain why this approved sale is being deleted. This reason will be emailed to the worker:");if(reason===null)return;if(!reason.trim()){alert("Please enter a reason before deleting the approved sale.");return}if(!confirm("Delete this approved sale and email the worker the reason? This cannot be undone."))return;let emailStatus="Worker email sent.";try{await sendSaleNotice("approved_deleted",id,{reason:reason.trim()})}catch(e){emailStatus="Worker email could not be sent ("+e.message+")."}const r=await db.from("sales").delete().eq("id",id).eq("status","approved");if(r.error){msg("dashMsg","Could not delete approved sale: "+r.error.message+(emailStatus.startsWith("Worker email sent")?" Email was sent.":""),"error");return}msg("dashMsg","Approved sale deleted. "+emailStatus,"ok");await loadSales()}
 async function loadInventory(){
  try{
-  const [batches,weeks]=await Promise.all([readAllRows("worker_stock_batches","stock_date"),readAllRows("worker_stock_weeks","week_start")]);
+  const batches=await readAllRows("worker_stock_batches","stock_date");
+  const weeks=await readAllRows("worker_stock_weeks","week_start");
   allInventory=batches;allStockWeeks=weeks;inventoryLoaded=true;
   currentWeekIds=latestWorkerWeekIds();
   applyInvFilters();updateInventorySummary();if(businessCapitalRow)updateBusinessCapitalSummary();if(allInventory.length)applyInvFilters();
   if($("weekData").classList.contains("hidden")===false)renderWeekData();
  }catch(e){inventoryLoaded=false;msg("dashMsg","Stock tracker could not load all worker records: "+e.message+". Credit totals and Week Data are paused until the stock feed is available.","error");}
 }
+function fillAdminStockWorkerSelect(selectedId){
+ const sel=$("adminStockEditWorker");if(!sel)return;
+ sel.innerHTML='<option value="">Select worker</option>'+workers.filter(w=>String(w.role||"worker").toLowerCase()==="worker").map(w=>`<option value="${esc(w.user_id||w.id)}">${esc(w.full_name||"Worker")} (${esc(w.worker_id||"")})</option>`).join("");
+ if(selectedId)sel.value=selectedId;
+}
+window.adminEditStock=function(id){
+ const r=allInventory.find(x=>String(x.id)===String(id));if(!r)return;
+ const w=workerInfo(r.worker_id);fillAdminStockWorkerSelect(w.user_id||w.id||"");
+ $("adminStockEditId").value=r.id;$("adminStockEditDate").value=dateOnly(r.stock_date||r.created_at);
+ $("adminStockEditProduct").value=r.product_service||"";$("adminStockEditTotal").value=Number(r.total_quantity||0);
+ $("adminStockEditSold").value=Number(r.sold_quantity||0);$("adminStockEditDamage").value=Number(r.damage_quantity||0);
+ $("adminStockEditLoss").value=Number(r.loss_quantity||0);$("adminStockEditUnit").value=Number(r.cost_per_unit||0);
+ $("adminStockEditPrice").value=Number(r.selling_price_per_unit||0);$("adminStockEditNote").value="";
+ $("adminStockEditFeedback").textContent="";$("adminStockEditor").classList.remove("hidden");
+ $("adminStockEditor").scrollIntoView({behavior:"smooth",block:"start"});
+};
+$("adminStockCancel").onclick=()=>{$("adminStockEditor").classList.add("hidden");$("adminStockEditId").value=""};
+$("adminStockSave").onclick=async()=>{
+ const id=$("adminStockEditId").value,r=allInventory.find(x=>String(x.id)===String(id));
+ if(!r){$("adminStockEditFeedback").textContent="Select a stock record.";return}
+ const w=workerInfo($("adminStockEditWorker").value);
+ if(!w.user_id&&!w.id){$("adminStockEditFeedback").textContent="Select the worker who owns this record.";return}
+ if(!workerOwnsRow(w,r.worker_id)){$("adminStockEditFeedback").textContent="Selected worker does not own this stock record.";return}
+ const f={stock_date:$("adminStockEditDate").value,product_service:$("adminStockEditProduct").value.trim(),total_quantity:Number($("adminStockEditTotal").value),sold_quantity:Number($("adminStockEditSold").value),damage_quantity:Number($("adminStockEditDamage").value),loss_quantity:Number($("adminStockEditLoss").value),cost_per_unit:Number($("adminStockEditUnit").value),selling_price_per_unit:Number($("adminStockEditPrice").value)};
+ if(!f.stock_date||!f.product_service||Object.values(f).some(v=>typeof v==="number"&&(!Number.isFinite(v)||v<0))){$("adminStockEditFeedback").textContent="Enter valid non-negative quantities and prices.";return}
+ const unpaid=unpaidCreditUnitsForBatch(r.id),physical=Math.max(0,f.total_quantity-f.sold_quantity-f.damage_quantity-f.loss_quantity-unpaid);
+ const patch={...f,remaining_quantity:physical,remaining_value:physical*f.cost_per_unit,updated_at:new Date().toISOString()};
+ const btn=$("adminStockSave");btn.disabled=true;
+ try{
+  const saved=await db.from("worker_stock_batches").update(patch).eq("id",r.id).eq("worker_id",r.worker_id).is("deleted_at",null).select("*").single();
+  if(saved.error)throw saved.error;
+  const h=await db.from("worker_stock_edit_history").insert({worker_id:r.worker_id,stock_batch_id:r.id,product_service:f.product_service,action:"Admin edited stock",sold_before:Number(r.sold_quantity||0),sold_after:f.sold_quantity,damage_before:Number(r.damage_quantity||0),damage_after:f.damage_quantity,remaining_before:Number(r.remaining_quantity||0),remaining_after:physical,selling_price_per_unit:f.selling_price_per_unit,notes:$("adminStockEditNote").value.trim()||"Edited by administrator",changed_at:new Date().toISOString()});
+  $("adminStockEditor").classList.add("hidden");await loadInventory();await loadAdminCredits();await loadStockHistory();
+  msg("dashMsg",h.error?"Stock saved to the worker system, but the audit entry failed: "+h.error.message:"Stock record updated in the shared worker database.","success");
+ }catch(e){$("adminStockEditFeedback").textContent="Save failed: "+(e.message||String(e))}
+ finally{btn.disabled=false}
+};
+window.adminArchiveStock=async id=>{
+ const r=allInventory.find(x=>String(x.id)===String(id));if(!r)return;
+ if(!confirm("Archive this stock batch? It will be removed from active totals but retained in the worker's deleted-stock history and admin audit."))return;
+ try{
+  const now=new Date().toISOString();
+  const saved=await db.from("worker_stock_batches").update({deleted_at:now,deleted_by:session?.user?.id||null}).eq("id",r.id).eq("worker_id",r.worker_id).is("deleted_at",null).select("id").single();
+  if(saved.error)throw saved.error;
+  const h=await db.from("worker_stock_edit_history").insert({worker_id:r.worker_id,stock_batch_id:r.id,product_service:r.product_service||"Stock",action:"Admin archived stock",sold_before:Number(r.sold_quantity||0),sold_after:Number(r.sold_quantity||0),damage_before:Number(r.damage_quantity||0),damage_after:Number(r.damage_quantity||0),remaining_before:Number(r.remaining_quantity||0),remaining_after:0,selling_price_per_unit:Number(r.selling_price_per_unit||0),notes:"Archived by administrator",changed_at:now});
+  await loadInventory();await loadAdminCredits();await loadStockHistory();
+  msg("dashMsg",h.error?"Stock archived; audit insert failed: "+h.error.message:"Stock archived in the shared worker database.","success");
+ }catch(e){msg("dashMsg","Archive failed: "+(e.message||String(e)),"error")}
+};
 function applyInvFilters(){const wid=$("invWorkerFilter").value,from=$("invFromDate").value,to=$("invToDate").value;filteredInventory=allInventory.filter(r=>!r.deleted_at).filter(r=>{let d=dateOnly(r.stock_date||r.created_at);return(!wid||workerOwnsRow(workerInfo(wid),r.worker_id))&&(!from||d>=from)&&(!to||d<=to)});renderInventory();updateInventorySummary()}
 function renderInventory(){
- $("inventoryBody").innerHTML=filteredInventory.length?filteredInventory.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id),pc=c.profit<0?"loss":"profit";return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${c.total}</td><td>${c.sold}</td><td>${c.damage}</td><td><b>${c.remaining}</b></td><td>${money(c.purchase)}</td><td>${money(c.revenue)}</td><td>${money(c.damageValue)}</td><td class="${pc}">${money(c.profit)}</td></tr>`}).join(""):'<tr><td colspan="12" class="empty">No stock records found.</td></tr>'
+ $("inventoryBody").innerHTML=filteredInventory.length?filteredInventory.map(r=>{const c=invCalc(r),w=workerInfo(r.worker_id),pc=c.profit<0?"loss":"profit";return `<tr><td>${esc(dateOnly(r.stock_date||r.created_at))}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.worker_id||r.worker_id||"")}</td><td>${esc(r.product_service||"")}</td><td>${c.total}</td><td>${c.sold}</td><td>${c.damage}</td><td><b>${c.remaining}</b></td><td>${money(c.purchase)}</td><td>${money(c.revenue)}</td><td>${money(c.damageValue)}</td><td class="${pc}">${money(c.profit)}</td><td><button type="button" class="soft" onclick="adminEditStock('${esc(r.id)}')">Edit</button> <button type="button" class="reject" onclick="adminArchiveStock('${esc(r.id)}')">Archive</button></td></tr>`}).join(""):'<tr><td colspan="13" class="empty">No stock records found.</td></tr>'
 }
 function updateInventorySummary(){
  const latestIds=latestWorkerWeekIds();
@@ -814,7 +889,7 @@ if($("refreshInventory"))$("refreshInventory").onclick=loadInventory;
 if($("applyInvFilters"))$("applyInvFilters").onclick=applyInvFilters;
 if($("invWorkerFilter"))$("invWorkerFilter").onchange=applyInvFilters;
 const _loadWorkersWithDeleteSelect=loadWorkers;loadWorkers=async function(){await _loadWorkersWithDeleteSelect();populateDeleteWorkerSelect()};
-document.querySelectorAll("[data-stock-tab]").forEach(btn=>btn.addEventListener("click",()=>{const week=btn.dataset.stockTab==="weekData";$("stockOverviewPanel").classList.toggle("hidden",week);$("weekData").classList.toggle("hidden",!week);document.querySelectorAll("[data-stock-tab]").forEach(b=>{b.classList.toggle("primary",b===btn);b.classList.toggle("soft",b!==btn);});if(week){renderWeekData();}}));
+
 const adminSectionHistory=[];
 function navigateAdminSection(section,fromBack=false){const current=document.querySelector(".page:not(.hidden)");if(!fromBack&&current&&current.id!==section)adminSectionHistory.push(current.id);document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));const target=$(section);if(target)target.classList.remove("hidden");document.querySelectorAll(".dashboard-nav button").forEach(x=>x.classList.toggle("active",x.dataset.section===section));$("adminMenu").classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu";if(section==="workers")window.scrollTo({top:0,behavior:"smooth"});if(section==="stock"){ $("stockOverviewPanel").classList.remove("hidden");$("weekData").classList.add("hidden");document.querySelectorAll("[data-stock-tab]").forEach((b,i)=>{b.classList.toggle("primary",i===0);b.classList.toggle("soft",i!==0);});}}
 $("operationsBackButton").onclick=()=>{const previous=adminSectionHistory.pop()||"dashboard";navigateAdminSection(previous,true)};
@@ -1127,9 +1202,15 @@ async function ezSetWeekLock(locked){const contract=$('ezWeekContract').value,en
 $('ezSaveExpense')?.addEventListener('click',ezSavePrivateExpense);$('ezWeekLock')?.addEventListener('click',()=>ezSetWeekLock(true));$('ezWeekUnlock')?.addEventListener('click',()=>ezSetWeekLock(false));$('ezWeekContract')?.addEventListener('change',ezShowWeekLockState);$('ezWeekEnd')?.addEventListener('change',ezShowWeekLockState);
 const ezOriginalTriLoadAll=triLoadAll;triLoadAll=async function(){await ezOriginalTriLoadAll();if(triContracts.length){ezPopulateAdminControls();await Promise.all([ezLoadPrivateFinance(),ezLoadWeekLocks()]);triRenderPaymentMonitor()}};
 
-function openEzelexRoute(route){if(!route||route.type!=="ezelex-management-navigate")return;const section=route.section;if(section&&$(section))navigateAdminSection(section);const page=route.page||"";if(page==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();if(page==="Delete Worker")document.querySelector('[data-employee-view="delete-worker"]')?.click();if(page==="Delete Driver")document.querySelector('[data-employee-view="delete-driver"]')?.click();if(page==="Create Worker")document.querySelector('[data-employee-view="create-worker"]')?.click();if(page==="Employee Directory")document.querySelector('[data-employee-view="directory"]')?.click();const panels={"Create Tricycle Contract":"triCreatePanel","Record Historical Payment":"triHistoricalPanel","Payment Ledger Calendar":"triCalendarPanel","Tricycle Contract Management":"triManagementPanel","Private Tricycle Profit":"triPrivateProfitSection","Contract Register & Balances":"triRegisterPanel","Weekly Report — Review & Approval":"triReportsPanel","Owing / Weekly Shortfalls":"triOwingPanel","Weekly Driver Payment Monitoring":"triPaymentMonitorPanel","Full Payment Ledger":"triLedgerPanel","Delete Contract":"triManagementPanel"};if(panels[page])window.openEzelexTriPanel(panels[page]);}
+function openEzelexRoute(route){if(!route||route.type!=="ezelex-management-navigate")return;const section=route.section;if(section&&$(section))navigateAdminSection(section);const page=route.page||"";
+if(page==="Daily Sales Performance"){document.querySelector('[data-sales-tab="stockOverview"]')?.click();}
+else if(page==="Sales Reviews & Approval"||page==="Sales Review & Approval"){document.querySelector('[data-sales-tab="reports"]')?.click();}
+if(page==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();if(page==="Delete Worker")document.querySelector('[data-employee-view="delete-worker"]')?.click();if(page==="Delete Driver")document.querySelector('[data-employee-view="delete-driver"]')?.click();if(page==="Create Worker")document.querySelector('[data-employee-view="create-worker"]')?.click();if(page==="Employee Directory")document.querySelector('[data-employee-view="directory"]')?.click();const panels={"Create Tricycle Contract":"triCreatePanel","Record Historical Payment":"triHistoricalPanel","Payment Ledger Calendar":"triCalendarPanel","Tricycle Contract Management":"triManagementPanel","Private Tricycle Profit":"triPrivateProfitSection","Contract Register & Balances":"triRegisterPanel","Weekly Report — Review & Approval":"triReportsPanel","Owing / Weekly Shortfalls":"triOwingPanel","Weekly Driver Payment Monitoring":"triPaymentMonitorPanel","Full Payment Ledger":"triLedgerPanel","Delete Contract":"triManagementPanel"};if(panels[page])window.openEzelexTriPanel(panels[page]);}
 window.addEventListener("message",event=>{if(event.origin!==location.origin||event.source!==window.parent)return;openEzelexRoute(event.data)});
-(async()=>{try{if(window.parent===window||window.parent.location.origin!==window.location.origin)throw new Error("Open this page from the authenticated Management Centre.");await window.parent.verifyEzelexLiveDataSession();await adminCheck();const p=new URLSearchParams(location.search);const s=p.get("section");if(s&&$(s))navigateAdminSection(s);if(p.get("page")==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();
+(async()=>{try{if(window.parent===window||window.parent.location.origin!==window.location.origin)throw new Error("Open this page from the authenticated Management Centre.");await window.parent.verifyEzelexLiveDataSession();await adminCheck();const p=new URLSearchParams(location.search);const s=p.get("section");if(s&&$(s))navigateAdminSection(s);
+if(p.get("page")==="Daily Sales Performance")document.querySelector('[data-sales-tab="stockOverview"]')?.click();
+if(p.get("page")==="Sales Reviews & Approval"||p.get("page")==="Sales Review & Approval")document.querySelector('[data-sales-tab="reports"]')?.click();
+if(p.get("page")==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();
 if(p.get("page")==="Delete Worker")document.querySelector('[data-employee-view="delete-worker"]')?.click();
 if(p.get("page")==="Delete Driver")document.querySelector('[data-employee-view="delete-driver"]')?.click();
 if(p.get("page")==="Create Worker")document.querySelector('[data-employee-view="create-worker"]')?.click();
@@ -1161,3 +1242,12 @@ body.ezx-compact .section{padding:13px!important;margin-top:12px!important}body.
 <!-- Executive Workspace dashboard injection removed. Workspace controls remain in the Management Menu in index.html only. -->
 </body>
 </html>
+<script>
+document.querySelectorAll("[data-sales-tab]").forEach(btn=>btn.addEventListener("click",()=>{
+ const stock=btn.dataset.salesTab==="stockOverview";
+ $("salesReportsPanel").classList.toggle("hidden",stock);
+ $("salesStockOverviewPanel").classList.toggle("hidden",!stock);
+ document.querySelectorAll("[data-sales-tab]").forEach(b=>{b.classList.toggle("primary",b===btn);b.classList.toggle("soft",b!==btn);});
+ if(stock){renderWeekData();}
+}));
+</script>
