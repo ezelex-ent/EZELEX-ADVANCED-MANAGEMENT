@@ -293,6 +293,12 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 #stock .stock-view-panel{padding-top:0}
 #stock .stock-system-heading{margin-bottom:12px}
 @media(max-width:700px){#stock #stockWeekSelect{width:100%;min-width:0}}
+#stock .stock-period-picker{display:flex;align-items:center;gap:8px;position:relative}
+#stock .stock-period-chip{border:1px solid #d8e1ed;background:#eef4fb;color:#24466d;border-radius:999px;padding:9px 14px;font:600 12px inherit;cursor:pointer;white-space:nowrap}
+#stock .stock-period-chip:hover{background:#e2edf9;border-color:#9bb5d2}
+#stock .stock-date-picker{position:absolute;right:0;top:calc(100% + 6px);z-index:30;width:1px;height:1px;opacity:0;pointer-events:none}
+@media(max-width:700px){#stock .stock-panel-title{align-items:flex-start;gap:10px;flex-wrap:wrap}#stock .stock-period-chip{font-size:11px;padding:8px 11px}}
+
 </style>
 
 </head>
@@ -431,7 +437,7 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
   </div>
 
   <div class="stock-view-panel" data-stock-panel="position">
-   <div class="stock-panel-title"><div><h3>Selected Week Stock Position</h3></div><span class="stock-period-chip" id="stockCurrentPeriod">Current week</span></div>
+   <div class="stock-panel-title"><div><h3>Selected Week Stock Position</h3></div><div class="stock-period-picker"><button type="button" class="stock-period-chip" id="stockCurrentPeriod" aria-label="Choose a Monday to Sunday stock week" title="Click to choose a date and view its Monday–Sunday stock week">Current week ▾</button><input id="stockDatePicker" type="date" aria-label="Choose any date in the stock week" class="stock-date-picker" /></div></div>
    <div class="stock-kpi-grid">
     <article class="card stock-kpi"><span class="label">Selected Week Purchases</span><strong class="value" id="invCurrentPurchased">0</strong><small>New purchases only; carry-forward excluded</small></article>
     <article class="card stock-kpi"><span class="label">Selected Week Sold</span><strong class="value" id="invCurrentSold">0</strong><small>Sold quantities from worker books</small></article>
@@ -629,6 +635,7 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 const SUPABASE_URL="https://hweczhwoggmsrwhkktrx.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_D0o90HRJ1AfROf_DAj7ZAg_uaPDwqvV";
 const db=window.parent.ezelexManagementDb,$=id=>document.getElementById(id);
 let session=null,allSales=[],filteredSales=[],workers=[],allInventory=[],filteredInventory=[],allStockWeeks=[],currentWeekIds=new Set(),inventoryLoaded=false;
+let stockDateRangeSelection=null;
 const money=n=>"GH₵"+Number(n||0).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2});
 const num=n=>Number(n||0).toLocaleString("en-GH",{maximumFractionDigits:2});
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -786,9 +793,12 @@ window.adminArchiveStock=async id=>{
  }catch(e){msg("dashMsg","Delete failed: "+(e.message||String(e)),"error")}
 };
 function applyInvFilters(){
- const wid=$("invWorkerFilter")?.value||"",weekId=$("stockWeekSelect")?.value||"",week=(allStockWeeks||[]).find(w=>String(w.id)===weekId);
+ const wid=$("invWorkerFilter")?.value||"",weekId=$("stockWeekSelect")?.value||"",week=(allStockWeeks||[]).find(w=>String(w.id)===weekId),dateBounds=stockSelectedDateBounds();
  filteredInventory=(allInventory||[]).filter(r=>!r.deleted_at).filter(r=>!wid||workerOwnsRow(workerInfo(wid),r.worker_id))
- .filter(r=>!weekId||(week&&(String(r.week_id||"")===weekId||(!r.week_id&&dateOnly(r.stock_date||r.created_at)>=String(week.week_start||"")&&dateOnly(r.stock_date||r.created_at)<=String(week.week_end||week.week_start||"")&&workerOwnsRow(workerInfo(week.worker_id),r.worker_id)))));
+ .filter(r=>{
+  if(dateBounds){const d=dateOnly(r.stock_date||r.created_at);return d>=dateBounds.start&&d<=dateBounds.end;}
+  return !weekId||(week&&(String(r.week_id||"")===weekId||(!r.week_id&&dateOnly(r.stock_date||r.created_at)>=String(week.week_start||"")&&dateOnly(r.stock_date||r.created_at)<=String(week.week_end||week.week_start||"")&&workerOwnsRow(workerInfo(week.worker_id),r.worker_id))));
+ });
  renderInventory();updateInventorySummary();
 }
 function renderInventory(){
@@ -799,6 +809,14 @@ function renderInventory(){
  }).join(""):'<tr><td colspan="15" class="empty">No active worker stock records match these filters.</td></tr>';
 }
 
+function stockSelectedDateBounds(){
+ if(!stockDateRangeSelection)return null;
+ const d=new Date(stockDateRangeSelection+'T12:00:00');
+ if(!Number.isFinite(d.getTime()))return null;
+ d.setDate(d.getDate()-((d.getDay()+6)%7));
+ const start=dateOnly(d);d.setDate(d.getDate()+6);
+ return {start,end:dateOnly(d)};
+}
 function stockWeekBounds(offsetWeeks=0){
  const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7)+(offsetWeeks*7));
  const start=dateOnly(d);d.setDate(d.getDate()+6);return{start,end:dateOnly(d)};
@@ -834,9 +852,10 @@ function renderStockWeeklyRegister(){
  const body=$("stockWeeklyBody");if(!body)return;
  const selectedWorker=$("invWorkerFilter")?.value||"";
  const selectedWeekId=$("stockWeekSelect")?.value||"";
- const currentBounds=stockWeekBounds(0);
+ const dateBounds=stockSelectedDateBounds(),currentBounds=dateBounds||stockWeekBounds(0);
  let weeks=(allStockWeeks||[]).filter(w=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id));
- if(selectedWeekId)weeks=weeks.filter(w=>String(w.id)===selectedWeekId);
+ if(dateBounds)weeks=weeks.filter(w=>String(w.week_start||"")===dateBounds.start);
+ else if(selectedWeekId)weeks=weeks.filter(w=>String(w.id)===selectedWeekId);
  else weeks=weeks.filter(w=>String(w.week_start||"")===currentBounds.start);
  weeks=weeks.slice().sort((a,b)=>String(b.week_start||"").localeCompare(String(a.week_start||"")));
  if(!weeks.length){body.innerHTML='<tr><td colspan="11" class="empty">No weekly stock book found for this selection.</td></tr>';return;}
@@ -866,9 +885,10 @@ function renderStockAdditionalRegisters(){
 }
 
 function updateInventorySummary(){
- const selectedWorker=$("invWorkerFilter")?.value||"",selectedWeekId=$("stockWeekSelect")?.value||"",bounds=stockWeekBounds(0);
+ const selectedWorker=$("invWorkerFilter")?.value||"",selectedWeekId=$("stockWeekSelect")?.value||"",dateBounds=stockSelectedDateBounds(),bounds=dateBounds||stockWeekBounds(0);
  let selectedWeek=null,selectedRows=[];
- if(selectedWeekId){selectedWeek=(allStockWeeks||[]).find(w=>String(w.id)===selectedWeekId)||null;if(selectedWeek)selectedRows=stockRowsForWeek([selectedWeek],{start:String(selectedWeek.week_start||""),end:String(selectedWeek.week_end||selectedWeek.week_start||"")});}
+ if(dateBounds){const weeks=(allStockWeeks||[]).filter(w=>String(w.week_start||"")===dateBounds.start&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id)));selectedRows=stockRowsForWeek(weeks,dateBounds);}
+ else if(selectedWeekId){selectedWeek=(allStockWeeks||[]).find(w=>String(w.id)===selectedWeekId)||null;if(selectedWeek)selectedRows=stockRowsForWeek([selectedWeek],{start:String(selectedWeek.week_start||""),end:String(selectedWeek.week_end||selectedWeek.week_start||"")});}
  else{const weeks=(allStockWeeks||[]).filter(w=>String(w.week_start||"")===bounds.start&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id)));selectedRows=stockRowsForWeek(weeks,bounds);}
  const selected=stockSumRows(selectedRows),allRows=(allInventory||[]).filter(r=>!r.deleted_at&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),r.worker_id))),all=stockSumRows(allRows);
  const creditRows=(accountingCreditRows||[]).filter(c=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),c.worker_id)),creditUnits=creditRows.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0),creditAmount=creditRows.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0);
@@ -881,7 +901,7 @@ function updateInventorySummary(){
  set("invTotal",num(selected.purchased));set("invRemain",num(physical));set("invProfit",money(selected.profit));set("stockRemaining",num(physical));set("damageValue",money(damageLossValue));set("profitValue",money(selected.profit));
  if($("profitValue"))$("profitValue").className=selected.profit<0?"value loss":"value profit";
  set("reviewPurchase",num(all.purchased));set("reviewSold",num(all.sold));set("reviewProfit",money(all.profit));if($("reviewProfit"))$("reviewProfit").className="value "+(all.profit<0?"loss":"profit");
- set("stockCurrentPeriod",selectedWeek?`${selectedWeek.week_start||""}${selectedWeek.week_end?" – "+selectedWeek.week_end:""}`:`${bounds.start} – ${bounds.end}`);
+ set("stockCurrentPeriod",`${bounds.start} – ${bounds.end} ▾`);
  const status=$("stockFeedStatus");if(status)status.textContent=inventoryLoaded?`${allRows.length.toLocaleString()} worker stock batches · ${(allStockWeeks||[]).length.toLocaleString()} weekly books`:"Worker stock feed unavailable";
  renderStockWeeklyRegister();renderStockAdditionalRegisters();
 }
@@ -1166,6 +1186,21 @@ if($("workerFilter"))$("workerFilter").onchange=applyFilters;
 if($("refreshInventory"))$("refreshInventory").onclick=loadInventory;
  if($("invWorkerFilter"))$("invWorkerFilter").onchange=()=>{renderStockWeekOptions();applyInvFilters()};
  if($("stockWeekSelect"))$("stockWeekSelect").onchange=applyInvFilters;
+ if($("stockCurrentPeriod")&&$("stockDatePicker")){
+  $("stockCurrentPeriod").onclick=()=>{
+   const bounds=stockSelectedDateBounds()||stockWeekBounds(0);
+   $("stockDatePicker").value=bounds.start;
+   const picker=$("stockDatePicker");
+   if(typeof picker.showPicker==="function")picker.showPicker();else{picker.style.position="static";picker.style.width="auto";picker.style.height="auto";picker.style.opacity="1";picker.style.pointerEvents="auto";picker.focus();picker.click();}
+  };
+  $("stockDatePicker").onchange=()=>{
+   if(!$("stockDatePicker").value)return;
+   stockDateRangeSelection=$("stockDatePicker").value;
+   if($("stockWeekSelect"))$("stockWeekSelect").value="";
+   applyInvFilters();
+  };
+ }
+
  if($("applyInvFilters"))$("applyInvFilters").onclick=applyInvFilters;
  if($("weekDataWorker"))$("weekDataWorker").onchange=()=>{const s=$("weekDataWeek");s.value="";renderWeekData()};
  if($("weekDataWorker"))$("weekDataWorker").onchange=()=>{const old= $("weekDataWeek").value;renderWeekData();if(old&&[...$("weekDataWeek").options].some(o=>o.value===old))$("weekDataWeek").value=old;renderWeekData();};
@@ -1265,6 +1300,18 @@ function triContractWeeksRemaining(c){
    item.paid+=Math.max(0,Number(r.payment_amount||0));
    item.expected=Math.max(item.expected,expected);
    grouped.set(key,item);
+  });
+ // Historical payment allocations are already confirmed ledger receipts. Their saved notes
+ // contain the exact allocation period and target; count only fully covered scheduled periods.
+ triPayments.filter(p=>String(p.contract_id)===String(c.id)&&String(p.source_type||'').toLowerCase().includes('historical'))
+  .forEach(p=>{
+   const note=String(p.notes||'');
+   const match=note.match(/Historical allocation period (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2});\s*\d+ day\(s\);\s*target ([0-9.]+)/i);
+   if(!match)return;
+   const key=match[1]+'|'+match[2],target=Number(match[3]),amount=Math.max(0,Number(p.amount||0));
+   if(!(target>0))return;
+   const item=grouped.get(key)||{paid:0,expected:target};
+   item.paid+=amount;item.expected=Math.max(item.expected,target);grouped.set(key,item);
   });
  const completed=[...grouped.values()].filter(x=>x.expected>0&&x.paid+0.009>=x.expected).length;
  return Math.max(0,totalWeeks-completed);
