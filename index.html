@@ -11,10 +11,13 @@
 (function(root){'use strict';
  const n=v=>{const x=Number(v);return Number.isFinite(x)?x:0},money=v=>Math.round((n(v)+Number.EPSILON)*100)/100;
  const unpaid=c=>Math.max(0,n(c.amount_due)-n(c.amount_paid));
- function creditForBatch(id,rows){const matches=(rows||[]).filter(c=>String(c.stock_batch_id||'')===String(id||'')&&unpaid(c)>0.009);return{units:matches.reduce((s,c)=>s+Math.max(0,n(c.quantity)),0),amount:money(matches.reduce((s,c)=>s+unpaid(c),0))};}
+ // A partially paid credit sale only keeps its unpaid crates out of physical stock.
+ // Never count the original full quantity again after some crates have been paid.
+ const unpaidCrates=c=>Math.max(0,n(c.quantity)-n(c.crates_paid));
+ function creditForBatch(id,rows){const matches=(rows||[]).filter(c=>String(c.stock_batch_id||'')===String(id||'')&&unpaid(c)>0.009);return{units:matches.reduce((s,c)=>s+unpaidCrates(c),0),amount:money(matches.reduce((s,c)=>s+unpaid(c),0))};}
  function stockBatch(b,credits){const total=Math.max(0,n(b.total_quantity)),sold=Math.max(0,n(b.sold_quantity)),damage=Math.max(0,n(b.damage_quantity)),loss=Math.max(0,n(b.loss_quantity)),unit=Math.max(0,n(b.cost_per_unit)),cr=creditForBatch(b.id,credits);const physical=b.remaining_quantity==null?Math.max(0,total-sold-damage-loss-cr.units):Math.max(0,n(b.remaining_quantity));const revenue=money(b.sales_revenue==null?sold*n(b.selling_price_per_unit):b.sales_revenue),soldCost=money(b.sold_cost==null?sold*unit:b.sold_cost),damageValue=money(b.damage_value==null?damage*unit:b.damage_value),lossValue=money(b.loss_value==null?loss*unit:b.loss_value);return{total,sold,damage,loss,unit,physicalRemaining:physical,creditUnits:cr.units,projectedRemaining:physical+cr.units,physicalValue:money(physical*unit),remainingValue:money((physical+cr.units)*unit),revenue,soldCost,damageValue,lossValue,profit:money(b.profit_loss==null?revenue-soldCost-damageValue-lossValue:b.profit_loss),creditAmount:cr.amount};}
  function stockPosition(rows,credits){return(rows||[]).filter(r=>!r.deleted_at).reduce((a,r)=>{const c=stockBatch(r,credits);a.physicalUnits+=c.physicalRemaining;a.creditUnits+=c.creditUnits;a.projectedUnits+=c.projectedRemaining;a.physicalValue+=c.physicalValue;a.projectedValue+=c.remainingValue;return a;},{physicalUnits:0,creditUnits:0,projectedUnits:0,physicalValue:0,projectedValue:0});}
- const api=Object.freeze({money,unpaid,creditForBatch,stockBatch,stockPosition});root.EZELEXAccounting=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
+ const api=Object.freeze({money,unpaid,unpaidCrates,creditForBatch,stockBatch,stockPosition});root.EZELEXAccounting=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
 
 </script>
@@ -934,7 +937,7 @@ const $=id=>document.getElementById(id),money=n=>"GH₵"+Number(n||0).toLocaleSt
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const D={profiles:[],sales:[],batches:[],weeks:[],credits:[],history:[],contracts:[],reports:[],payments:[],privateCosts:[],communications:[],capital:null};
 const pending=w=>!w.active&&!w.activated_at;
-function unpaidCreditForBatch(batchId){return D.credits.filter(c=>String(c.stock_batch_id||"")===String(batchId||"")&&Number(c.amount_paid||0)<Number(c.amount_due||0)).reduce((n,c)=>n+Math.max(0,Number(c.quantity||0)),0)}
+function unpaidCreditForBatch(batchId){return D.credits.filter(c=>String(c.stock_batch_id||"")===String(batchId||"")&&window.EZELEXAccounting.unpaid(c)>0.009).reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0)}
 function calc(r){const x=window.EZELEXAccounting.stockBatch(r,D.credits);return{total:x.total,sold:x.sold,damage:x.damage,loss:x.loss,unit:x.unit,remaining:x.projectedRemaining,physicalRemaining:x.physicalRemaining,creditUnits:x.creditUnits,revenue:x.revenue,damageValue:x.damageValue,lossValue:x.lossValue,profit:x.profit,remainingValue:x.remainingValue}}
 function balance(c){return Math.max(0,Number(c.total_contract_amount||0)-Number(c.opening_paid_amount||0)-D.payments.filter(p=>String(p.contract_id)===String(c.id)).reduce((n,p)=>n+Number(p.amount||0),0))}
 async function tableRead(name){const {data,error}=await db.from(name).select("*").limit(2000);if(error)throw new Error(name+": "+error.message);return data||[]}
