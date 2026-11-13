@@ -1039,9 +1039,18 @@ window.loadEzelexManagementOverview=async()=>{
  if(!ezelexWorkerSyncTimer)ezelexWorkerSyncTimer=setInterval(refreshWorkerAccountingSnapshot,8000);
 };
 window.addEventListener("message", event => {
-  if (event.origin !== location.origin || event.data?.type !== "ezelex-admin-frame-height") return;
-  const frame = document.querySelector('#liveDataContent iframe');
+  if (event.origin !== location.origin) return;
+  const frame = document.querySelector('#liveDataContent iframe[data-ezelex-operations]');
   if (!frame || event.source !== frame.contentWindow) return;
+  if (event.data?.type === "ezelex-admin-frame-ready") {
+    frame.dataset.ezelexReady = "true";
+    const pending = frame.dataset.pendingRoute;
+    if (pending) {
+      try { frame.contentWindow.postMessage(JSON.parse(pending), location.origin); delete frame.dataset.pendingRoute; } catch (_) {}
+    }
+    return;
+  }
+  if (event.data?.type !== "ezelex-admin-frame-height") return;
   const height = Number(event.data.height);
   if (Number.isFinite(height) && height > 500) frame.style.height = Math.min(height + 36, 6000) + "px";
 });
@@ -1074,14 +1083,17 @@ window.loadEzelexManagementPage = (page, group) => {
     frame.style.cssText="display:block;width:100%;min-height:1180px;border:0;border-radius:14px;background:transparent";
     frame.setAttribute("loading","eager");
     frame.addEventListener("load",()=>{
+      frame.dataset.ezelexLoaded = "true";
       try{const h=frame.contentDocument.documentElement.scrollHeight;if(h>600)frame.style.height=Math.min(h+40,6000)+"px";}catch(_){}
-      const pending=frame.dataset.pendingRoute;if(pending){try{frame.contentWindow.postMessage(JSON.parse(pending),location.origin);delete frame.dataset.pendingRoute;}catch(_){}}
+      const pending=frame.dataset.pendingRoute;
+      if(pending && frame.dataset.ezelexReady === "true"){try{frame.contentWindow.postMessage(JSON.parse(pending),location.origin);delete frame.dataset.pendingRoute;}catch(_){}}
     });
-    frame.src="admin-operations.html?section="+encodeURIComponent(section)+"&page="+encodeURIComponent(page||"");
     host.replaceChildren(frame);
+    frame.src="admin-operations.html?section="+encodeURIComponent(section)+"&page="+encodeURIComponent(page||"");
   }else{
     const route={type:"ezelex-management-navigate",section,page:page||"",group:group||""};
-    try{frame.contentWindow.postMessage(route,location.origin);}catch(_){}
+    if(frame.dataset.ezelexReady !== "true"){frame.dataset.pendingRoute=JSON.stringify(route);return;}
+    try{frame.contentWindow.postMessage(route,location.origin);}catch(_){frame.dataset.pendingRoute=JSON.stringify(route);}
   }
 };
 })();
