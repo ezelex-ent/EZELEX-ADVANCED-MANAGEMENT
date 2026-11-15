@@ -205,6 +205,20 @@ body.ezx-dark .overview-intro{background:linear-gradient(112deg,#0c1c30,#173d60 
 <style id="ezelex-speed-back-enhancements">
 .page-toolbar{display:flex;justify-content:flex-end;align-items:center;margin:0 0 12px}.management-back-button{display:inline-flex;align-items:center;gap:8px;border:1px solid #cbd7e5;background:#fff;color:#17324f;border-radius:10px;padding:10px 16px;font:600 13px/1.2 inherit;cursor:pointer;box-shadow:0 2px 8px rgba(20,45,75,.07);transition:background .15s ease,transform .15s ease}.management-back-button:hover{background:#edf4fb;transform:translateY(-1px)}.management-back-button:focus-visible{outline:3px solid rgba(37,99,235,.28);outline-offset:2px}@media(max-width:640px){.page-toolbar{margin-bottom:10px}.management-back-button{padding:9px 13px}}
 </style>
+<style id="ezelex-business-finance-capital-style">
+.ez-capital-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ez-capital-table{min-width:850px}
+.ez-capital-form{display:grid;grid-template-columns:minmax(180px,1fr) minmax(150px,220px) auto;gap:10px;align-items:end}
+.ez-capital-form label{font-size:11px;font-weight:800;color:var(--muted)}
+.ez-capital-form input{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+.ez-capital-form button{white-space:nowrap}
+.ez-capital-form span{grid-column:1/-1;font-size:11px;color:var(--teal)}
+.ez-capital-negative{color:#b42318!important}.ez-capital-positive{color:#15803d!important}
+body.ezx-dark .ez-capital-form input{background:#1d3048;color:var(--ink);border-color:#40546c}
+@media(max-width:750px){.ez-capital-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ez-capital-form{grid-template-columns:1fr}.ez-capital-form span{grid-column:auto}}
+@media(max-width:440px){.ez-capital-grid{grid-template-columns:1fr}}
+</style>
+
 </head>
 <body>
 <section id="login" class="login-wrap">
@@ -323,7 +337,7 @@ body.ezx-dark .overview-intro{background:linear-gradient(112deg,#0c1c30,#173d60 
    </div>
   </section>
   <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Business Finance &amp; Capital</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
-   <button class="submenu-item" data-page="Business Capital" data-group="Business Finance &amp; Capital">Business Capital</button><button class="submenu-item" data-page="Cash in Hand" data-group="Business Finance &amp; Capital">Cash in Hand</button><button class="submenu-item" data-page="Remaining Stock Value" data-group="Business Finance &amp; Capital">Remaining Stock Value</button><button class="submenu-item" data-page="Outstanding Customer Credit" data-group="Business Finance &amp; Capital">On-Credit Sales</button><button class="submenu-item" data-page="Total Current Assets" data-group="Business Finance &amp; Capital">Total Current Assets</button>
+   <button class="submenu-item" data-page="Business Finance &amp; Capital" data-group="Business Finance &amp; Capital">Business Finance &amp; Capital</button>
   </div></section>
   <section class="menu-group"><button class="menu-group-toggle" type="button" aria-expanded="false"><span>Sales &amp; Performance</span><span class="chevron">⌄</span></button><div class="menu-subgroup" hidden>
    <button class="submenu-item" data-page="Central Sales Management" data-group="Sales &amp; Performance">Central Sales Management</button><button class="submenu-item" data-page="Daily Sales Performance" data-group="Sales &amp; Performance">Daily Sales Performance</button><button class="submenu-item" data-page="Approve / Disapprove Sales" data-group="Sales &amp; Performance">Sales Review &amp; Approval</button><button class="submenu-item" data-page="Legacy Sales Cleanup" data-group="Sales &amp; Performance">Legacy Sales Cleanup</button>
@@ -903,6 +917,7 @@ body.ezx-dark .overview-intro{background:linear-gradient(112deg,#0c1c30,#173d60 
   overview.hidden=true;pageView.hidden=false;
   title.textContent=page;pageGroup.textContent=group.toUpperCase();document.getElementById("managementBackButton").textContent="← Back";
   desc.textContent=descriptions[group]||"Management tools and records for Ezelex Enterprise.";
+  desc.hidden=group==="Business Finance &amp; Capital"||group==="Business Finance & Capital";
   document.getElementById('changePasswordPanel').hidden=page!=="Change Password";
   document.getElementById('managementProfilePanel').hidden=page!=="Management Profile";
   status.hidden=true;
@@ -1054,6 +1069,96 @@ window.addEventListener("message", event => {
   const height = Number(event.data.height);
   if (Number.isFinite(height) && height > 500) frame.style.height = Math.min(height + 36, 6000) + "px";
 });
+
+async function renderBusinessFinanceCapital(){
+ const host=document.getElementById("liveDataContent");
+ if(!host)return;
+ host.innerHTML='<div class="live-data-loading">Loading business financial position…</div>';
+ const errors=await loadAll(true);
+ await refreshWorkerAccountingSnapshot();
+ if(errors.length){
+  host.innerHTML='<div class="live-data-error"><b>Business financial records could not all be loaded.</b><br>'+errors.map(esc).join("<br>")+'</div>';
+  return;
+ }
+ const rows=(D.batches||[]).filter(r=>!r.deleted_at);
+ const latestRows=managementCurrentStockRows();
+ const workerIds=new Set(rows.map(r=>String(r.worker_id||"")));
+ (D.profiles||[]).filter(p=>String(p.role||"").toLowerCase()==="worker").forEach(p=>workerIds.add(String(p.user_id||p.id||p.worker_id||"")));
+ const workers=[];
+ for(const wid of workerIds){
+  const profile=managementWorkerInfo(wid);
+  const wr=rows.filter(r=>String(r.worker_id||"")===wid);
+  const current=latestRows.filter(r=>String(r.worker_id||"")===wid);
+  const cashRecovered=wr.reduce((n,r)=>n+Math.max(0,Number(r.sold_cost||0)),0);
+  const reinvested=wr.filter(r=>String(r.stock_type||"").toLowerCase()==="reinvestment"||(String(r.stock_type||"").toLowerCase()!=="carry_forward"&&String(r.notes||"").toLowerCase().includes("additional purchase quantity added while editing an existing stock item"))).reduce((n,r)=>n+Math.max(0,Number(r.purchase_total??(Number(r.total_quantity||0)*Number(r.cost_per_unit||0)))),0);
+  const cash=cashRecovered-reinvested;
+  const stock=current.reduce((a,r)=>{const c=calc(r);a.units+=c.physicalRemaining;a.value+=c.physicalRemaining*c.unit;return a;},{units:0,value:0});
+  const credits=wr.reduce((a,r)=>{const c=window.EZELEXAccounting.creditForBatch(r.id,D.credits);a.units+=c.units;a.value+=c.units*Math.max(0,Number(r.cost_per_unit||0));return a;},{units:0,value:0});
+  const damage=wr.reduce((n,r)=>n+calc(r).damageValue+calc(r).lossValue,0);
+  workers.push({name:profile.full_name||profile.name||profile.worker_id||"Worker",cash,units:stock.units,stockValue:stock.value,creditUnits:credits.units,creditValue:credits.value,damage});
+ }
+ const sum=k=>workers.reduce((n,w)=>n+w[k],0);
+ const workerCash=sum("cash"),remainingUnits=sum("units"),remainingValue=sum("stockValue"),creditUnits=sum("creditUnits"),creditValue=sum("creditValue"),damageLoss=sum("damage");
+ const adminCash=Number(D.capital?.current_cash||0),capital=Number(D.capital?.original_capital||0);
+ const accounted=adminCash+workerCash+remainingValue+creditValue+damageLoss;
+ const difference=accounted-capital;
+ const diffLabel=Math.abs(difference)<0.01?"Capital matches original investment":difference<0?"Shortage against original capital":"Excess against original capital";
+ host.innerHTML=`
+ <div class="live-data-content">
+  <div class="live-data-note">Live business money position. Figures are valued at original purchase cost. No worker stock dates, transaction log or profit calculation is included here.</div>
+  <div class="live-data-grid ez-capital-grid">
+   <div class="live-data-stat"><small>Original Business Capital</small><strong id="bfOriginal">${money(capital)}</strong></div>
+   <div class="live-data-stat"><small>Admin Cash in Hand</small><strong id="bfAdminCash">${money(adminCash)}</strong></div>
+   <div class="live-data-stat"><small>Workers' Cash in Hand</small><strong>${money(workerCash)}</strong></div>
+   <div class="live-data-stat"><small>Remaining Crate Balance</small><strong>${money(remainingValue)}</strong><em>${num(remainingUnits)} crates · physical stock at purchase cost</em></div>
+   <div class="live-data-stat"><small>On-Credit Stock Capital</small><strong>${money(creditValue)}</strong><em>${num(creditUnits)} unpaid crates · purchase cost</em></div>
+   <div class="live-data-stat"><small>Damage &amp; Loss</small><strong>${money(damageLoss)}</strong><em>Purchase cost written off</em></div>
+  </div>
+  <div class="live-data-panel">
+   <h3>Capital Position</h3>
+   <div class="live-data-grid ez-capital-grid">
+    <div class="live-data-stat"><small>Total Capital Accounted For</small><strong>${money(accounted)}</strong><em>Admin cash + worker cash + remaining stock + on-credit stock + damage/loss</em></div>
+    <div class="live-data-stat"><small>${diffLabel}</small><strong class="${difference<-.009?'ez-capital-negative':difference>.009?'ez-capital-positive':''}">${difference<0?'−':difference>0?'+':''}${money(Math.abs(difference))}</strong><em>Difference compared with original business capital. This is not profit.</em></div>
+   </div>
+  </div>
+  <div class="live-data-panel">
+   <h3>Workers' Financial Balances</h3>
+   <div class="live-data-table-wrap"><table class="live-data-table ez-capital-table"><thead><tr><th>Worker</th><th>Cash in Hand</th><th>Remaining Crates</th><th>Remaining Stock Value</th><th>On-Credit Crates</th><th>On-Credit Capital</th><th>Damage &amp; Loss</th></tr></thead><tbody>
+   ${workers.sort((a,b)=>a.name.localeCompare(b.name)).map(w=>`<tr><td>${esc(w.name)}</td><td>${money(w.cash)}</td><td>${num(w.units)}</td><td>${money(w.stockValue)}</td><td>${num(w.creditUnits)}</td><td>${money(w.creditValue)}</td><td>${money(w.damage)}</td></tr>`).join("")||'<tr><td colspan="7">No worker financial balances available.</td></tr>'}
+   </tbody></table></div>
+  </div>
+  <div class="live-data-panel">
+   <h3>Update Business Capital</h3>
+   <p class="live-data-note">Enter the total original capital invested to date. Increase this figure only when additional capital is actually added.</p>
+   <form id="bfCapitalForm" class="ez-capital-form"><label for="bfCapitalInput">Original Business Capital (GH₵)</label><input id="bfCapitalInput" type="number" min="0" step="0.01" value="${capital.toFixed(2)}" required><button class="action-primary" type="submit">Save Original Capital</button><span id="bfCapitalFeedback" role="status"></span></form>
+  </div>
+  <div class="live-data-panel">
+   <h3>Update Admin Cash in Hand</h3>
+   <form id="bfCashForm" class="ez-capital-form"><label for="bfCashInput">Actual cash held by Admin (GH₵)</label><input id="bfCashInput" type="number" min="0" step="0.01" value="${adminCash.toFixed(2)}" required><button class="action-primary" type="submit">Save Admin Cash</button><span id="bfCashFeedback" role="status"></span></form>
+  </div>
+ </div>`;
+ const saveValue=async(field,inputId,feedbackId)=>{
+  const input=document.getElementById(inputId),feedback=document.getElementById(feedbackId),value=Number(input.value);
+  if(!Number.isFinite(value)||value<0){feedback.textContent="Enter a valid amount.";return;}
+  feedback.textContent="Saving…";
+  try{
+   let result=await db.from("ezelex_business_capital").update({[field]:value}).eq("id",1).select("id,original_capital,current_cash").maybeSingle();
+   if(result.error)throw result.error;
+   if(!result.data){
+    const payload={id:1,original_capital:field==="original_capital"?value:capital,current_cash:field==="current_cash"?value:adminCash};
+    const inserted=await db.from("ezelex_business_capital").upsert(payload,{onConflict:"id"}).select("id,original_capital,current_cash").single();
+    if(inserted.error)throw inserted.error;
+    D.capital=inserted.data;
+   }else D.capital=result.data;
+   feedback.textContent="Saved successfully.";
+   await renderBusinessFinanceCapital();
+   if(typeof updateOverview==="function")updateOverview();
+  }catch(err){feedback.textContent="Could not save: "+(err.message||String(err));}
+ };
+ document.getElementById("bfCapitalForm").addEventListener("submit",e=>{e.preventDefault();saveValue("original_capital","bfCapitalInput","bfCapitalFeedback");});
+ document.getElementById("bfCashForm").addEventListener("submit",e=>{e.preventDefault();saveValue("current_cash","bfCashInput","bfCashFeedback");});
+}
+
 window.loadEzelexManagementPage = (page, group) => {
   const host = document.getElementById("liveDataContent");
   if (!host) return;
@@ -1075,6 +1180,11 @@ window.loadEzelexManagementPage = (page, group) => {
     "Employee Management":"workers", "Employee Administration":"workers", "Create Employee":"workers", "Employee Directory":"workers", "Create Worker":"workers", "Create Driver":"workers", "Delete Worker":"workers", "Delete Driver":"workers", "Communication Centre":"communication"
   };
   const section = sectionMap[page] || sectionMap[group] || "overview";
+  if(section==="capital"){
+    host.replaceChildren();
+    renderBusinessFinanceCapital();
+    return;
+  }
   let frame = host.querySelector("iframe[data-ezelex-operations]");
   if(!frame){
     frame=document.createElement("iframe");
