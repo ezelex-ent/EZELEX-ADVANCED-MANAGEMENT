@@ -222,6 +222,29 @@ body.ezx-dark .ez-capital-form input{background:#1d3048;color:var(--ink);border-
 @media(max-width:440px){.ez-capital-grid{grid-template-columns:1fr}}
 </style>
 
+
+<style id="ezelex-management-clean-screen">
+#overviewPage .overview-intro p,#overviewPage .overview-kicker,#overviewPage .section-head p,
+#overviewPage .overview-group-heading p,#overviewPage .overview-group-kicker,#overviewPage .overview-live-ticker,
+#overviewPage .kpi p,#overviewPage .shortcut-heading p,#overviewPage .shortcut-heading span,
+#overviewPage .shortcut-card small,#overviewPage .panel-heading p,#overviewPage .panel>p,
+#overviewPage .chart-footnote,#overviewPage .overview-metric em,#overviewPage .live-data-stat em,#dashboard p,#pageDescription,#pageStatus,.page-placeholder,.page-kicker,
+.workspace-menu-help,.workspace-menu-status,.drawer-head small,.drawer-footer,footer,.live-data-note,
+#overviewLiveSummary .panel>p,#liveDataContent .live-data-panel>p,#liveDataContent .live-data-note,
+#liveDataContent .chart-footnote{display:none!important}
+#overviewPage .overview-intro{padding-top:22px!important;padding-bottom:22px!important}
+#overviewPage .section-head{margin-top:18px}
+#overviewPage .overview-group-heading{padding-bottom:8px}
+#overviewPage .overview-shortcuts{padding:16px;margin-top:16px}
+#overviewPage .shortcut-card{min-height:58px}
+#pageView .page-card{padding-top:18px}
+#pageView .page-toolbar{margin-bottom:4px}
+#liveDataContent .live-data-content{margin-top:10px}
+#liveDataContent .live-data-panel{padding:15px}
+#login .login-card>p:not(.small):not(.otp-expiry){display:none!important}
+#otpPanel .otp-expiry{display:block!important}
+</style>
+
 </head>
 <body>
 <section id="login" class="login-wrap">
@@ -911,8 +934,8 @@ body.ezx-dark .ez-capital-form input{background:#1d3048;color:var(--ink);border-
   const group=btn.dataset.group || (btn.closest('.menu-group')?.querySelector('.menu-group-toggle span').textContent||"MANAGEMENT");
   overview.hidden=true;pageView.hidden=false;
   title.textContent=page;pageGroup.textContent=group.toUpperCase();document.getElementById("managementBackButton").textContent="← Back";
-  desc.textContent=descriptions[group]||"Management tools and records for Ezelex Enterprise.";
-  desc.hidden=group==="Business Finance &amp; Capital"||group==="Business Finance & Capital";
+  desc.textContent="";
+  desc.hidden=true;
   document.getElementById('changePasswordPanel').hidden=page!=="Change Password";
   document.getElementById('managementProfilePanel').hidden=page!=="Management Profile";
   status.hidden=true;
