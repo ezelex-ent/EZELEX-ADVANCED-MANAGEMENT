@@ -293,18 +293,20 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 #stock .stock-view-panel{padding-top:0}
 #stock .stock-system-heading{margin-bottom:12px}
 @media(max-width:700px){#stock #stockWeekSelect{width:100%;min-width:0}}
-#stock .stock-period-picker{display:flex;align-items:center;gap:8px;position:relative}
-#stock .stock-period-chip{border:1px solid #d8e1ed;background:#eef4fb;color:#24466d;border-radius:999px;padding:9px 14px;font:600 12px inherit;cursor:pointer;white-space:nowrap}
-#stock .stock-period-chip:hover{background:#e2edf9;border-color:#9bb5d2}
-#stock .stock-date-picker{position:absolute;right:0;top:calc(100% + 6px);z-index:30;width:1px;height:1px;opacity:0;pointer-events:none}
-@media(max-width:700px){#stock .stock-panel-title{align-items:flex-start;gap:10px;flex-wrap:wrap}#stock .stock-period-chip{font-size:11px;padding:8px 11px}}
+</style>
 
+
+<style id="ezelex-admin-operations-clean-screen">
+p,.muted:not(.msg):not(.error):not(.success),.help-text,.helper-text,.field-hint,
+.form-help,.form-hint,.small-note,.section-description,.card-description,.subtitle,
+.instructions,.live-data-note,.employee-form>p,.section>p{display:none!important}
+.employee-form{padding-top:14px}.employee-form h3{margin-top:0}.section{padding-top:15px;padding-bottom:15px}
 </style>
 
 </head>
 <body>
 <header><div class="brand"><div class="logo">EZ</div><div><h1>Ezelex Enterprise</h1><small>Administrator Dashboard</small></div></div><div class="header-actions"><button id="operationsBackButton" class="soft hidden" type="button" aria-label="Go back to previous management section">← Back</button><button id="menuToggle" class="menu-toggle hidden" aria-expanded="false" aria-controls="adminMenu">☰ Open Menu</button><button id="logoutBtn" class="danger hidden">Log out</button><div id="adminMenu" class="admin-menu hidden" role="menu">
-<button data-section="capital">Business Capital</button>
+<button data-section="capital">Business Finance &amp; Capital</button>
 <div class="menu-group"><button type="button" class="menu-group-toggle" data-menu-group="tricycleGroup" aria-expanded="false" aria-controls="tricycleGroup"><span>Tricycle Contract</span><span class="menu-chevron">▾</span></button><div id="tricycleGroup" class="menu-subgroup hidden"><button type="button" data-tri-panel="triCreatePanel">Create Tricycle Contract</button><button type="button" data-tri-panel="triHistoricalPanel">Record Historical Payment</button><button type="button" data-tri-panel="triCalendarPanel">Payment Ledger Calendar</button></div></div>
 <div class="menu-group"><button type="button" class="menu-group-toggle" data-menu-group="databaseGroup" aria-expanded="false" aria-controls="databaseGroup"><span>Database Management</span><span class="menu-chevron">▾</span></button><div id="databaseGroup" class="menu-subgroup hidden"><button type="button" data-tri-panel="triManagementPanel">Tricycle Contract Management</button><button type="button" data-tri-panel="triPrivateProfitSection">Private Tricycle Profit (Admin Only)</button><button type="button" data-tri-panel="triRegisterPanel">Contract Register &amp; Balances</button><button type="button" data-tri-panel="triReportsPanel">Weekly Report — Review &amp; Approval</button><button type="button" data-tri-panel="triOwingPanel">Owing / Weekly Shortfalls</button><button type="button" data-tri-panel="triPaymentMonitorPanel">Weekly Driver Payment Monitoring</button><button type="button" data-tri-panel="triLedgerPanel">Full Payment Ledger</button></div></div>
 <button data-section="stock">Stock &amp; Inventory</button><button data-section="credits">On-Credit Sales</button><button data-section="stockHistory">Edit History</button><button data-section="sales">Legacy Sales Cleanup</button><button data-section="workers">Create Employee Accounts</button><button data-section="communication">Communication Centre</button><button data-section="profile">Admin Profile</button><button data-section="security">Change Password</button><button id="menuLogout" class="menu-logout">Log Out</button><button data-section="overview">Back to Dashboard</button></div></div></header>
@@ -319,16 +321,25 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 <div class="nav dashboard-nav"><button class="soft active" data-section="overview">Dashboard</button></div>
 
 <section id="capital" class="page hidden">
-<div class="section"><h2>🔒 Private Business Capital</h2><p class="muted">Admin-only financial overview. Original investment is kept separate from weekly stock books. Enter the actual cash currently held by the business; stock and outstanding credit are calculated from saved records.</p><div id="capitalMsg"></div>
+<div class="section">
+<h2>Business Finance &amp; Capital</h2>
+<p class="muted">Monitor the business's financial position: Admin cash, workers' cash, remaining crates, on-credit stock and damage or loss. This is a financial overview, not a worker activity or stock-date register.</p>
+<div id="capitalMsg"></div>
 <div class="cards" style="grid-template-columns:repeat(3,1fr)">
-<div class="card"><div class="label">Original Business Capital</div><div class="value" id="originalCapitalValue">GH₵20,000.00</div><div class="muted">Editable by admin when additional capital is invested</div></div>
-<div class="card"><div class="label">Cash In Hand (admin-confirmed)</div><div class="value" id="currentCashValue">GH₵0.00</div><div class="muted">Enter the actual cash held</div></div>
-<div class="card"><div class="label">Projected Remaining Stock Value</div><div class="value" id="capitalStockValue">GH₵0.00</div><div class="muted">Remaining crates + unpaid on-credit crates, valued at recorded purchase cost. <strong id="capitalProjectedUnits">0 crates</strong></div></div>
-<div class="card"><div class="label">Outstanding Customer Credit</div><div class="value" id="capitalCreditValue">GH₵0.00</div><div class="muted">Unpaid balances only</div></div>
-<div class="card"><div class="label">Total Current Assets</div><div class="value" id="capitalAssetsValue">GH₵0.00</div><div class="muted">Cash + stock value + outstanding credit</div></div>
-<div class="card"><div class="label">Assets Compared With Original Capital</div><div class="value" id="capitalDifferenceValue">GH₵0.00</div><div class="muted">Total recorded current assets minus the original capital entered above. This is not a profit calculation.</div></div>
+<div class="card"><div class="label">Original Business Capital</div><div class="value" id="originalCapitalValue">GH₵0.00</div><div class="muted">Total capital invested</div></div>
+<div class="card"><div class="label">Admin Cash in Hand</div><div class="value" id="currentCashValue">GH₵0.00</div><div class="muted">Actual cash held by Admin</div></div>
+<div class="card"><div class="label">Workers' Cash in Hand</div><div class="value" id="capitalWorkerCashValue">GH₵0.00</div><div class="muted">Recovered purchase-cost cash after reinvestments</div></div>
+<div class="card"><div class="label">Remaining Crate Balance</div><div class="value" id="capitalStockValue">GH₵0.00</div><div class="muted"><strong id="capitalProjectedUnits">0 crates</strong> physically remaining, at purchase cost</div></div>
+<div class="card"><div class="label">On-Credit Stock Capital</div><div class="value" id="capitalCreditValue">GH₵0.00</div><div class="muted"><strong id="capitalCreditUnits">0 crates</strong> unpaid crates, at purchase cost</div></div>
+<div class="card"><div class="label">Damage &amp; Loss</div><div class="value" id="capitalDamageValue">GH₵0.00</div><div class="muted">Purchase cost of damaged or lost stock</div></div>
 </div>
-<div class="section" style="margin-top:16px"><h3>Update business capital</h3><p class="muted">When you add more capital to the business, enter the new total capital invested and save it. This does not change weekly stock or Profit/Loss calculations.</p><div class="grid2"><div><label>Original / Total Capital Invested (GH₵)</label><input id="originalCapitalInput" type="number" min="0" step="0.01" placeholder="Enter total capital invested"></div><div style="display:flex;align-items:end"><button id="saveOriginalCapitalBtn" class="primary" type="button">Save Business Capital</button></div></div></div><div class="section" style="margin-top:16px"><h3>Update actual cash held</h3><p class="muted">Enter the total cash physically available to the business now. This is a cash-count input, not sales revenue, so updating it will not change Profit/Loss.</p><div class="grid2"><div><label>Actual Cash In Hand (GH₵)</label><input id="currentCashInput" type="number" min="0" step="0.01" placeholder="Enter cash currently held"></div><div style="display:flex;align-items:end"><button id="saveCapitalCashBtn" class="primary" type="button">Save Cash Balance</button></div></div></div>
+<div class="section" style="margin-top:16px"><h3>Business Capital Position</h3><div class="cards" style="grid-template-columns:repeat(2,1fr)">
+<div class="card"><div class="label">Capital Currently Accounted For</div><div class="value" id="capitalAssetsValue">GH₵0.00</div><div class="muted">Admin cash + workers' cash + remaining stock + on-credit stock + damage/loss recorded</div></div>
+<div class="card"><div class="label">Change Against Original Capital</div><div class="value" id="capitalDifferenceValue">GH₵0.00</div><div class="muted" id="capitalDifferenceNote">Compared with original investment; not profit.</div></div>
+</div></div>
+<div class="section" style="margin-top:16px"><h3>Workers' Financial Position</h3><p class="muted">Financial balances only. No stock dates or transaction-by-transaction activity.</p><div class="tablebox"><table style="min-width:760px"><thead><tr><th>Worker</th><th>Cash in Hand</th><th>Remaining Crates</th><th>Remaining Stock Value</th><th>On-Credit Crates</th><th>On-Credit Capital</th><th>Damage &amp; Loss</th></tr></thead><tbody id="capitalWorkerSummaryBody"><tr><td colspan="7" class="empty">Worker financial information will appear after records load.</td></tr></tbody></table></div></div>
+<div class="section" style="margin-top:16px"><h3>Update Original Business Capital</h3><p class="muted">Enter the new total only when additional capital is invested. This does not change worker stock or profit calculations.</p><div class="grid2"><div><label>Total Capital Invested (GH₵)</label><input id="originalCapitalInput" type="number" min="0" step="0.01" placeholder="Enter total capital invested"></div><div style="display:flex;align-items:end"><button id="saveOriginalCapitalBtn" class="primary" type="button">Save Business Capital</button></div></div></div>
+<div class="section" style="margin-top:16px"><h3>Update Admin Cash in Hand</h3><p class="muted">Enter the actual cash physically held by Admin. Worker cash is calculated separately.</p><div class="grid2"><div><label>Actual Admin Cash (GH₵)</label><input id="currentCashInput" type="number" min="0" step="0.01" placeholder="Enter cash currently held"></div><div style="display:flex;align-items:end"><button id="saveCapitalCashBtn" class="primary" type="button">Save Admin Cash</button></div></div></div>
 </div></section>
 
 <section id="overview" class="page">
@@ -437,7 +448,7 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
   </div>
 
   <div class="stock-view-panel" data-stock-panel="position">
-   <div class="stock-panel-title"><div><h3>Selected Week Stock Position</h3></div><div class="stock-period-picker"><button type="button" class="stock-period-chip" id="stockCurrentPeriod" aria-label="Choose a Monday to Sunday stock week" title="Click to choose a date and view its Monday–Sunday stock week">Current week ▾</button><input id="stockDatePicker" type="date" aria-label="Choose any date in the stock week" class="stock-date-picker" /></div></div>
+   <div class="stock-panel-title"><div><h3>Selected Week Stock Position</h3></div><span class="stock-period-chip" id="stockCurrentPeriod">Current week</span></div>
    <div class="stock-kpi-grid">
     <article class="card stock-kpi"><span class="label">Selected Week Purchases</span><strong class="value" id="invCurrentPurchased">0</strong><small>New purchases only; carry-forward excluded</small></article>
     <article class="card stock-kpi"><span class="label">Selected Week Sold</span><strong class="value" id="invCurrentSold">0</strong><small>Sold quantities from worker books</small></article>
@@ -569,7 +580,7 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 <p class="muted">Select a worker account. Administrator accounts and driver accounts are excluded from this action.</p>
 <div class="grid2">
 <div><label>Worker Account</label><select id="deleteWorkerSelect"><option value="">Select a worker</option></select></div>
-<div style="display:flex;align-items:end"><button id="deleteSelectedWorkerBtn" class="danger" type="button">Delete Selected Worker</button></div>
+<div style="display:flex;align-items:end;gap:8px;flex-wrap:wrap"><button id="deleteSelectedWorkerBtn" class="danger" type="button">Delete Worker + All Records</button><button id="keepSelectedWorkerBtn" class="soft" type="button">Keep Records &amp; Remove Access</button><button id="purgeOrphanWorkerRecordsBtn" class="danger" type="button">Remove Old Orphaned Worker Records</button></div>
 </div>
 </div>
 <div id="deleteDriverForm" class="employee-form hidden">
@@ -617,9 +628,9 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
  <div class="tablebox"><table><thead><tr><th>Driver</th><th>Vehicle</th><th>Report period (Mon–Sun)</th><th>Submitted at (actual)</th><th>Sales reported</th><th>Payment reported</th><th>Reference / Notes</th><th>Status</th><th>Rejection reason</th><th>Action</th></tr></thead><tbody id="triReportsBody"><tr><td colspan="10" class="empty">Loading reports...</td></tr></tbody></table></div><div class="tablebox"><table><thead><tr><th>Driver</th><th>Vehicle</th><th>Report period</th><th>Sales reported</th><th>Payment reported</th><th>Reference / Notes</th><th>Status</th><th>Rejection reason</th><th>Action</th></tr></thead><tbody id="triReportsBody"><tr><td colspan="9" class="empty">Loading reports...</td></tr></tbody></table></div></div>
  <div class="section hidden" id="triCalendarPanel"><h2>Payment Ledger Calendar</h2><p class="muted">Choose a contract and month. Click any date to see payments recorded for that day and the daily target from the contract start date.</p><div class="toolbar"><select id="triCalendarContract" style="max-width:340px"><option value="">Select contract</option></select><button class="soft" id="triCalPrev">‹ Previous month</button><input id="triCalendarMonth" type="month" style="max-width:190px"><button class="soft" id="triCalNext">Next month ›</button></div><div id="triCalendar" class="tri-calendar"></div><div id="triCalendarDayDetail" class="msg">Choose a date in the calendar to view details.</div></div>
  <div class="section hidden" id="triOwingPanel"><h2>Owing / Weekly Shortfalls</h2><p class="muted">Each driver’s assigned contract target is used to calculate weekly shortfalls. When accumulated owing reaches or exceeds that driver’s weekly target, review the debt and consider whether the contract end date needs to be extended. This does not change a contract automatically.</p><div id="triDebtThresholdPrompt" class="msg error hidden" role="alert" aria-live="polite"></div><div class="section" style="margin:12px 0;border:1px solid #f2c9c9;background:#fffafa"><h3>Contracts Requiring Review</h3><p class="muted">Drivers appear here when accumulated owing reaches or exceeds their own assigned weekly target. Enter a new end date to extend a contract. Saving updates the tricycle contract and the driver profile contract end date.</p><div class="tablebox"><table style="min-width:900px"><thead><tr><th>Driver / Vehicle</th><th>Accumulated Owing</th><th>Assigned Weekly Target</th><th>Current End Date</th><th>New Contract End Date</th><th>Action</th></tr></thead><tbody id="triDebtThresholdContractsBody"><tr><td colspan="6" class="empty">No contracts currently require review.</td></tr></tbody></table></div></div><div class="cards" style="grid-template-columns:repeat(2,1fr)"><div class="card"><div class="label">Total Recorded Shortfall</div><div class="value" id="triOwingTotal">GH₵0.00</div></div><div class="card"><div class="label">Periods Below Target</div><div class="value" id="triOwingCount">0</div></div></div><div class="tablebox"><table><thead><tr><th>Driver</th><th>Period</th><th>Expected</th><th>Recorded</th><th>Owing</th><th>Report Status</th></tr></thead><tbody id="triOwingBody"></tbody></table></div></div>
- <div class="section hidden" id="triPaymentMonitorPanel"><h2>Weekly Driver Payment Monitoring — Critical Control</h2><p class="muted">Every completed Monday–Sunday contract week is checked. The previous week becomes overdue at 3:00 PM Ghana time on Monday if the driver has not submitted payment. Historical ledger allocations are matched to their saved period and original target, and fully covered historical weeks are treated as paid. New weekly submissions remain pending until Admin approves them. Owing / Weekly Shortfalls remains separate.</p>
+ <div class="section hidden" id="triPaymentMonitorPanel"><h2>Weekly Driver Payment Monitoring — Critical Control</h2><p class="muted">Every completed Monday–Sunday contract week is checked. The previous week becomes overdue at 12:00 PM (noon) Ghana time on Monday. Missing reports are tracked separately from overdue payments and weekly report shortfalls. The payment ledger is the source of confirmed receipts; a report submission alone never counts as money received.</p>
  <div id="triMonitorCriticalBanner" role="alert" aria-live="assertive" style="border:2px solid #b42318;background:linear-gradient(110deg,#fff0ef,#fff8f7);border-left:9px solid #b42318;border-radius:14px;padding:17px 18px;margin:14px 0 18px;box-shadow:0 8px 24px rgba(180,35,24,.12)"><div style="font-size:12px;font-weight:900;letter-spacing:.12em;color:#a11b1b">CRITICAL PAYMENT CONTROL · ADMIN ACTION REQUIRED</div><div id="triMonitorCriticalHeadline" style="font-size:clamp(19px,3vw,26px);font-weight:900;color:#7f1d1d;margin:5px 0">Checking completed payment weeks…</div><div id="triMonitorCriticalDetail" style="color:#7f1d1d">Refresh monitoring to verify current ledger records.</div></div>
- <div class="toolbar"><select id="triMonitorContractFilter" style="max-width:320px"><option value="">All drivers / contracts</option></select><select id="triMonitorStatusFilter" style="max-width:260px"><option value="">All payment risks</option><option value="attention">All action required</option><option value="OVERDUE — NO PAYMENT">Overdue — no payment</option><option value="OVERDUE — REJECTED">Overdue — rejected</option><option value="OVERDUE — PART PAYMENT">Overdue — part payment</option><option value="OVERDUE — PENDING APPROVAL">Overdue — pending approval</option><option value="DUE — DEADLINE MONDAY 3 PM">Due — deadline Monday 3 PM</option><option value="LATE REPORT">Late submission</option><option value="PENDING APPROVAL">Pending approval</option><option value="PAID">Paid</option><option value="LOCKED">Locked</option></select><button type="button" class="soft" id="triMonitorRefresh">Refresh Monitoring</button></div>
+ <div class="toolbar"><select id="triMonitorContractFilter" style="max-width:320px"><option value="">All drivers / contracts</option></select><select id="triMonitorStatusFilter" style="max-width:260px"><option value="">All payment risks</option><option value="attention">All action required</option><option value="OVERDUE — NO PAYMENT">Overdue — no payment</option><option value="OVERDUE — PART PAYMENT">Overdue — part payment</option><option value="LATE REPORT">Late report</option><option value="PENDING APPROVAL">Pending approval</option><option value="PAID">Paid</option><option value="LOCKED">Locked</option></select><button type="button" class="soft" id="triMonitorRefresh">Refresh Monitoring</button></div>
  <div class="cards" style="grid-template-columns:repeat(4,1fr)"><div class="card"><div class="label">Overdue — No Payment</div><div class="value" id="triMonitorMissing">0</div><small>Overdue weeks with zero confirmed receipts</small></div><button type="button" class="card" id="triMonitorLateCard" style="text-align:left;cursor:pointer;border:2px solid #b42318;background:#fff1f0;width:100%;box-shadow:0 6px 22px rgba(180,35,24,.14)" aria-label="Open critical overdue and late payment action list"><div class="label" style="color:#a11b1b;font-weight:900">OVERDUE PAYMENTS / LATE REPORTS · ACTION NOW</div><div class="value" id="triMonitorLate" style="color:#b42318">0</div><small style="color:#912018;font-weight:800">Tap to open prioritised action queue</small></button><div class="card"><div class="label">Pending Approval</div><div class="value" id="triMonitorPending">0</div><small>Not counted as confirmed payment</small></div><div class="card"><div class="label">Total Overdue Payment Exposure</div><div class="value" id="triMonitorShortfall">GH₵0.00</div><small>Overdue payment only; report shortfalls are separate</small></div></div>
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0 9px"><h3 style="margin:0;color:#8b1e1e">Priority action queue</h3><span id="triMonitorQueueMeta" class="muted">Oldest and highest unpaid amounts appear first.</span></div>
  <div class="tablebox"><table style="min-width:1150px"><thead><tr><th>Priority / Driver</th><th>Week (Monday–Sunday)</th><th>Days overdue</th><th>Expected</th><th>Ledger paid</th><th>Overdue payment</th><th>Weekly report shortfall</th><th>Report status / submitted</th><th>Payment risk</th><th>Action</th></tr></thead><tbody id="triPaymentMonitorBody"><tr><td colspan="10" class="empty">Loading payment monitoring…</td></tr></tbody></table></div>
@@ -635,7 +646,6 @@ tbody tr:nth-child(even) td{background:#fbfcfe!important}
 const SUPABASE_URL="https://hweczhwoggmsrwhkktrx.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_D0o90HRJ1AfROf_DAj7ZAg_uaPDwqvV";
 const db=window.parent.ezelexManagementDb,$=id=>document.getElementById(id);
 let session=null,allSales=[],filteredSales=[],workers=[],allInventory=[],filteredInventory=[],allStockWeeks=[],currentWeekIds=new Set(),inventoryLoaded=false;
-let stockDateRangeSelection=null;
 const money=n=>"GH₵"+Number(n||0).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2});
 const num=n=>Number(n||0).toLocaleString("en-GH",{maximumFractionDigits:2});
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -669,7 +679,7 @@ async function adminCheck(){
  const {data:{session:s}}=await db.auth.getSession();session=s;
  if(!s)throw new Error("The authenticated Management Centre session is unavailable. Please sign in again.");
  await window.parent.verifyEzelexLiveDataSession();
- $("loginSection")?.classList.add("hidden");$("dashboard")?.classList.remove("hidden");$("logoutBtn")?.classList.add("hidden");$("menuToggle")?.classList.remove("hidden");$("adminEmail").textContent=s.user.email||"";
+ $("loginSection").classList.add("hidden");$("dashboard").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("menuToggle").classList.remove("hidden");$("adminEmail").textContent=s.user.email||"";
  await loadWorkers();
  // Load independent dashboard datasets together so the centre becomes usable sooner.
  // Stock batches/weeks must load first: the worker portal only displays credit rows
@@ -681,7 +691,7 @@ async function adminCheck(){
  if(!window.ezelexWorkerSyncTimer){window.ezelexWorkerSyncTimer=setInterval(async()=>{if(document.visibilityState==="hidden")return;await loadInventory();await loadAdminCredits();await loadStockHistory();},8000);}
  return true
 }
-function showLogin(){$("loginSection")?.classList.remove("hidden");$("dashboard")?.classList.add("hidden");$("logoutBtn")?.classList.add("hidden")}
+function showLogin(){$("loginSection").classList.remove("hidden");$("dashboard").classList.add("hidden");$("logoutBtn").classList.add("hidden")}
 async function loadWorkers(){
  const r=await db.from("worker_profiles").select("*").order("full_name",{ascending:true});if(r.error){msg("dashMsg",r.error.message,"error");return}
  workers=(r.data||[]).filter(w=>w.role!=="admin");$("activeWorkers").textContent=workers.filter(w=>w.active).length;$("pendingWorkers").textContent=workers.filter(isPendingWorker).length;
@@ -707,27 +717,16 @@ window.approveSale=async id=>{if(!confirm("Approve this worker sale?"))return;co
 window.rejectSale=async id=>{const reason=prompt("Reason for disapproving this sale:");if(reason===null)return;const r=await db.from("sales").update({status:"rejected",rejection_reason:reason.trim()||"No reason provided",approved_at:null}).eq("id",id);if(r.error){msg("dashMsg",r.error.message,"error");return}try{await sendSaleNotice("rejected",id);msg("dashMsg","Sale disapproved and worker email sent.","ok")}catch(e){msg("dashMsg","Sale disapproved, but worker email failed: "+e.message,"error")}await loadSales()}
 window.adminDeleteApprovedSale=async id=>{const sale=allSales.find(x=>String(x.id)===String(id));if(!sale||status(sale)!=="approved"){msg("dashMsg","Only approved sales can be deleted from this admin action.","error");return}const reason=prompt("Required: explain why this approved sale is being deleted. This reason will be emailed to the worker:");if(reason===null)return;if(!reason.trim()){alert("Please enter a reason before deleting the approved sale.");return}if(!confirm("Delete this approved sale and email the worker the reason? This cannot be undone."))return;let emailStatus="Worker email sent.";try{await sendSaleNotice("approved_deleted",id,{reason:reason.trim()})}catch(e){emailStatus="Worker email could not be sent ("+e.message+")."}const r=await db.from("sales").delete().eq("id",id).eq("status","approved");if(r.error){msg("dashMsg","Could not delete approved sale: "+r.error.message+(emailStatus.startsWith("Worker email sent")?" Email was sent.":""),"error");return}msg("dashMsg","Approved sale deleted. "+emailStatus,"ok");await loadSales()}
 async function loadInventory(){
- let batches, weeks;
  try{
-  batches=await readAllRows("worker_stock_batches","stock_date");
-  weeks=await readAllRows("worker_stock_weeks","week_start");
- }catch(e){
-  inventoryLoaded=false;
-  msg("dashMsg","Stock tracker could not load worker records: "+(e.message||String(e))+". Check the stock table access and try Sync worker data again.","error");
-  return;
- }
- allInventory=batches||[];allStockWeeks=weeks||[];inventoryLoaded=true;
- currentWeekIds=latestWorkerWeekIds();
- const workerSel=$("invWorkerFilter"),priorWorker=workerSel?.value||"";
- if(workerSel){
-  workerSel.innerHTML='<option value="">All workers</option>'+workers.filter(w=>String(w.role||"worker").toLowerCase()==="worker").map(w=>`<option value="${esc(w.user_id||w.id)}">${esc(w.full_name||"Worker")} (${esc(w.worker_id||"")})</option>`).join("");
-  if(priorWorker)workerSel.value=priorWorker;
- }
- renderStockWeekOptions();
- applyInvFilters();
- if(businessCapitalRow)updateBusinessCapitalSummary();
- const weekDataEl=$("weekData");
- if(weekDataEl&&!weekDataEl.classList.contains("hidden"))renderWeekData();
+  const batches=await readAllRows("worker_stock_batches","stock_date");
+  const weeks=await readAllRows("worker_stock_weeks","week_start");
+  allInventory=batches;allStockWeeks=weeks;inventoryLoaded=true;
+  currentWeekIds=latestWorkerWeekIds();
+  const workerSel=$("invWorkerFilter"),priorWorker=workerSel?.value||"";
+  if(workerSel){workerSel.innerHTML='<option value="">All workers</option>'+workers.filter(w=>String(w.role||"worker").toLowerCase()==="worker").map(w=>`<option value="${esc(w.user_id||w.id)}">${esc(w.full_name||"Worker")} (${esc(w.worker_id||"")})</option>`).join("");if(priorWorker)workerSel.value=priorWorker;}
+  renderStockWeekOptions();applyInvFilters();if(businessCapitalRow)updateBusinessCapitalSummary();
+  if($("weekData").classList.contains("hidden")===false)renderWeekData();
+ }catch(e){inventoryLoaded=false;msg("dashMsg","Stock tracker could not load all worker records: "+e.message+". Credit totals and Week Data are paused until the stock feed is available.","error");}
 }
 function fillAdminStockWorkerSelect(selectedId){
  const sel=$("adminStockEditWorker");if(!sel)return;
@@ -742,10 +741,10 @@ window.adminEditStock=function(id){
  $("adminStockEditSold").value=Number(r.sold_quantity||0);$("adminStockEditDamage").value=Number(r.damage_quantity||0);
  $("adminStockEditLoss").value=Number(r.loss_quantity||0);$("adminStockEditUnit").value=Number(r.cost_per_unit||0);
  $("adminStockEditPrice").value=Number(r.selling_price_per_unit||0);$("adminStockEditNote").value="";
- $("adminStockEditFeedback").textContent="";$("adminStockEditor")?.classList.remove("hidden");
+ $("adminStockEditFeedback").textContent="";$("adminStockEditor").classList.remove("hidden");
  $("adminStockEditor").scrollIntoView({behavior:"smooth",block:"start"});
 };
-$("adminStockCancel").onclick=()=>{$("adminStockEditor")?.classList.add("hidden");$("adminStockEditId").value=""};
+$("adminStockCancel").onclick=()=>{$("adminStockEditor").classList.add("hidden");$("adminStockEditId").value=""};
 $("adminStockSave").onclick=async()=>{
  const id=$("adminStockEditId").value,r=allInventory.find(x=>String(x.id)===String(id));
  if(!r){$("adminStockEditFeedback").textContent="Select a stock record.";return}
@@ -775,7 +774,7 @@ $("adminStockSave").onclick=async()=>{
   const saved=await db.from("worker_stock_batches").update(patch).eq("id",r.id).eq("worker_id",r.worker_id).is("deleted_at",null).select("*").single();
   if(saved.error)throw saved.error;
   const h=await db.from("worker_stock_edit_history").insert({worker_id:r.worker_id,stock_batch_id:r.id,product_service:f.product_service,action:"Admin edited stock",sold_before:Number(r.sold_quantity||0),sold_after:f.sold_quantity,damage_before:Number(r.damage_quantity||0),damage_after:f.damage_quantity,remaining_before:Number(r.remaining_quantity||0),remaining_after:physical,selling_price_per_unit:f.selling_price_per_unit,notes:$("adminStockEditNote").value.trim()||"Edited by administrator",changed_at:new Date().toISOString()});
-  $("adminStockEditor")?.classList.add("hidden");await loadInventory();await loadAdminCredits();await loadStockHistory();
+  $("adminStockEditor").classList.add("hidden");await loadInventory();await loadAdminCredits();await loadStockHistory();
   msg("dashMsg",h.error?"Stock saved to the worker system, but the audit entry failed: "+h.error.message:"Stock record updated in the shared worker database.","success");
  }catch(e){$("adminStockEditFeedback").textContent="Save failed: "+(e.message||String(e))}
  finally{btn.disabled=false}
@@ -793,12 +792,9 @@ window.adminArchiveStock=async id=>{
  }catch(e){msg("dashMsg","Delete failed: "+(e.message||String(e)),"error")}
 };
 function applyInvFilters(){
- const wid=$("invWorkerFilter")?.value||"",weekId=$("stockWeekSelect")?.value||"",week=(allStockWeeks||[]).find(w=>String(w.id)===weekId),dateBounds=stockSelectedDateBounds();
+ const wid=$("invWorkerFilter")?.value||"",weekId=$("stockWeekSelect")?.value||"",week=(allStockWeeks||[]).find(w=>String(w.id)===weekId);
  filteredInventory=(allInventory||[]).filter(r=>!r.deleted_at).filter(r=>!wid||workerOwnsRow(workerInfo(wid),r.worker_id))
- .filter(r=>{
-  if(dateBounds){const d=dateOnly(r.stock_date||r.created_at);return d>=dateBounds.start&&d<=dateBounds.end;}
-  return !weekId||(week&&(String(r.week_id||"")===weekId||(!r.week_id&&dateOnly(r.stock_date||r.created_at)>=String(week.week_start||"")&&dateOnly(r.stock_date||r.created_at)<=String(week.week_end||week.week_start||"")&&workerOwnsRow(workerInfo(week.worker_id),r.worker_id))));
- });
+ .filter(r=>!weekId||(week&&(String(r.week_id||"")===weekId||(!r.week_id&&dateOnly(r.stock_date||r.created_at)>=String(week.week_start||"")&&dateOnly(r.stock_date||r.created_at)<=String(week.week_end||week.week_start||"")&&workerOwnsRow(workerInfo(week.worker_id),r.worker_id)))));
  renderInventory();updateInventorySummary();
 }
 function renderInventory(){
@@ -809,14 +805,6 @@ function renderInventory(){
  }).join(""):'<tr><td colspan="15" class="empty">No active worker stock records match these filters.</td></tr>';
 }
 
-function stockSelectedDateBounds(){
- if(!stockDateRangeSelection)return null;
- const d=new Date(stockDateRangeSelection+'T12:00:00');
- if(!Number.isFinite(d.getTime()))return null;
- d.setDate(d.getDate()-((d.getDay()+6)%7));
- const start=dateOnly(d);d.setDate(d.getDate()+6);
- return {start,end:dateOnly(d)};
-}
 function stockWeekBounds(offsetWeeks=0){
  const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7)+(offsetWeeks*7));
  const start=dateOnly(d);d.setDate(d.getDate()+6);return{start,end:dateOnly(d)};
@@ -850,15 +838,8 @@ function renderStockWeekOptions(){
 
 function renderStockWeeklyRegister(){
  const body=$("stockWeeklyBody");if(!body)return;
- const selectedWorker=$("invWorkerFilter")?.value||"";
- const selectedWeekId=$("stockWeekSelect")?.value||"";
- const dateBounds=stockSelectedDateBounds(),currentBounds=dateBounds||stockWeekBounds(0);
- let weeks=(allStockWeeks||[]).filter(w=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id));
- if(dateBounds)weeks=weeks.filter(w=>String(w.week_start||"")===dateBounds.start);
- else if(selectedWeekId)weeks=weeks.filter(w=>String(w.id)===selectedWeekId);
- else weeks=weeks.filter(w=>String(w.week_start||"")===currentBounds.start);
- weeks=weeks.slice().sort((a,b)=>String(b.week_start||"").localeCompare(String(a.week_start||"")));
- if(!weeks.length){body.innerHTML='<tr><td colspan="11" class="empty">No weekly stock book found for this selection.</td></tr>';return;}
+ const weeks=(allStockWeeks||[]).slice().sort((a,b)=>String(b.week_start||"").localeCompare(String(a.week_start||"")));
+ if(!weeks.length){body.innerHTML='<tr><td colspan="11" class="empty">No worker weekly stock books were returned.</td></tr>';return;}
  body.innerHTML=weeks.map(w=>{
   const owner=workerInfo(w.worker_id),bounds={start:String(w.week_start||""),end:String(w.week_end||w.week_start||"")};
   const rows=stockRowsForWeek([w],bounds),tot=stockSumRows(rows);
@@ -885,10 +866,9 @@ function renderStockAdditionalRegisters(){
 }
 
 function updateInventorySummary(){
- const selectedWorker=$("invWorkerFilter")?.value||"",selectedWeekId=$("stockWeekSelect")?.value||"",dateBounds=stockSelectedDateBounds(),bounds=dateBounds||stockWeekBounds(0);
+ const selectedWorker=$("invWorkerFilter")?.value||"",selectedWeekId=$("stockWeekSelect")?.value||"",bounds=stockWeekBounds(0);
  let selectedWeek=null,selectedRows=[];
- if(dateBounds){const weeks=(allStockWeeks||[]).filter(w=>String(w.week_start||"")===dateBounds.start&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id)));selectedRows=stockRowsForWeek(weeks,dateBounds);}
- else if(selectedWeekId){selectedWeek=(allStockWeeks||[]).find(w=>String(w.id)===selectedWeekId)||null;if(selectedWeek)selectedRows=stockRowsForWeek([selectedWeek],{start:String(selectedWeek.week_start||""),end:String(selectedWeek.week_end||selectedWeek.week_start||"")});}
+ if(selectedWeekId){selectedWeek=(allStockWeeks||[]).find(w=>String(w.id)===selectedWeekId)||null;if(selectedWeek)selectedRows=stockRowsForWeek([selectedWeek],{start:String(selectedWeek.week_start||""),end:String(selectedWeek.week_end||selectedWeek.week_start||"")});}
  else{const weeks=(allStockWeeks||[]).filter(w=>String(w.week_start||"")===bounds.start&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),w.worker_id)));selectedRows=stockRowsForWeek(weeks,bounds);}
  const selected=stockSumRows(selectedRows),allRows=(allInventory||[]).filter(r=>!r.deleted_at&&(!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),r.worker_id))),all=stockSumRows(allRows);
  const creditRows=(accountingCreditRows||[]).filter(c=>!selectedWorker||workerOwnsRow(workerInfo(selectedWorker),c.worker_id)),creditUnits=creditRows.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0),creditAmount=creditRows.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0);
@@ -901,7 +881,7 @@ function updateInventorySummary(){
  set("invTotal",num(selected.purchased));set("invRemain",num(physical));set("invProfit",money(selected.profit));set("stockRemaining",num(physical));set("damageValue",money(damageLossValue));set("profitValue",money(selected.profit));
  if($("profitValue"))$("profitValue").className=selected.profit<0?"value loss":"value profit";
  set("reviewPurchase",num(all.purchased));set("reviewSold",num(all.sold));set("reviewProfit",money(all.profit));if($("reviewProfit"))$("reviewProfit").className="value "+(all.profit<0?"loss":"profit");
- set("stockCurrentPeriod",`${bounds.start} – ${bounds.end} ▾`);
+ set("stockCurrentPeriod",selectedWeek?`${selectedWeek.week_start||""}${selectedWeek.week_end?" – "+selectedWeek.week_end:""}`:`${bounds.start} – ${bounds.end}`);
  const status=$("stockFeedStatus");if(status)status.textContent=inventoryLoaded?`${allRows.length.toLocaleString()} worker stock batches · ${(allStockWeeks||[]).length.toLocaleString()} weekly books`:"Worker stock feed unavailable";
  renderStockWeeklyRegister();renderStockAdditionalRegisters();
 }
@@ -917,18 +897,37 @@ async function loadBusinessCapital(){
  updateBusinessCapitalSummary();
 }
 function updateBusinessCapitalSummary(){
- // Projected inventory is the current active stock position: physical remaining
- // crates plus unpaid on-credit crates. Exclude archived rows and historical
- // purchase/carry-forward duplicates from earlier weeks.
- const latestIds=latestWorkerWeekIds();const currentRows=(allInventory||[]).filter(r=>!r.deleted_at&&latestIds.has(String(r.week_id||"")));
- const projectedUnits=currentRows.reduce((n,r)=>n+Math.max(0,invCalc(r).remaining),0);
- const projectedStockValue=currentRows.reduce((n,r)=>{const c=invCalc(r);return n+Math.max(0,c.remaining)*Math.max(0,c.unit)},0);
- const physicalStockValue=currentRows.reduce((n,r)=>{const c=invCalc(r);return n+Math.max(0,c.physicalRemaining)*Math.max(0,c.unit)},0);
- const credit=accountingCreditRows.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0);
- const cash=Number(businessCapitalRow?.current_cash||0),original=Number(businessCapitalRow?.original_capital??0),assets=cash+physicalStockValue+credit,diff=assets-original;
- $("capitalStockValue").textContent=money(projectedStockValue);
- const unitsEl=$("capitalProjectedUnits");if(unitsEl)unitsEl.textContent=projectedUnits.toLocaleString()+" projected crates (physical remaining + on credit)";
- $("capitalCreditValue").textContent=money(credit);$("capitalAssetsValue").textContent=money(assets);$("capitalDifferenceValue").textContent=money(diff);$("capitalDifferenceValue").className="value "+(diff<0?"loss":diff>0?"profit":"");
+ const activeRows=(allInventory||[]).filter(r=>!r.deleted_at);
+ const latestIds=latestWorkerWeekIds();
+ const currentRows=activeRows.filter(r=>latestIds.has(String(r.week_id||"")));
+ const openCredits=uniqueCreditRows(accountingCreditRows||[]).filter(c=>Number(c.amount_due||0)-Number(c.amount_paid||0)>0.009||Number(c.crates_paid||0)<Number(c.quantity||0));
+ const ids=new Set(activeRows.map(r=>String(r.worker_id||"")));
+ (workers||[]).filter(w=>String(w.role||"worker").toLowerCase()==="worker").forEach(w=>ids.add(String(w.user_id||w.id||w.worker_id||"")));
+ const totals=[];
+ for(const wid of ids){
+  const profile=workerInfo(wid),rows=activeRows.filter(r=>String(r.worker_id||"")===wid),current=currentRows.filter(r=>String(r.worker_id||"")===wid);
+  const recovered=rows.reduce((s,r)=>s+Math.max(0,Number(r.sold_cost||0)),0);
+  const reinvested=rows.filter(r=>r.stock_type==="reinvestment"||(r.stock_type!=="carry_forward"&&String(r.notes||"").toLowerCase().includes("additional purchase quantity added while editing an existing stock item"))).reduce((s,r)=>s+Math.max(0,Number(r.purchase_total??(Number(r.total_quantity||0)*Number(r.cost_per_unit||0)))),0);
+  const cash=recovered-reinvested;
+  const remainingUnits=current.reduce((s,r)=>s+Math.max(0,invCalc(r).physicalRemaining),0);
+  const remainingValue=current.reduce((s,r)=>s+Math.max(0,invCalc(r).physicalRemaining)*Math.max(0,Number(r.cost_per_unit||0)),0);
+  const workerCredits=openCredits.filter(c=>String(c.worker_id||"")===wid);
+  const creditUnits=workerCredits.reduce((s,c)=>s+Math.max(0,Number(c.quantity||0)-Number(c.crates_paid||0)),0);
+  const creditValue=workerCredits.reduce((s,c)=>{const batch=activeRows.find(r=>String(r.id)===String(c.stock_batch_id));return s+Math.max(0,Number(c.quantity||0)-Number(c.crates_paid||0))*Math.max(0,Number(batch?.cost_per_unit||0));},0);
+  const damageLoss=rows.reduce((s,r)=>s+Math.max(0,Number(r.damage_value??(Number(r.damage_quantity||0)*Number(r.cost_per_unit||0))))+Math.max(0,Number(r.loss_value??(Number(r.loss_quantity||0)*Number(r.cost_per_unit||0)))),0);
+  totals.push({name:profile.full_name||profile.name||profile.worker_id||"Worker",cash,remainingUnits,remainingValue,creditUnits,creditValue,damageLoss});
+ }
+ const sum=k=>totals.reduce((s,w)=>s+w[k],0);
+ const workerCash=sum("cash"),remainingUnits=sum("remainingUnits"),remainingValue=sum("remainingValue"),creditUnits=sum("creditUnits"),creditValue=sum("creditValue"),damageLoss=sum("damageLoss");
+ const adminCash=Number(businessCapitalRow?.current_cash||0),original=Number(businessCapitalRow?.original_capital||0);
+ const accounted=adminCash+workerCash+remainingValue+creditValue+damageLoss,difference=accounted-original;
+ const set=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
+ set("capitalWorkerCashValue",money(workerCash));set("capitalStockValue",money(remainingValue));set("capitalProjectedUnits",remainingUnits.toLocaleString()+" crates");
+ set("capitalCreditValue",money(creditValue));set("capitalCreditUnits",creditUnits.toLocaleString()+" crates");set("capitalDamageValue",money(damageLoss));set("capitalAssetsValue",money(accounted));
+ set("capitalDifferenceValue",(difference<0?"−":"+")+money(Math.abs(difference)));
+ const diff=$("capitalDifferenceValue");if(diff)diff.className="value "+(difference<0?"loss":difference>0?"profit":"");
+ const note=$("capitalDifferenceNote");if(note)note.textContent=Math.abs(difference)<0.01?"Recorded capital matches the original investment.":difference<0?"Recorded capital is below the original investment by "+money(Math.abs(difference))+". Review the balances.":"Recorded capital is above the original investment by "+money(difference)+". Check additional investment or records.";
+ const body=$("capitalWorkerSummaryBody");if(body)body.innerHTML=totals.length?totals.sort((a,b)=>a.name.localeCompare(b.name)).map(w=>`<tr><td><strong>${esc(w.name)}</strong></td><td>${money(w.cash)}</td><td>${num(w.remainingUnits)}</td><td>${money(w.remainingValue)}</td><td>${num(w.creditUnits)}</td><td>${money(w.creditValue)}</td><td>${money(w.damageLoss)}</td></tr>`).join(""):'<tr><td colspan="7" class="empty">No worker financial records found.</td></tr>';
 }
 async function saveBusinessCash(){
  const cash=Number($("currentCashInput").value);if(!Number.isFinite(cash)||cash<0){msg("capitalMsg","Enter a valid cash balance of zero or more.","error");return}
@@ -974,7 +973,7 @@ async function loadAdminCredits(){
   $('adminCreditBody').innerHTML=accountingCreditRows.length?accountingCreditRows.map(c=>{const w=workerInfo(c.worker_id),bal=Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0));return `<tr><td>${esc(dateOnly(c.credit_date))}</td><td>${esc(w.full_name||'')}</td><td>${esc(w.worker_id||c.worker_id||'')}</td><td>${esc(c.customer_name||'')}</td><td>${esc(c.product_service||'Eggs')}</td><td>${Number(c.quantity||0)}</td><td>${money(c.amount_due)}</td><td>${money(c.amount_paid)}</td><td><b>${money(bal)}</b></td><td>${bal<=0.009&&Number(c.crates_paid||0)>=Number(c.quantity||0)?'<span class="badge approved">PAID</span>':Number(c.crates_paid||0)>0?'<span class="badge pending">PART PAID</span>':'<span class="badge pending">OUTSTANDING</span>'}</td></tr>`}).join(''):'<tr><td colspan="10" class="empty">No active on-credit sales recorded for current worker stock batches.</td></tr>';
   renderInventory();updateInventorySummary();
   if(businessCapitalRow)updateBusinessCapitalSummary();
-  if(!$('weekData')?.classList.contains('hidden'))renderWeekData();
+  if(!$('weekData').classList.contains('hidden'))renderWeekData();
  }catch(e){$('adminCreditBody').innerHTML=`<tr><td colspan="10" class="empty">Credit records unavailable: ${esc(e.message)}</td></tr>`;}
 
   if(inventoryLoaded){renderStockAdditionalRegisters();updateInventorySummary();}
@@ -1049,7 +1048,17 @@ function renderWorkers(){
  const pending=workers.filter(isPendingWorker), established=workers.filter(w=>!isPendingWorker(w));
  $("pendingWorkersLabel").textContent=`${pending.length} pending`;
  $("pendingWorkersBody").innerHTML=pending.length?pending.map(w=>{const uid=esc(w.user_id||w.id),wid=esc(w.worker_id||"");const driver=String(w.role||"").trim().toLowerCase()==="driver";const actions=driver?`<button class="soft" onclick="resendDriverInvite('${uid}')">Resend Welcome Email</button> <button class="soft" onclick="manageDriver('${uid}','${wid}','deactivate')">Keep Records & Remove Driver</button> <button class="danger" onclick="manageDriver('${uid}','${wid}','permanent_delete')">Permanently Delete Driver</button>`:`<button class="soft" onclick="resendWorkerInvite('${uid}')">Resend Welcome Email</button> <button class="danger" onclick="deletePendingWorker('${uid}','${wid}')">Delete Pending Worker</button>`;return `<tr><td>${esc(w.worker_id||"")}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.email||"")}</td><td>${esc(w.contract_start||"")} → ${esc(w.contract_end||"")}</td><td><span class="badge pending">PENDING PROFILE</span></td><td>${actions}</td></tr>`}).join(""):'<tr><td colspan="6" class="empty">No pending worker invitations.</td></tr>';
- $("workersBody").innerHTML=established.length?established.map(w=>{const uid=esc(w.user_id||w.id),wid=esc(w.worker_id||"");const driver=String(w.role||"").trim().toLowerCase()==="driver";const action=driver?`<button class="soft" onclick="manageDriver('${uid}','${wid}','${w.active?'deactivate':'reactivate'}')">${w.active?'Keep Records & Remove Driver':'Reactivate Driver'}</button> <button class="danger" onclick="manageDriver('${uid}','${wid}','permanent_delete')">Permanently Delete Driver</button>`:`<button class="soft" onclick="toggleWorker('${uid}','${wid}',${w.active?'true':'false'})">${w.active?'Deactivate':'Reactivate'}</button><button class="danger" onclick="deleteWorker('${uid}','${wid}')">Permanent Delete</button>`;return `<tr><td>${esc(w.worker_id||"")}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.email||"")}</td><td>${esc(w.phone||"")}</td><td>${esc(w.contract_start||"")} → ${esc(w.contract_end||"")}</td><td><span class="badge ${w.active?"approved":"rejected"}">${w.active?"ACTIVE":"INACTIVE"}</span></td><td style="white-space:nowrap">${action}</td></tr>`}).join(""):'<tr><td colspan="7" class="empty">No activated workers yet.</td></tr>';
+ $("workersBody").innerHTML=established.length?established.map(w=>{
+  const uid=esc(w.user_id||w.id),wid=esc(w.worker_id||"");
+  const driver=String(w.role||"").trim().toLowerCase()==="driver";
+  const workerAction=w.active
+   ? `<button class="soft" onclick="keepWorkerRecords('${uid}','${wid}')">Keep Records & Remove Access</button>`
+   : `<button class="soft" onclick="toggleWorker('${uid}','${wid}',false)">Reactivate</button>`;
+  const action=driver
+   ? `<button class="soft" onclick="manageDriver('${uid}','${wid}','${w.active?'deactivate':'reactivate'}')">${w.active?'Keep Records & Remove Driver':'Reactivate Driver'}</button> <button class="danger" onclick="manageDriver('${uid}','${wid}','permanent_delete')">Permanently Delete Driver</button>`
+   : `${workerAction}<button class="danger" onclick="deleteWorker('${uid}','${wid}')">Delete + All Records</button>`;
+  return `<tr><td>${esc(w.worker_id||"")}</td><td>${esc(w.full_name||"")}</td><td>${esc(w.email||"")}</td><td>${esc(w.phone||"")}</td><td>${esc(w.contract_start||"")} → ${esc(w.contract_end||"")}</td><td><span class="badge ${w.active?"approved":"rejected"}">${w.active?"ACTIVE":"INACTIVE"}</span></td><td style="white-space:nowrap">${action}</td></tr>`;
+ }).join(""):'<tr><td colspan="7" class="empty">No activated workers yet.</td></tr>';
 }
 window.resendWorkerInvite=async(uid)=>{const w=workers.find(x=>(x.user_id||x.id)===uid);if(!w||!isPendingWorker(w)){msg("workerMsg","This worker is no longer pending profile activation.","error");return}if(!confirm(`Resend the welcome email to ${w.full_name||w.email}?`))return;const {data:{session:s}}=await db.auth.getSession();if(!s){msg("workerMsg","Admin session expired. Please sign in again.","error");return}msg("workerMsg",`Resending welcome email to ${w.email}...`);try{const r=await fetch(SUPABASE_URL+"/functions/v1/resend-worker-invite",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({user_id:uid})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.success){msg("workerMsg",j.error||"Could not resend the welcome email.","error");return}msg("workerMsg","Welcome email resent successfully. The worker remains pending until they activate their account.","ok")}catch(e){msg("workerMsg",e.message||"Could not reach the email service.","error")}}
 
@@ -1104,7 +1113,28 @@ window.manageDriver=async(uid,wid,action)=>{
  }catch(e){msg("workerMsg",e.message||"Could not reach the driver account service.","error")}
 };
 window.toggleWorker=async(uid,wid,currentlyActive)=>{wid=String(wid||"").trim();if(wid==="ADMIN001"){alert("ADMIN001 cannot be changed.");return}const action=currentlyActive?"deactivate":"reactivate";if(!confirm(`${action[0].toUpperCase()+action.slice(1)} worker ${wid}? ${currentlyActive?"They will no longer be able to log in, but all sales and stock history will be kept.":"Their worker account will become active again."}`))return;const r=await db.from("worker_profiles").update({active:!currentlyActive}).eq("user_id",uid);if(r.error){msg("workerMsg","Could not "+action+" worker: "+r.error.message,"error");return}msg("workerMsg",`Worker ${wid} ${currentlyActive?"deactivated":"reactivated"} successfully. ${currentlyActive?"Sales and stock history were kept.":""}`,"ok");await loadWorkers()};
-window.deleteWorker=async(uid,wid)=>{if(wid==="ADMIN001"){alert("ADMIN001 cannot be deleted.");return}if(!confirm(`Delete worker ${wid}? This will remove the worker profile, sales and login account.`))return;const {data:{session:s}}=await db.auth.getSession();const r=await fetch("https://hweczhwoggmsrwhkktrx.supabase.co/functions/v1/delete-worker",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token},body:JSON.stringify({user_id:uid})});let j={};try{j=await r.json()}catch{}if(!r.ok){msg("workerMsg",j.error||"Could not delete worker.","error");return}msg("workerMsg","Worker deleted successfully.","ok");await loadWorkers();await Promise.all([loadSales(),loadInventory(),loadStockHistory(),loadAdminCredits()])}
+window.keepWorkerRecords=async(uid,wid)=>{
+ if(String(wid||"").trim()==="ADMIN001"){alert("ADMIN001 cannot be changed.");return}
+ const w=workers.find(x=>String(x.user_id||x.id)===String(uid));
+ if(!w||String(w.role||"").toLowerCase()!=="worker"){msg("workerMsg","Worker account not found.","error");return}
+ if(!confirm(`Keep all records for ${wid} (${w.full_name||w.email}) and remove their portal access? The worker profile and all history will remain inactive.`))return;
+ const result=await db.rpc("ezelex_admin_remove_worker",{p_worker_user_id:uid,p_keep_records:true});
+ if(result.error){msg("workerMsg","Could not preserve worker records: "+result.error.message,"error");return}
+ msg("workerMsg","Worker access removed. All worker records have been retained.","ok");
+ await loadWorkers();await Promise.all([loadSales(),loadInventory(),loadStockHistory(),loadAdminCredits()]);
+};
+window.deleteWorker=async(uid,wid)=>{
+ wid=String(wid||"").trim();
+ if(wid==="ADMIN001"){alert("ADMIN001 cannot be deleted.");return}
+ const w=workers.find(x=>String(x.user_id||x.id)===String(uid));
+ if(!w||String(w.role||"").toLowerCase()!=="worker"){msg("workerMsg","Worker account not found or is not eligible for deletion.","error");return}
+ if(!confirm(`DELETE WORKER ${wid} (${w.full_name||w.email}) AND ALL LINKED WORKER RECORDS? This permanently removes stock, weekly books, sales, credit sales and payments, expenses, corrections, financial events, edit history, messages, profile and login. This cannot be undone.`))return;
+ if(!confirm(`FINAL CONFIRMATION: delete ${wid} and every linked record now? Choose “Keep Records & Remove Access” if you want to preserve the history.`))return;
+ const result=await db.rpc("ezelex_admin_remove_worker",{p_worker_user_id:uid,p_keep_records:false});
+ if(result.error){msg("workerMsg","Worker and records were not confirmed deleted: "+result.error.message,"error");return}
+ msg("workerMsg",`Worker ${wid} and linked records permanently deleted.`,"ok");
+ await loadWorkers();await Promise.all([loadSales(),loadInventory(),loadStockHistory(),loadAdminCredits()]);
+};
 async function loadCommunication(){
  const r=await db.from("worker_messages").select("*").order("sent_at",{ascending:false}).limit(100);
  if(r.error){$("commBodyRows").innerHTML='<tr><td colspan="5" class="empty">Communication history is not available yet.</td></tr>';return}
@@ -1160,6 +1190,21 @@ $("deleteSelectedWorkerBtn").onclick=async()=>{
  if(!w){msg("workerMsg","Selected employee could not be found. Refresh the list and try again.","error");return}
  await window.deleteWorker(uid,String(w.worker_id||""));
 };
+$("keepSelectedWorkerBtn").onclick=async()=>{
+ const uid=$("deleteWorkerSelect").value;
+ if(!uid){msg("workerMsg","Select an account first.","error");return}
+ const w=workers.find(x=>String(x.user_id||x.id)===String(uid));
+ if(!w){msg("workerMsg","Selected employee could not be found. Refresh the list and try again.","error");return}
+ await window.keepWorkerRecords(uid,String(w.worker_id||""));
+};
+$("purgeOrphanWorkerRecordsBtn").onclick=async()=>{
+ if(!confirm("Permanently remove worker stock and financial records whose worker profile has already been deleted? Inactive workers whose records were deliberately kept will not be touched."))return;
+ const result=await db.rpc("ezelex_admin_purge_orphan_worker_records");
+ if(result.error){msg("workerMsg","Orphaned worker records were not cleaned: "+result.error.message,"error");return}
+ const count=Number(result.data?.orphaned_workers_removed||0);
+ msg("workerMsg",`Orphaned worker records cleaned. ${count} deleted worker account(s) processed.`,"ok");
+ await loadWorkers();await Promise.all([loadSales(),loadInventory(),loadStockHistory(),loadAdminCredits()]);
+};
 $("deleteSelectedDriverBtn").onclick=async()=>{
  const uid=$("deleteDriverSelect").value;
  if(!uid){msg("workerMsg","Select a driver account to delete.","error");return}
@@ -1169,9 +1214,9 @@ $("deleteSelectedDriverBtn").onclick=async()=>{
 };
 document.querySelectorAll("[data-employee-view]").forEach(btn=>btn.addEventListener("click",()=>{
  document.querySelectorAll("[data-employee-view]").forEach(b=>b.classList.toggle("active",b===btn));
- ["createWorkerForm","createDriverForm","deleteWorkerForm","deleteDriverForm"].forEach(id=>$(id)?.classList.add("hidden"));
+ ["createWorkerForm","createDriverForm","deleteWorkerForm","deleteDriverForm"].forEach(id=>$(id).classList.add("hidden"));
  const target={"create-worker":"createWorkerForm","create-driver":"createDriverForm","delete-worker":"deleteWorkerForm","delete-driver":"deleteDriverForm"}[btn.dataset.employeeView];
- if(target)$(target)?.classList.remove("hidden");
+ if(target)$(target).classList.remove("hidden");
  if(btn.dataset.employeeView==="delete-worker")populateDeleteWorkerSelect();
  if(btn.dataset.employeeView==="delete-driver")populateDeleteDriverSelect();
 }));
@@ -1186,38 +1231,23 @@ if($("workerFilter"))$("workerFilter").onchange=applyFilters;
 if($("refreshInventory"))$("refreshInventory").onclick=loadInventory;
  if($("invWorkerFilter"))$("invWorkerFilter").onchange=()=>{renderStockWeekOptions();applyInvFilters()};
  if($("stockWeekSelect"))$("stockWeekSelect").onchange=applyInvFilters;
- if($("stockCurrentPeriod")&&$("stockDatePicker")){
-  $("stockCurrentPeriod").onclick=()=>{
-   const bounds=stockSelectedDateBounds()||stockWeekBounds(0);
-   $("stockDatePicker").value=bounds.start;
-   const picker=$("stockDatePicker");
-   if(typeof picker.showPicker==="function")picker.showPicker();else{picker.style.position="static";picker.style.width="auto";picker.style.height="auto";picker.style.opacity="1";picker.style.pointerEvents="auto";picker.focus();picker.click();}
-  };
-  $("stockDatePicker").onchange=()=>{
-   if(!$("stockDatePicker").value)return;
-   stockDateRangeSelection=$("stockDatePicker").value;
-   if($("stockWeekSelect"))$("stockWeekSelect").value="";
-   applyInvFilters();
-  };
- }
-
  if($("applyInvFilters"))$("applyInvFilters").onclick=applyInvFilters;
  if($("weekDataWorker"))$("weekDataWorker").onchange=()=>{const s=$("weekDataWeek");s.value="";renderWeekData()};
  if($("weekDataWorker"))$("weekDataWorker").onchange=()=>{const old= $("weekDataWeek").value;renderWeekData();if(old&&[...$("weekDataWeek").options].some(o=>o.value===old))$("weekDataWeek").value=old;renderWeekData();};
  if($("weekDataWeek"))$("weekDataWeek").onchange=renderWeekData;
  if($("weekDataRefresh"))$("weekDataRefresh").onclick=async()=>{const b=$("weekDataRefresh");b.disabled=true;b.textContent="Refreshing…";await loadWorkers();await loadInventory();await Promise.all([loadAdminCredits(),loadStockHistory()]);renderWeekData();b.disabled=false;b.textContent="Refresh Week Data"};
 if($("applyInvFilters"))$("applyInvFilters").onclick=applyInvFilters;
-if($("invWorkerFilter"))$("invWorkerFilter").onchange=()=>{renderStockWeekOptions();applyInvFilters()};
+if($("invWorkerFilter"))$("invWorkerFilter").onchange=applyInvFilters;
 const _loadWorkersWithDeleteSelect=loadWorkers;loadWorkers=async function(){await _loadWorkersWithDeleteSelect();populateDeleteWorkerSelect()};
 
 const adminSectionHistory=[];
-function navigateAdminSection(section,fromBack=false){const current=document.querySelector(".page:not(.hidden)");if(!fromBack&&current&&current.id!==section)adminSectionHistory.push(current.id);document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));const target=$(section);if(target)target.classList.remove("hidden");document.querySelectorAll(".dashboard-nav button").forEach(x=>x.classList.toggle("active",x.dataset.section===section));$("adminMenu")?.classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu";if(section==="workers")window.scrollTo({top:0,behavior:"smooth"});if(section==="stock"){ $("stockOverviewPanel")?.classList.remove("hidden");}}
+function navigateAdminSection(section,fromBack=false){const current=document.querySelector(".page:not(.hidden)");if(!fromBack&&current&&current.id!==section)adminSectionHistory.push(current.id);document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));const target=$(section);if(target)target.classList.remove("hidden");document.querySelectorAll(".dashboard-nav button").forEach(x=>x.classList.toggle("active",x.dataset.section===section));$("adminMenu").classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu";if(section==="workers")window.scrollTo({top:0,behavior:"smooth"});if(section==="stock"){ $("stockOverviewPanel").classList.remove("hidden");}}
 $("operationsBackButton").onclick=()=>{const previous=adminSectionHistory.pop()||"dashboard";navigateAdminSection(previous,true)};
 document.querySelectorAll("[data-section]").forEach(b=>b.onclick=()=>navigateAdminSection(b.dataset.section));
-$("menuToggle").onclick=()=>{const open=$("adminMenu")?.classList.toggle("hidden")===false;$("menuToggle").setAttribute("aria-expanded",String(open));$("menuToggle").textContent=open?"✕ Close Menu":"☰ Open Menu"};
-document.addEventListener("click",e=>{if(!e.target.closest(".header-actions")){$("adminMenu")?.classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu"}});
-const originalShowLogin=showLogin;showLogin=function(){originalShowLogin();$("menuToggle")?.classList.add("hidden");$("operationsBackButton")?.classList.add("hidden");$("adminMenu")?.classList.add("hidden")};
-const originalAdminCheck=adminCheck;adminCheck=async function(){const result=await originalAdminCheck();if(result){$("menuToggle")?.classList.remove("hidden");$("operationsBackButton")?.classList.remove("hidden");}return result};
+$("menuToggle").onclick=()=>{const open=$("adminMenu").classList.toggle("hidden")===false;$("menuToggle").setAttribute("aria-expanded",String(open));$("menuToggle").textContent=open?"✕ Close Menu":"☰ Open Menu"};
+document.addEventListener("click",e=>{if(!e.target.closest(".header-actions")){$("adminMenu").classList.add("hidden");$("menuToggle").setAttribute("aria-expanded","false");$("menuToggle").textContent="☰ Open Menu"}});
+const originalShowLogin=showLogin;showLogin=function(){originalShowLogin();$("menuToggle").classList.add("hidden");$("operationsBackButton").classList.add("hidden");$("adminMenu").classList.add("hidden")};
+const originalAdminCheck=adminCheck;adminCheck=async function(){const result=await originalAdminCheck();if(result){$("menuToggle").classList.remove("hidden");$("operationsBackButton").classList.remove("hidden");}return result};
 $("menuLogout").onclick=()=>window.parent.ezelexManagementLogout();
 $("changePass").onclick=async()=>{const a=$("newPass").value,b=$("confirmPass").value;if(a.length<8){msg("securityMsg","Password must be at least 8 characters.","error");return}if(a!==b){msg("securityMsg","Passwords do not match.","error");return}const r=await db.auth.updateUser({password:a});msg("securityMsg",r.error?r.error.message:"Password changed successfully.",r.error?"error":"ok");if(!r.error){$("newPass").value="";$("confirmPass").value=""}}
 let ezelexFilteredPortalReports=[];
@@ -1278,85 +1308,7 @@ $("saveCapitalCashBtn").onclick=saveBusinessCash;$("saveOriginalCapitalBtn").onc
 // TRICYCLE CONTRACT MODULE — intentionally isolated from the existing sales/stock/profit logic.
 let triContracts=[],triReports=[],triPayments=[],triPrivateCosts=[];window.triReports=triReports;
 const triDate=v=>v?String(v).slice(0,10):'';
-function triHistoricalAllocationInfo(p){
- if(!p||!String(p.source_type||'').toLowerCase().includes('historical'))return null;
- const note=String(p.notes||''),reference=String(p.reference||'');
- if(/historical excess credit/i.test(note))return null;
- const m=note.match(/Historical allocation period (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2});\s*(\d+)\s*day\(s\);\s*target\s*([0-9.]+)/i);
- const fallback=reference.match(/(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})/i);
- const start=m?.[1]||fallback?.[1],end=m?.[2]||fallback?.[2];
- const target=m?Number(m[4]):0,amount=Math.max(0,Number(p.amount||0));
- if(!start||!end||!Number.isFinite(amount))return null;
- return {start,end,days:m?Number(m[3]):0,target,amount,key:start+'|'+end};
-}
-function triHistoricalWeeksForContract(contractId){
- const map=new Map();
- triPayments.filter(p=>String(p.contract_id)===String(contractId)).forEach(p=>{
-  const h=triHistoricalAllocationInfo(p);if(!h)return;
-  const item=map.get(h.key)||{start:h.start,end:h.end,target:h.target,paid:0,rows:[]};
-  item.target=Math.max(item.target,h.target||h.amount);item.paid+=h.amount;item.rows.push(p);map.set(h.key,item);
- });
- return map;
-}
-
-function triContractScheduledPeriods(c){
- const startISO=triDate(c?.contract_start_date),endISO=triDate(c?.contract_end_date);
- if(!startISO||!endISO||endISO<startISO)return [];
- const daily=Number(c.daily_target||200),weekly=Number(c.weekly_target||daily*7);
- if(!(daily>0)||!(weekly>0))return [];
- const out=[];
- let cursor=new Date(startISO+'T12:00:00Z');
- const last=new Date(endISO+'T12:00:00Z');
- while(cursor<=last){
-  const periodStart=new Date(cursor);
-  const daysToSunday=(7-periodStart.getUTCDay())%7;
-  let periodEnd=new Date(periodStart);
-  periodEnd.setUTCDate(periodEnd.getUTCDate()+daysToSunday);
-  if(periodEnd>last)periodEnd=new Date(last);
-  const days=Math.floor((periodEnd-periodStart)/86400000)+1;
-  const fullMondayWeek=days===7&&periodStart.getUTCDay()===1;
-  const target=fullMondayWeek?weekly:days*daily;
-  const start=periodStart.toISOString().slice(0,10),end=periodEnd.toISOString().slice(0,10);
-  out.push({start,end,days,target,key:start+'|'+end});
-  cursor=new Date(periodEnd);cursor.setUTCDate(cursor.getUTCDate()+1);
- }
- return out;
-}
-function triContractWeeksRemaining(c){
- if(!c)return '—';
- const periods=triContractScheduledPeriods(c);
- if(!periods.length)return '—';
- const historical=triHistoricalWeeksForContract(c.id);
- const completedKeys=new Set();
-
- // Each contract period is completed independently. A payment for one period
- // cannot be carried forward to hide a different unpaid or overdue period.
- periods.forEach(period=>{
-  const h=historical.get(period.key);
-  const historicalPaid=h?Math.max(0,Number(h.paid||0)):0;
-
-  // Only approved reports count. Use the largest approved report amount for
-  // this exact period so duplicate approval rows cannot consume two weeks.
-  const approvedReportPaid=triReports
-   .filter(r=>String(r.contract_id)===String(c.id)
-    &&String(r.status||'').toLowerCase()==='approved'
-    &&triDate(r.week_start)===period.start
-    &&triDate(r.week_end)===period.end)
-   .reduce((best,r)=>Math.max(best,Math.max(0,Number(r.payment_amount||0))),0);
-
-  const confirmedForThisPeriod=Math.max(historicalPaid,approvedReportPaid);
-  if(period.target>0&&confirmedForThisPeriod+0.009>=period.target)completedKeys.add(period.key);
- });
-
- // Opening paid amount is not assigned to a week unless its stored opening
- // notes explicitly identify a covered period. Do not silently use it to
- // consume an arbitrary current or future week.
- return Math.max(0,periods.length-completedKeys.size);
-}
-function triTimeRemaining(c){
- const weeks=triContractWeeksRemaining(c);
- return weeks==='—'?'—':weeks===0?'0 wk remaining':`${weeks} wk remaining`;
-}
+function triTimeRemaining(end){if(!end)return '—';const a=new Date();a.setHours(0,0,0,0);const b=new Date(end+'T00:00:00');let days=Math.max(0,Math.ceil((b-a)/86400000));if(b<a)return 'Ended';const months=Math.floor(days/30.4375),weeks=Math.floor((days%30.4375)/7),left=days-Math.floor(months*30.4375)-weeks*7;return `${months} mo · ${weeks} wk · ${Math.max(0,left)} d`}
 function triWorkerByUid(uid){return workers.find(w=>String(w.user_id||w.id)===String(uid))||{}}
 function triContractById(id){return triContracts.find(c=>String(c.id)===String(id))||{}}
 function triBalance(c){return Math.max(0,Number(c.total_contract_amount||0)-Number(c.opening_paid_amount||0)-triPayments.filter(p=>String(p.contract_id)===String(c.id)).reduce((n,p)=>n+Number(p.amount||0),0))}
@@ -1364,7 +1316,7 @@ function triPopulateSelects(){const ws=$('triWorker'),old=ws.value;ws.innerHTML=
 function triRenderPrivateProfit(){const body=$('triPrivateProfitBody');if(!body)return;const rows=triContracts.map(c=>{const p=triPrivateCosts.find(x=>String(x.contract_id)===String(c.id));if(!p)return null;const cost=Number(p.actual_purchase_price||0),value=Number(c.total_contract_amount||0);return {c,cost,value,profit:value-cost}}).filter(Boolean);$('triPrivateCost').textContent=money(rows.reduce((n,x)=>n+x.cost,0));$('triPrivateValue').textContent=money(rows.reduce((n,x)=>n+x.value,0));$('triPrivateProfit').textContent=money(rows.reduce((n,x)=>n+x.profit,0));body.innerHTML=rows.length?rows.map(x=>`<tr><td>${esc(x.c.driver_name||'—')} / ${esc(x.c.vehicle_id||'—')}</td><td>${money(x.cost)}</td><td>${money(x.value)}</td><td><b>${money(x.profit)}</b></td></tr>`).join(''):'<tr><td colspan="4" class="empty">No private purchase prices recorded yet.</td></tr>';if($('triPrivateProfitMsg'))$('triPrivateProfitMsg').textContent=triPrivateCosts.length===triContracts.length?'Private profit figures are up to date.':'Some contracts have no private purchase price recorded. Add prices only through the admin-only financial table; do not expose these values to drivers.'}
 async function triLoadAll(){if(!$('triContractsBody'))return;['triContractsBody','triReportsBody','triPaymentsBody'].forEach((id,i)=>$(id).innerHTML=`<tr><td colspan="${[10,10,7][i]}" class="empty">Loading...</td></tr>`);const [cr,rr,pr,fr]=await Promise.all([db.from('tricycle_contracts').select('*').order('created_at',{ascending:false}),db.from('tricycle_weekly_reports').select('*').order('submitted_at',{ascending:false}),db.from('tricycle_contract_payments').select('*').order('payment_date',{ascending:false}).order('created_at',{ascending:false}),db.from('tricycle_contract_private_financials').select('contract_id,actual_purchase_price')]);const err=[cr,rr,pr].find(r=>r.error);if(err){const detail='Could not load tricycle data. The admin session may lack SELECT permission/RLS access, or the Phase 1 SQL may be incomplete: '+err.error.message;msg('tricycleMsg',detail,'error');['triContractsBody','triReportsBody','triPaymentsBody'].forEach((id,i)=>{const el=$(id);if(el)el.innerHTML=`<tr><td colspan="${[10,9,7][i]}" class="empty">LOAD FAILED — ${esc(err.error.message)}. The zero counters are not a confirmed balance.</td></tr>`});['triCount','triPending','triBalance','overviewTriCount','overviewTriPending','overviewTriBalance'].forEach(id=>{const el=$(id);if(el)el.textContent='LOAD ERROR'});return}triContracts=cr.data||[];triReports=rr.data||[];window.triReports=triReports;triPayments=pr.data||[];triPrivateCosts=fr.error?[]:(fr.data||[]);if(fr.error&&$('triPrivateProfitMsg'))$('triPrivateProfitMsg').textContent='Private profit table is not ready or admin access was denied. Run the supplied SQL setup before using private profit tracking: '+fr.error.message;triPopulateSelects();[['triMonitorContractFilter','All drivers / contracts'],['triMonitorLockContract','Select contract']].forEach(([id,label])=>{const el=$(id);if(el){const v=el.value;el.innerHTML=`<option value="">${label}</option>`+triContracts.map(c=>`<option value="${esc(c.id)}">${esc(c.driver_name||"Driver")} — ${esc(c.vehicle_id||"Vehicle")}</option>`).join("");if(v)el.value=v;}});triRenderPrivateProfit();triRenderContracts();triRenderReports();triRenderPayments();triRenderOwing();if(!$('triCalendarMonth').value)$('triCalendarMonth').value=new Date().toISOString().slice(0,7);triRenderCalendar();triRenderPaymentMonitor();$('triCount').textContent=triContracts.length;$('triPending').textContent=triReports.filter(r=>r.status==='pending').length;$('triBalance').textContent=money(triContracts.reduce((n,c)=>n+triBalance(c),0));$('overviewTriCount').textContent=triContracts.length;$('overviewTriPending').textContent=triReports.filter(r=>r.status==='pending').length;$('overviewTriBalance').textContent=money(triContracts.reduce((n,c)=>n+triBalance(c),0));msg('tricycleMsg','');}
 window.triDeleteContract=async(id)=>{const c=triContractById(id);if(!c.id)return;if(!confirm(`Permanently delete the tricycle contract for ${c.driver_name||'this driver'} / ${c.vehicle_id||'this vehicle'}? Its linked weekly reports and payment ledger entries will also be deleted. This cannot be undone.`))return;msg('tricycleMsg','Deleting contract and its linked ledger records...');for(const table of ['tricycle_contract_payments','tricycle_weekly_reports']){const r=await db.from(table).delete().eq('contract_id',id);if(r.error){msg('tricycleMsg',`Could not clear linked ${table} records: ${r.error.message}. Contract has not been deleted.`, 'error');return}}const r=await db.from('tricycle_contracts').delete().eq('id',id);if(r.error){msg('tricycleMsg','Could not delete contract: '+r.error.message,'error');return}msg('tricycleMsg','Contract and linked ledger entries deleted. Outstanding contract balance has been recalculated.','ok');await triLoadAll()};
-function triRenderContracts(){const body=$('triContractsBody');body.innerHTML=triContracts.length?triContracts.map(c=>{const paid=Number(c.opening_paid_amount||0)+triPayments.filter(p=>String(p.contract_id)===String(c.id)).reduce((n,p)=>n+Number(p.amount||0),0);return `<tr><td>${esc(c.driver_name)}</td><td>${esc(c.driver_worker_id||'—')}</td><td>${esc(c.vehicle_id)}${c.vehicle_registration?' / '+esc(c.vehicle_registration):''}</td><td>${esc(c.contract_start_date)} → ${esc(c.contract_end_date)}</td><td>${money(c.total_contract_amount)}</td><td>${money(paid)}</td><td><b>${money(triBalance(c))}</b></td><td>${esc(triTimeRemaining(c))}</td><td><span class="badge ${c.status==='active'?'approved':'pending'}">${esc(c.status)}</span></td><td><button type="button" class="primary" onclick="triEditContract('${esc(c.id)}')">Edit Contract</button> <button type="button" class="danger" onclick="triDeleteContract('${esc(c.id)}')">Delete</button></td></tr>`}).join(''):'<tr><td colspan="10" class="empty">No tricycle contracts created yet.</td></tr>'}
+function triRenderContracts(){const body=$('triContractsBody');body.innerHTML=triContracts.length?triContracts.map(c=>{const paid=Number(c.opening_paid_amount||0)+triPayments.filter(p=>String(p.contract_id)===String(c.id)).reduce((n,p)=>n+Number(p.amount||0),0);return `<tr><td>${esc(c.driver_name)}</td><td>${esc(c.driver_worker_id||'—')}</td><td>${esc(c.vehicle_id)}${c.vehicle_registration?' / '+esc(c.vehicle_registration):''}</td><td>${esc(c.contract_start_date)} → ${esc(c.contract_end_date)}</td><td>${money(c.total_contract_amount)}</td><td>${money(paid)}</td><td><b>${money(triBalance(c))}</b></td><td>${esc(triTimeRemaining(c.contract_end_date))}</td><td><span class="badge ${c.status==='active'?'approved':'pending'}">${esc(c.status)}</span></td><td><button type="button" class="primary" onclick="triEditContract('${esc(c.id)}')">Edit Contract</button> <button type="button" class="danger" onclick="triDeleteContract('${esc(c.id)}')">Delete</button></td></tr>`}).join(''):'<tr><td colspan="10" class="empty">No tricycle contracts created yet.</td></tr>'}
 window.triEditContract=async function(id){const c=triContractById(id);if(!c||!c.id){alert('Contract not found. Refresh and try again.');return;}const ask=(label,value)=>{const v=prompt(label,value==null?'':String(value));return v===null?null:v.trim();};const start=ask('Contract start date (YYYY-MM-DD)',c.contract_start_date);if(start===null)return;const end=ask('Contract end date (YYYY-MM-DD)',c.contract_end_date);if(end===null)return;const total=ask('Agreed total contract amount (GH₵)',c.total_contract_amount);if(total===null)return;const daily=ask('Daily payment target (GH₵)',c.daily_target);if(daily===null)return;const weekly=ask('Weekly payment target (GH₵)',c.weekly_target);if(weekly===null)return;const vehicle=ask('Tricycle / vehicle ID',c.vehicle_id);if(vehicle===null)return;const registration=ask('Vehicle registration',c.vehicle_registration||'');if(registration===null)return;const notes=ask('Admin notes',c.admin_notes||'');if(notes===null)return;if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||end<start||![total,daily,weekly].every(x=>x!==''&&Number.isFinite(Number(x))&&Number(x)>=0)||Number(total)<=0){alert('Enter valid dates and non-negative amounts. End date cannot be before start date.');return;}const duration=Math.max(1,Math.round((new Date(end+'T00:00:00')-new Date(start+'T00:00:00'))/(86400000*30.4375)));const patch={contract_start_date:start,contract_end_date:end,contract_duration_months:duration,total_contract_amount:Number(total),daily_target:Number(daily),weekly_target:Number(weekly),vehicle_id:vehicle,vehicle_registration:registration||null,admin_notes:notes||null};if(!confirm('Save these contract information changes? The driver profile end date will also be updated if changed.'))return;const upd=await db.from('tricycle_contracts').update(patch).eq('id',id);if(upd.error){msg('tricycleMsg','Contract update failed: '+upd.error.message,'error');return;}let profileNote='';if(c.driver_user_id&&end!==c.contract_end_date){const pr=await db.from('worker_profiles').update({contract_end:end}).eq('user_id',c.driver_user_id);if(pr.error)profileNote=' Contract saved, but worker profile end date update failed: '+pr.error.message;}const audit=await db.from('tricycle_contract_edit_history').insert({contract_id:id,changed_by:session?.user?.id||null,change_summary:'Contract details updated',before_data:c,after_data:patch});const auditNote=audit.error?' Audit history was not saved; apply the accompanying SQL migration.':'';msg('tricycleMsg','Contract information updated.'+profileNote+auditNote,profileNote||audit.error?'error':'ok');await triLoadAll();};
 function triRenderReports(){const filter=$('triReportFilter').value,rows=triReports.filter(r=>filter==='all'||r.status===filter);$('triReportsBody').innerHTML=rows.length?rows.map(r=>{const c=triContractById(r.contract_id);const canReview=r.status==='pending';return `<tr><td>${esc(c.driver_name||r.driver_user_id)}</td><td>${esc(c.vehicle_id||'—')}</td><td>${esc(r.week_start)} → ${esc(r.week_end)}<br><small class="ez-week-tag">Week ending Sunday ${esc(r.week_end)}</small></td><td>${esc(r.submitted_at?new Date(r.submitted_at).toLocaleString():'Timestamp unavailable')}${r.submitted_at&&new Date(r.submitted_at)>new Date(String(r.week_end)+'T23:59:59')?'<br><span class="badge rejected">LATE SUBMISSION</span>':''}</td><td>${money(r.sales_reported)}</td><td><b>${money(r.payment_amount)}</b></td><td>${esc(r.payment_reference||'')}${r.driver_notes?'<br>'+esc(r.driver_notes):''}</td><td><span class="badge ${r.status==='approved'?'approved':r.status==='rejected'?'rejected':'pending'}">${esc(r.status)}</span></td><td>${esc(r.rejection_reason||'—')}</td><td>${canReview?`<button class="success" onclick="triApproveReport('${r.id}')">Approve Payment</button> <button class="danger" onclick="triRejectReport('${r.id}')">Reject</button>`:'—'}</td></tr>`}).join(''):`<tr><td colspan="10" class="empty">No ${filter==='all'?'':filter+' '}reports found.</td></tr>`}
 
@@ -1507,14 +1459,13 @@ function triGhanaClock(){
  return {iso,time,nowMs:Date.parse(`${iso}T${time}Z`)};
 }
 function triAddDaysISO(iso,n){const d=new Date(iso+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
-function triPaymentDueAt(weekEnd){return Date.parse(triAddDaysISO(weekEnd,1)+'T15:00:00Z');}
+function triPaymentDueAt(weekEnd){return Date.parse(triAddDaysISO(weekEnd,1)+'T12:00:00Z');}
 function triMonitorRows(){
  const gh=triGhanaClock(),today=new Date(gh.iso+'T12:00:00Z');
  const currentMonday=new Date(today);currentMonday.setUTCDate(currentMonday.getUTCDate()-((currentMonday.getUTCDay()+6)%7));
  const rows=[];
  triContracts.forEach(c=>{
-  const startISO=String(c.contract_start_date||'').slice(0,10);
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(startISO))return;
+  const startISO=String(c.contract_start_date||'').slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(startISO))return;
   const start=new Date(startISO+'T00:00:00Z');
   let wsDate=new Date(start);wsDate.setUTCDate(wsDate.getUTCDate()-((wsDate.getUTCDay()+6)%7));
   for(let guard=0;guard<520;guard++){
@@ -1524,59 +1475,29 @@ function triMonitorRows(){
    if(c.contract_end_date&&ws>String(c.contract_end_date).slice(0,10))break;
    const dueAt=triPaymentDueAt(we),isOverdue=gh.nowMs>=dueAt;
    const weekReports=triReports.filter(r=>String(r.contract_id)===String(c.id)&&String(r.week_start||'').slice(0,10)===ws&&String(r.week_end||'').slice(0,10)===we);
-   const sortedReports=weekReports.slice().sort((x,y)=>String(y.submitted_at||'').localeCompare(String(x.submitted_at||'')));
-   const report=sortedReports[0]||null;
+   const report=weekReports.slice().sort((x,y)=>String(y.submitted_at||'').localeCompare(String(x.submitted_at||'')))[0]||null;
    const weekLedger=triPayments.filter(p=>String(p.contract_id)===String(c.id)&&String(p.payment_date||p.created_at||'').slice(0,10)>=ws&&String(p.payment_date||p.created_at||'').slice(0,10)<=we);
    const ledgerPaid=weekLedger.reduce((n,p)=>n+Math.max(0,Number(p.amount||0)),0);
-   const historicalWeeks=triHistoricalWeeksForContract(c.id);
-   const historical=historicalWeeks.get(ws+'|'+we)||null;
    const approvedReport=weekReports.filter(r=>String(r.status||'').toLowerCase()==='approved').reduce((n,r)=>n+Math.max(0,Number(r.payment_amount||0)),0);
-   const activeStart=new Date(Math.max(wsDate.getTime(),start.getTime()));
-   const contractEnd=c.contract_end_date?new Date(String(c.contract_end_date).slice(0,10)+'T00:00:00Z'):null;
-   const activeEnd=contractEnd&&contractEnd<weDate?contractEnd:weDate;
+   const activeStart=new Date(Math.max(wsDate.getTime(),start.getTime())),contractEnd=c.contract_end_date?new Date(String(c.contract_end_date).slice(0,10)+'T00:00:00Z'):null,activeEnd=contractEnd&&contractEnd<weDate?contractEnd:weDate;
    const activeDays=Math.max(0,Math.floor((activeEnd-activeStart)/86400000)+1);
-   const daily=Number(c.daily_target||0),weekly=Number(c.weekly_target||daily*7);
-   const normalExpected=activeDays>=7?weekly:daily*activeDays;
-   const expected=historical?(historical.target||historical.paid):normalExpected;
-   const confirmed=historical?historical.paid:(ledgerPaid>0?ledgerPaid:approvedReport);
-   const outstanding=Math.max(0,expected-confirmed);
+   const daily=Number(c.daily_target||0),weekly=Number(c.weekly_target||daily*7),expected=activeDays>=7?weekly:daily*activeDays;
+   const confirmed=ledgerPaid>0?ledgerPaid:approvedReport,outstanding=Math.max(0,expected-confirmed);
    const lock=ezWeekLocks.find(x=>String(x.contract_id)===String(c.id)&&String(x.week_end).slice(0,10)===we&&x.is_locked);
    const submitted=report?.submitted_at?new Date(report.submitted_at):null;
-   const validSubmissions=weekReports.filter(r=>r.submitted_at&&Number(r.payment_amount||0)>0);
-   const submittedByDeadline=validSubmissions.some(r=>{
-    const t=new Date(r.submitted_at).getTime();
-    return Number.isFinite(t)&&t<=dueAt;
-   });
-   const submittedAtAll=validSubmissions.length>0;
-   const reportLate=!historical&&submittedAtAll&&!submittedByDeadline;
-   const pendingReport=String(report?.status||'').toLowerCase()==='pending';
-   const rejectedReport=String(report?.status||'').toLowerCase()==='rejected';
-   const reportStatus=report
-    ?String(report.status||'unknown').toUpperCase()+(reportLate?' · LATE SUBMISSION':'')
-    :'NOT SUBMITTED';
-   const approvedFull=expected>0&&(historical?historical.paid+0.009>=expected:approvedReport+0.009>=expected);
-   let risk='DUE — DEADLINE MONDAY 3 PM';
-   if(approvedFull)risk=reportLate?'PAID — LATE':'PAID';
-   else if(pendingReport)risk=isOverdue&&!submittedByDeadline?'OVERDUE — PENDING APPROVAL':'PENDING APPROVAL';
-   else if(isOverdue&&outstanding>0.009){
-    if(confirmed>0)risk='OVERDUE — PART PAYMENT';
-    else if(rejectedReport)risk='OVERDUE — REJECTED';
-    else risk='OVERDUE — NO PAYMENT';
-   }else if(rejectedReport)risk='REJECTED — RESUBMISSION REQUIRED';
-   else if(!isOverdue&&submittedByDeadline)risk='PENDING APPROVAL';
+   const hasOnTimeReport=weekReports.some(r=>{const t=r.submitted_at?new Date(r.submitted_at).getTime():NaN;return Number.isFinite(t)&&t<=dueAt;});
+   const reportLate=!hasOnTimeReport;
+   const reportStatus=report?(String(report.status||'unknown').toUpperCase()+(reportLate?' · LATE SUBMISSION':'')):'NOT SUBMITTED · LATE';
+   const hasApprovedReport=weekReports.some(r=>String(r.status||'').toLowerCase()==='approved');
+   const weeklyShortfall=hasApprovedReport?Math.max(0,expected-approvedReport):0;
+   let risk='PAID';
+   if(isOverdue&&outstanding>0.009)risk=confirmed<=0?'OVERDUE — NO PAYMENT':'OVERDUE — PART PAYMENT';
+   else if(!isOverdue&&outstanding>0.009)risk='NOT DUE UNTIL MONDAY 12 PM';
    else if(lock)risk='LOCKED';
-   const priority=risk==='OVERDUE — NO PAYMENT'?5:
-    risk==='OVERDUE — REJECTED'?5:
-    risk==='OVERDUE — PART PAYMENT'?4:
-    risk==='OVERDUE — PENDING APPROVAL'?3:
-    risk==='DUE — DEADLINE MONDAY 3 PM'?2:
-    risk==='PENDING APPROVAL'?1:0;
-   // Only the previous completed contract-week, its due state, and its pending approval remain in this monitor.
-   // Approved weeks are settled and do not consume or display as overdue.
-   if(!approvedFull&&(isOverdue||pendingReport||risk==='DUE — DEADLINE MONDAY 3 PM')){
-    rows.push({c,ws,we,report,expected,reported:Number(report?.payment_amount||0),confirmed,outstanding,submitted,reportStatus,risk,priority,
-     daysOverdue:isOverdue?Math.max(0,Math.floor((gh.nowMs-dueAt)/86400000)):0,
-     lock,ledgerPaid,reportLate,weeklyShortfall:0,weekReports,isOverdue,submittedByDeadline,approvedFull});
+   const priority=risk==='OVERDUE — NO PAYMENT'?4:risk==='OVERDUE — PART PAYMENT'?3:0;
+   // Keep completed weeks visible so an unsubmitted week is never omitted from monitoring.
+   if(isOverdue||report||weeklyShortfall>0){
+    rows.push({c,ws,we,report,expected,reported:Number(report?.payment_amount||0),confirmed,outstanding,submitted,reportStatus,risk,priority,daysOverdue:isOverdue?Math.max(0,Math.floor((gh.nowMs-dueAt)/86400000)):0,lock,ledgerPaid,reportLate,weeklyShortfall,weekReports,isOverdue});
    }
    wsDate.setUTCDate(wsDate.getUTCDate()+7);
   }
@@ -1587,37 +1508,19 @@ function triRenderPaymentMonitor(){
  const body=$('triPaymentMonitorBody');if(!body)return;
  const rows=triMonitorRows(),cf=$('triMonitorContractFilter')?.value||'',sf=$('triMonitorStatusFilter')?.value||'';
  const shown=rows.filter(x=>(!cf||String(x.c.id)===cf)&&(!sf||(sf==='attention'?(x.priority>=2||x.reportLate):(sf==='LATE REPORT'?x.reportLate:x.risk===sf))));
- const noPay=rows.filter(x=>x.risk==='OVERDUE — NO PAYMENT'||x.risk==='OVERDUE — REJECTED').length;
+ const noPay=rows.filter(x=>x.risk==='OVERDUE — NO PAYMENT').length;
  const partial=rows.filter(x=>x.risk==='OVERDUE — PART PAYMENT').length;
- const pending=rows.filter(x=>x.risk.includes('PENDING APPROVAL')).length;
+ const pending=rows.filter(x=>x.isOverdue&&x.report&&String(x.report.status||'').toLowerCase()==='pending').length;
  const exposure=rows.filter(x=>x.isOverdue).reduce((n,x)=>n+x.outstanding,0);
  $('triMonitorMissing').textContent=noPay;
- $('triMonitorLate').textContent=rows.filter(x=>x.isOverdue&&x.reportLate).length;
+ $('triMonitorLate').textContent=rows.filter(x=>x.priority>=2||x.reportLate).length;
  $('triMonitorPending').textContent=pending;
  $('triMonitorShortfall').textContent=money(exposure);
  const banner=$('triMonitorCriticalBanner'),headline=$('triMonitorCriticalHeadline'),detail=$('triMonitorCriticalDetail');
- if(headline&&detail){
-  const overdueCount=rows.filter(x=>x.isOverdue&&x.outstanding>0.009).length;
-  if(overdueCount){
-   headline.textContent=`${overdueCount} overdue payment week(s) · ${pending} awaiting approval`;
-   detail.textContent=`${noPay} with no approved payment · ${partial} with part payment · ${money(exposure)} overdue balance. A submitted payment does not complete a contract week until Admin approves the full weekly amount.`;
-   if(banner)banner.style.borderLeftColor='#b42318';
-  }else{
-   headline.textContent='No overdue weekly payments';
-   detail.textContent='The previous Monday–Sunday payment week is due by Monday 3:00 PM Ghana time. Contract duration changes only after a full weekly payment is approved.';
-   if(banner){banner.style.borderLeftColor='#067647';banner.style.background='linear-gradient(110deg,#ecfdf3,#f6fffa)';}
-  }
- }
- const meta=$('triMonitorQueueMeta');
- if(meta)meta.textContent=`${shown.length} of ${rows.length} due, overdue or awaiting-approval contract-weeks · independent of Owing / Weekly Shortfalls`;
- body.innerHTML=shown.length?shown.map(x=>{
-  const critical=x.isOverdue&&x.outstanding>0.009,submitted=x.submitted?x.submitted.toLocaleString():'Not submitted';
-  const badge=x.risk==='PAID'||x.risk==='PAID — LATE'?'approved':x.risk.includes('PENDING')||x.risk.startsWith('DUE')?'pending':'rejected';
-  const priorityLabel=x.risk==='OVERDUE — NO PAYMENT'?'OVERDUE':x.risk==='OVERDUE — REJECTED'?'REJECTED / OVERDUE':x.risk==='OVERDUE — PART PAYMENT'?'PART PAYMENT':x.risk==='OVERDUE — PENDING APPROVAL'?'LATE · PENDING':x.risk==='DUE — DEADLINE MONDAY 3 PM'?'DUE BY 3 PM':x.risk==='PENDING APPROVAL'?'PENDING APPROVAL':x.risk==='PAID — LATE'?'PAID LATE':x.risk;
-  return `<tr style="${critical?'background:#fff7f6':''}"><td><b style="color:${critical?'#a11b1b':'#172b4d'}">${esc(priorityLabel)}</b><br><b>${esc(x.c.driver_name||'Driver')}</b><br><small>${esc(x.c.vehicle_id||'—')}</small></td><td>${esc(x.ws)} → ${esc(x.we)}</td><td><b style="color:${critical?'#b42318':'inherit'}">${x.isOverdue?x.daysOverdue+' day(s) overdue':'Deadline Monday 3:00 PM'}</b></td><td>${money(x.expected)}</td><td>${money(x.confirmed)}</td><td><b style="color:${x.isOverdue&&x.outstanding>0?'#b42318':'#067647'}">${money(x.isOverdue?x.outstanding:0)}</b></td><td>${money(x.weeklyShortfall)}</td><td>${esc(x.reportStatus)}<br><small>${esc(submitted)}</small></td><td><span class="badge ${badge}" style="white-space:normal">${esc(x.risk)}</span></td><td>${x.lock?`<button type="button" class="soft" onclick="triMonitorLockWeek('${esc(x.c.id)}','${esc(x.we)}',false)">Unlock</button>`:`<button type="button" class="danger" onclick="triMonitorLockWeek('${esc(x.c.id)}','${esc(x.we)}',true)">Lock week</button>`}${x.report?`<br><button type="button" class="soft" style="margin-top:5px" onclick="window.openEzelexTriPanel&&window.openEzelexTriPanel('triReportsPanel')">Review report</button>`:''}${x.isOverdue&&x.outstanding>0?`<br><button type="button" class="danger" style="margin-top:5px" onclick="triSendOverdueReminder('${esc(x.c.id)}','${esc(x.ws)}','${esc(x.we)}',this)">Email payment warning</button>`:''}</td></tr>`;
- }).join(''):'<tr><td colspan="10" class="empty">No payment weeks are currently due, overdue or awaiting approval.</td></tr>';
+ if(headline&&detail){const lateReportCount=rows.filter(x=>x.reportLate).length;if(noPay+partial||lateReportCount){headline.textContent=`${noPay+partial} overdue payment week(s) · ${lateReportCount} late/missing report week(s)`;detail.textContent=`${noPay} weeks with no confirmed payment · ${partial} with partial payment · ${money(exposure)} overdue payment balance. Late reports are tracked separately; weekly report shortfalls are not added to overdue payments.`;if(banner)banner.style.borderLeftColor='#b42318';}else{headline.textContent='No overdue payments or late/missing reports after the Monday 12:00 PM Ghana deadline';detail.textContent='Weekly report shortfalls remain a separate measure.';if(banner){banner.style.borderLeftColor='#067647';banner.style.background='linear-gradient(110deg,#ecfdf3,#f6fffa)';}}}
+ const meta=$('triMonitorQueueMeta');if(meta)meta.textContent=`${shown.length} of ${rows.length} completed contract-weeks · overdue payment and report shortfall tracked separately`;
+ body.innerHTML=shown.length?shown.map(x=>{const critical=x.priority>=3,submitted=x.submitted?x.submitted.toLocaleString():'Not submitted';const badge=x.risk==='PAID'?'approved':x.risk==='NOT DUE UNTIL MONDAY 12 PM'?'pending':x.risk==='LOCKED'?'pending':'rejected';const priorityLabel=x.risk==='OVERDUE — NO PAYMENT'?'CRITICAL':x.risk==='OVERDUE — PART PAYMENT'?'HIGH':x.risk==='NOT DUE UNTIL MONDAY 12 PM'?'NOT DUE':x.reportLate?'REPORT LATE':'PAID';return `<tr style="${critical?'background:#fff7f6':''}"><td><b style="color:${critical?'#a11b1b':'#172b4d'}">${priorityLabel}</b><br><b>${esc(x.c.driver_name||'Driver')}</b><br><small>${esc(x.c.vehicle_id||'—')}</small></td><td>${esc(x.ws)} → ${esc(x.we)}</td><td><b style="color:${critical?'#b42318':'inherit'}">${x.isOverdue?x.daysOverdue+' day(s)':'Not overdue'}</b></td><td>${money(x.expected)}</td><td>${money(x.confirmed)}</td><td><b style="color:${x.isOverdue&&x.outstanding>0?'#b42318':'#067647'}">${money(x.isOverdue?x.outstanding:0)}</b></td><td>${money(x.weeklyShortfall)}</td><td>${esc(x.reportStatus)}<br><small>${esc(submitted)}</small></td><td><span class="badge ${badge}" style="white-space:normal">${esc(x.risk)}</span></td><td>${x.lock?`<button type="button" class="soft" onclick="triMonitorLockWeek('${esc(x.c.id)}','${esc(x.we)}',false)">Unlock</button>`:`<button type="button" class="danger" onclick="triMonitorLockWeek('${esc(x.c.id)}','${esc(x.we)}',true)">Lock week</button>`}${x.report?`<br><button type="button" class="soft" style="margin-top:5px" onclick="window.openEzelexTriPanel&&window.openEzelexTriPanel('triReportsPanel')">Review report</button>`:''}${x.isOverdue&&x.outstanding>0?`<br><button type="button" class="danger" style="margin-top:5px" onclick="triSendOverdueReminder('${esc(x.c.id)}','${esc(x.ws)}','${esc(x.we)}',this)">Email payment warning</button>`:''}</td></tr>`}).join(''):'<tr><td colspan="10" class="empty">No overdue payments, late/missing reports or separate report shortfalls to display.</td></tr>';
 }
-
 window.triSendOverdueReminder=async function(contractId,weekStart,weekEnd,button){
  if(!confirm("Send an official overdue-payment warning to this driver's registered email for "+weekStart+" to "+weekEnd+"?"))return;
  const old=button?.textContent;if(button){button.disabled=true;button.textContent="Sending warning…";}
@@ -1657,9 +1560,7 @@ else if(page==="Sales Reviews & Approval"||page==="Sales Review & Approval"||pag
 else if(page==="Central Sales Management"){document.querySelector('[data-sales-tab="reports"]')?.click();}
 if(page==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();if(page==="Delete Worker")document.querySelector('[data-employee-view="delete-worker"]')?.click();if(page==="Delete Driver")document.querySelector('[data-employee-view="delete-driver"]')?.click();if(page==="Create Worker")document.querySelector('[data-employee-view="create-worker"]')?.click();if(page==="Employee Directory")document.querySelector('[data-employee-view="directory"]')?.click();const panels={"Create Tricycle Contract":"triCreatePanel","Record Historical Payment":"triHistoricalPanel","Payment Ledger Calendar":"triCalendarPanel","Tricycle Contract Management":"triManagementPanel","Private Tricycle Profit":"triPrivateProfitSection","Contract Register & Balances":"triRegisterPanel","Weekly Report — Review & Approval":"triReportsPanel","Owing / Weekly Shortfalls":"triOwingPanel","Weekly Driver Payment Monitoring":"triPaymentMonitorPanel","Full Payment Ledger":"triLedgerPanel","Delete Contract":"triManagementPanel"};if(panels[page])window.openEzelexTriPanel(panels[page]);}
 window.addEventListener("message",event=>{if(event.origin!==location.origin||event.source!==window.parent)return;openEzelexRoute(event.data)});
-(async()=>{try{if(window.parent===window||window.parent.location.origin!==window.location.origin)throw new Error("Open this page from the authenticated Management Centre.");await adminCheck();
-// Signal readiness only after the authenticated operations workspace has completed initialisation.
-try{window.parent.postMessage({type:"ezelex-admin-frame-ready"},location.origin);}catch(_){}const p=new URLSearchParams(location.search);const s=p.get("section");if(s&&$(s))navigateAdminSection(s);
+(async()=>{try{if(window.parent===window||window.parent.location.origin!==window.location.origin)throw new Error("Open this page from the authenticated Management Centre.");await window.parent.verifyEzelexLiveDataSession();await adminCheck();const p=new URLSearchParams(location.search);const s=p.get("section");if(s&&$(s))navigateAdminSection(s);
 const stockViews={"Worker Stock Management":"records","Stock & Performance":"position","Stock Edit History":"audit","Purchases & Sales":"purchases","Damage & Loss":"adjustments","Profit & Loss":"sales","All-Time Purchase & Sales Review":"purchases"};const requestedStockView=stockViews[p.get("page")||""];if(requestedStockView)document.querySelector(`#stock .stock-view-btn[data-stock-view="${requestedStockView}"]`)?.click();
 if(p.get("page")==="Daily Sales Performance")document.querySelector('[data-sales-tab="stockOverview"]')?.click();
 if(p.get("page")==="Sales Reviews & Approval"||p.get("page")==="Sales Review & Approval"||p.get("page")==="Approve / Disapprove Sales"||p.get("page")==="Central Sales Management")document.querySelector('[data-sales-tab="reports"]')?.click();
@@ -1698,10 +1599,8 @@ body.ezx-compact .section{padding:13px!important;margin-top:12px!important}body.
 <script>
 document.querySelectorAll("[data-sales-tab]").forEach(btn=>btn.addEventListener("click",()=>{
  const stock=btn.dataset.salesTab==="stockOverview";
- const reportsPanel=$("salesReportsPanel"),stockPanel=$("salesStockOverviewPanel");
- if(!reportsPanel||!stockPanel)return;
- reportsPanel.classList.toggle("hidden",stock);
- stockPanel.classList.toggle("hidden",!stock);
+ $("salesReportsPanel").classList.toggle("hidden",stock);
+ $("salesStockOverviewPanel").classList.toggle("hidden",!stock);
  document.querySelectorAll("[data-sales-tab]").forEach(b=>{b.classList.toggle("primary",b===btn);b.classList.toggle("soft",b!==btn);});
  if(stock){renderWeekData();}
 }));
