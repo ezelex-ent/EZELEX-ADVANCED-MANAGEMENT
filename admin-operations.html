@@ -7,20 +7,17 @@
 <title>EZELEX Enterprise — Admin Command Centre</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* EZELEX shared worker-stock accounting rules. Read-only calculation layer. */
+/* EZELEX shared worker-stock accounting engine — identical in Worker and Management. */
 (function(root){'use strict';
  const n=v=>{const x=Number(v);return Number.isFinite(x)?x:0},money=v=>Math.round((n(v)+Number.EPSILON)*100)/100;
  const unpaid=c=>Math.max(0,n(c.amount_due)-n(c.amount_paid));
- // A partially paid credit sale only keeps its unpaid crates out of physical stock.
- // Never count the original full quantity again after some crates have been paid.
  const unpaidCrates=c=>Math.max(0,n(c.quantity)-n(c.crates_paid));
- const creditKey=c=>[c.stock_batch_id,c.worker_id,String(c.customer_name||'').trim().toLowerCase(),String(c.product_service||'').trim().toLowerCase(),c.credit_date,c.created_at,n(c.quantity),n(c.amount_due),n(c.amount_paid),String(c.notes||'').trim()].join('|');
- function creditForBatch(id,rows){const seen=new Set(),matches=(rows||[]).filter(c=>{const key=creditKey(c);if(seen.has(key))return false;seen.add(key);return String(c.stock_batch_id||'')===String(id||'')&&unpaid(c)>0.009;});return{units:matches.reduce((s,c)=>s+unpaidCrates(c),0),amount:money(matches.reduce((s,c)=>s+unpaid(c),0))};}
- function stockBatch(b,credits){const total=Math.max(0,n(b.total_quantity)),sold=Math.max(0,n(b.sold_quantity)),damage=Math.max(0,n(b.damage_quantity)),loss=Math.max(0,n(b.loss_quantity)),unit=Math.max(0,n(b.cost_per_unit)),cr=creditForBatch(b.id,credits);const calculatedPhysical=Math.max(0,total-sold-damage-loss-cr.units);const savedPhysical=b.remaining_quantity==null?calculatedPhysical:Math.max(0,n(b.remaining_quantity));const physical=b.credit_sales_normalized===true?savedPhysical:Math.min(savedPhysical,calculatedPhysical);const revenue=money(b.sales_revenue==null?sold*n(b.selling_price_per_unit):b.sales_revenue),soldCost=money(b.sold_cost==null?sold*unit:b.sold_cost),damageValue=money(b.damage_value==null?damage*unit:b.damage_value),lossValue=money(b.loss_value==null?loss*unit:b.loss_value);return{total,sold,damage,loss,unit,physicalRemaining:physical,creditUnits:cr.units,projectedRemaining:physical+cr.units,physicalValue:money(physical*unit),remainingValue:money((physical+cr.units)*unit),revenue,soldCost,damageValue,lossValue,profit:money(b.profit_loss==null?revenue-soldCost-damageValue-lossValue:b.profit_loss),creditAmount:cr.amount};}
+ const creditKey=c=>[c.stock_batch_id,c.worker_id,String(c.customer_name||'').trim().toLowerCase(),String(c.product_service||'').trim().toLowerCase(),c.credit_date,c.created_at,n(c.quantity),n(c.amount_due),String(c.notes||'').trim()].join('|');
+ function creditForBatch(id,rows){const seen=new Set(),matches=(rows||[]).filter(c=>{const k=creditKey(c);if(seen.has(k))return false;seen.add(k);return String(c.stock_batch_id||'')===String(id||'')&&unpaid(c)>0.009;});return{units:matches.reduce((s,c)=>s+unpaidCrates(c),0),amount:money(matches.reduce((s,c)=>s+unpaid(c),0))};}
+ function stockBatch(b,credits){const total=Math.max(0,n(b.total_quantity)),sold=Math.max(0,n(b.sold_quantity)),damage=Math.max(0,n(b.damage_quantity)),loss=Math.max(0,n(b.loss_quantity)),unit=Math.max(0,n(b.cost_per_unit)),cr=creditForBatch(b.id,credits);const calculatedPhysical=Math.max(0,total-sold-damage-loss-cr.units),savedPhysical=b.remaining_quantity==null?calculatedPhysical:Math.max(0,n(b.remaining_quantity)),physical=b.credit_sales_normalized===true?savedPhysical:Math.min(savedPhysical,calculatedPhysical);const revenue=money(b.sales_revenue==null?sold*n(b.selling_price_per_unit):b.sales_revenue),soldCost=money(b.sold_cost==null?sold*unit:b.sold_cost),damageValue=money(b.damage_value==null?damage*unit:b.damage_value),lossValue=money(b.loss_value==null?loss*unit:b.loss_value);return{total,sold,damage,loss,unit,physicalRemaining:physical,creditUnits:cr.units,projectedRemaining:physical+cr.units,physicalValue:money(physical*unit),remainingValue:money((physical+cr.units)*unit),revenue,soldCost,damageValue,lossValue,profit:money(b.profit_loss==null?revenue-soldCost-damageValue-lossValue:b.profit_loss),creditAmount:cr.amount};}
  function stockPosition(rows,credits){return(rows||[]).filter(r=>!r.deleted_at).reduce((a,r)=>{const c=stockBatch(r,credits);a.physicalUnits+=c.physicalRemaining;a.creditUnits+=c.creditUnits;a.projectedUnits+=c.projectedRemaining;a.physicalValue+=c.physicalValue;a.projectedValue+=c.remainingValue;return a;},{physicalUnits:0,creditUnits:0,projectedUnits:0,physicalValue:0,projectedValue:0});}
- const api=Object.freeze({money,unpaid,unpaidCrates,creditKey,creditForBatch,stockBatch,stockPosition});root.EZELEXAccounting=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
+ const api=Object.freeze({money,unpaid,unpaidCrates,creditKey,creditForBatch,stockBatch,stockPosition});root.EZELEXAccounting=api;
 })(typeof window!=='undefined'?window:globalThis);
-
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -657,7 +654,7 @@ function canonicalWorkerKey(id){const w=workerInfo(id);return String(w.user_id||
 function workerOwnsRow(profile,id){const k=String(id??"");return [profile?.user_id,profile?.id,profile?.worker_id].some(x=>x!=null&&String(x)===k)}
 function unpaidCreditUnitsForBatch(batchId){return (accountingCreditRows||[]).filter(c=>String(c.stock_batch_id||'')===String(batchId||'')&&window.EZELEXAccounting.unpaid(c)>0.009).reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0)}
 function invCalc(r){const x=window.EZELEXAccounting.stockBatch(r,accountingCreditRows);return{total:x.total,purchase:Number(r.purchase_total||0),price:Number(r.selling_price_per_unit||0),sold:x.sold,damage:x.damage,loss:x.loss,unit:x.unit,physicalRemaining:x.physicalRemaining,creditUnits:x.creditUnits,remaining:x.projectedRemaining,revenue:x.revenue,damageValue:x.damageValue,lossValue:x.lossValue,profit:x.profit,remainingValue:x.remainingValue}}
-function creditFingerprint(c){return[c.stock_batch_id,c.worker_id,String(c.customer_name||"").trim().toLowerCase(),String(c.product_service||"").trim().toLowerCase(),c.credit_date,c.created_at,Number(c.quantity||0),Number(c.amount_due||0),Number(c.amount_paid||0),String(c.notes||"").trim()].join("|");}function uniqueCreditRows(rows){const seen=new Set();return(rows||[]).filter(c=>{const key=creditFingerprint(c);if(seen.has(key))return false;seen.add(key);return true;});}
+function creditFingerprint(c){return window.EZELEXAccounting.creditKey(c);}function uniqueCreditRows(rows){const seen=new Set();return(rows||[]).filter(c=>{const key=creditFingerprint(c);if(seen.has(key))return false;seen.add(key);return true;});}
 async function readAllRows(table,orderColumn){
  const out=[];let from=0,withoutId=false;
  for(;;){
@@ -976,8 +973,8 @@ let allStockHistory=[];
 function historyDateTime(v){if(!v)return "—";const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"});}
 let adminCreditRows=[],accountingCreditRows=[],adminCreditDuplicateCount=0,allAdminCreditRows=[],archivedAdminCreditRows=[],adminCreditPaymentRows=[];
 function normalizeAdminCreditRows(rows,payments){
- const byCredit=new Map();for(const p of (payments||[])){const k=String(p.credit_sale_id||"");const v=byCredit.get(k)||{amount:0,qty:0};v.amount+=Number(p.amount_paid||0);v.qty+=Number(p.crates_paid||0);byCredit.set(k,v);}
- return (rows||[]).map(c=>{const ev=byCredit.get(String(c.id));const legacyQty=Number(c.amount_due||0)>0&&Number(c.amount_paid||0)>=Number(c.amount_due||0)?Number(c.quantity||0):0;return {...c,amount_paid:ev?ev.amount:Number(c.amount_paid||0),crates_paid:ev?ev.qty:Number(c.crates_paid??legacyQty)};});
+ const byCredit=new Map(),eventIds=new Set((payments||[]).map(p=>String(p.credit_sale_id||"")));for(const p of (payments||[])){if(p.reversed_at)continue;const k=String(p.credit_sale_id||"");const v=byCredit.get(k)||{amount:0,qty:0};v.amount+=Number(p.amount_paid||0);v.qty+=Number(p.crates_paid||0);byCredit.set(k,v);}
+ return (rows||[]).map(c=>{const ev=byCredit.get(String(c.id)),hasEvents=eventIds.has(String(c.id));const legacyQty=Number(c.amount_due||0)>0&&Number(c.amount_paid||0)>=Number(c.amount_due||0)?Number(c.quantity||0):0;return {...c,amount_paid:hasEvents?(ev?.amount||0):Number(c.amount_paid||0),crates_paid:hasEvents?(ev?.qty||0):Number(c.crates_paid??legacyQty)};});
 }
 async function loadAdminCredits(){
  if(!$('adminCreditBody'))return;
@@ -985,18 +982,22 @@ async function loadAdminCredits(){
  try{
   allAdminCreditRows=await readAllRows("worker_stock_credit_sales","credit_date");
   try{adminCreditPaymentRows=await readAllRows("worker_stock_credit_payments","payment_date");}catch(paymentError){adminCreditPaymentRows=[];console.warn("Admin credit payment history unavailable:",paymentError.message);}
-  const normalized=normalizeAdminCreditRows(allAdminCreditRows,adminCreditPaymentRows);
+  const knownWorkerKeys=new Set();(workers||[]).filter(ezelexIsWorkerProfile).forEach(w=>[w.user_id,w.id,w.worker_id].filter(Boolean).forEach(k=>knownWorkerKeys.add(String(k))));
+  const normalized=normalizeAdminCreditRows(allAdminCreditRows,adminCreditPaymentRows).filter(c=>knownWorkerKeys.has(String(c.worker_id||"")));
   const activeBatchIds=new Set((allInventory||[]).filter(b=>!b.deleted_at).map(b=>String(b.id)));
   const archivedBatchIds=new Set((allInventory||[]).filter(b=>b.deleted_at).map(b=>String(b.id)));
   // Match the Worker Portal: only show credit linked to a non-archived stock batch.
   // Keep archived credit rows separately for audit instead of mixing them into live balances.
   const activeRaw=normalized.filter(c=>activeBatchIds.has(String(c.stock_batch_id||"")));
   archivedAdminCreditRows=normalized.filter(c=>archivedBatchIds.has(String(c.stock_batch_id||"")));
-  adminCreditRows=activeRaw;
-  accountingCreditRows=uniqueCreditRows(activeRaw);
-  adminCreditDuplicateCount=activeRaw.length-accountingCreditRows.length;
+  // Archived source batches do not erase customer receivables. Keep every credit
+  // row belonging to a live worker in the central accounting set; archive status
+  // remains separately available for audit and source-batch recovery.
+  adminCreditRows=normalized;
+  accountingCreditRows=uniqueCreditRows(normalized);
+  adminCreditDuplicateCount=normalized.length-accountingCreditRows.length;
   const open=accountingCreditRows.filter(c=>Number(c.amount_due||0)-Number(c.amount_paid||0)>0.009||Number(c.crates_paid||0)<Number(c.quantity||0));
-  if($('adminCreditDedupNote'))$('adminCreditDedupNote').textContent=`${adminCreditDuplicateCount?adminCreditDuplicateCount+" exact duplicate active transaction row(s) excluded from totals. ":"No exact duplicate active credit transactions detected. "}${archivedAdminCreditRows.length} credit row(s) linked to archived stock are retained in Week Data audit and excluded from live balances.`;
+  if($('adminCreditDedupNote'))$('adminCreditDedupNote').textContent=`${adminCreditDuplicateCount?adminCreditDuplicateCount+" exact duplicate transaction row(s) excluded from totals. ":"No exact duplicate credit transactions detected. "}${archivedAdminCreditRows.length} credit row(s) linked to archived stock remain included in receivables until paid or reversed.`;
   $('adminCreditAmount').textContent=money(open.reduce((n,c)=>n+Math.max(0,Number(c.amount_due||0)-Number(c.amount_paid||0)),0));
   $('adminCreditUnits').textContent=open.reduce((n,c)=>n+window.EZELEXAccounting.unpaidCrates(c),0).toLocaleString();
   $('adminCreditCustomers').textContent=new Set(open.map(c=>String(c.worker_id||"")+"|"+String(c.customer_name||'').trim().toLowerCase())).size;
