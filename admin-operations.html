@@ -713,7 +713,7 @@ async function loadWorkers(){
  const recipient=$("commRecipient");if(recipient){const prior=recipient.value;recipient.innerHTML='<option value="ALL">All Active Workers &amp; Drivers</option>';const activePeople=workers.filter(w=>w.active===true);["worker","driver"].forEach(role=>{const group=document.createElement("optgroup");group.label=role==="driver"?"Drivers":"Workers";activePeople.filter(w=>String(w.role||"worker").trim().toLowerCase()===role).forEach(w=>{const o=document.createElement("option");o.value=w.user_id||w.id;o.textContent=`${w.full_name||role} (${w.worker_id||""})`;group.appendChild(o)});if(group.children.length)recipient.appendChild(group)});if([...recipient.options].some(o=>o.value===prior))recipient.value=prior;}
  renderWorkers();if($("triWorker"))triPopulateSelects()
 }
-async function loadSales(){const r=await db.from("sales").select("*").order("sale_date",{ascending:false}).order("created_at",{ascending:false});if(r.error){msg("dashMsg","Could not load sales: "+r.error.message,"error");return}allSales=r.data||[];updateSummary();applyFilters()}
+async function loadSales(){const r=await db.from("sales").select("*").order("sale_date",{ascending:false}).order("created_at",{ascending:false});if(r.error){msg("dashMsg","Could not load sales: "+r.error.message,"error");return}const knownWorkerKeys=new Set();(workers||[]).filter(ezelexIsWorkerProfile).forEach(w=>[w.user_id,w.id,w.worker_id].filter(Boolean).forEach(v=>knownWorkerKeys.add(String(v))));allSales=(r.data||[]).filter(x=>knownWorkerKeys.has(String(x.worker_id||"")));updateSummary();applyFilters()}
 function approvedSales(){return allSales.filter(s=>status(s)==="approved")}
 function updateSummary(){
  const a=approvedSales(),now=new Date(),td=dateOnly(now),month=td.slice(0,7),monday=new Date(now);monday.setHours(0,0,0,0);monday.setDate(monday.getDate()-((monday.getDay()+6)%7));const wk=dateOnly(monday);
@@ -740,7 +740,12 @@ async function loadInventory(){
   msg("dashMsg","Stock tracker could not load worker records: "+(e.message||String(e))+". Check the stock table access and try Sync worker data again.","error");
   return;
  }
- allInventory=batches||[];allStockWeeks=weeks||[];inventoryLoaded=true;
+ // Never let orphaned stock from deleted worker accounts enter live registers or totals.
+ const knownWorkerKeys=new Set();(workers||[]).filter(ezelexIsWorkerProfile).forEach(w=>[w.user_id,w.id,w.worker_id].filter(Boolean).forEach(v=>knownWorkerKeys.add(String(v))));
+ const isKnownWorkerRow=row=>knownWorkerKeys.has(String(row.worker_id||""));
+ allInventory=(batches||[]).filter(isKnownWorkerRow);
+ allStockWeeks=(weeks||[]).filter(isKnownWorkerRow);
+ inventoryLoaded=true;
  currentWeekIds=latestWorkerWeekIds();
  const workerSel=$("invWorkerFilter"),priorWorker=workerSel?.value||"";
  if(workerSel){
@@ -1005,8 +1010,10 @@ async function loadAdminCredits(){
 }
 async function loadStockHistory(){
  try{
-  allStockHistory=await readAllRows("worker_stock_edit_history","changed_at");
-  const select=$("historyWorkerFilter");if(select){const current=select.value;select.innerHTML='<option value="">All workers</option>'+workers.map(w=>`<option value="${esc(w.user_id||w.id)}">${esc(w.full_name||w.worker_id||w.email||"Worker")}</option>`).join("");select.value=current;}
+  const historyRows=await readAllRows("worker_stock_edit_history","changed_at");
+  const knownWorkerKeys=new Set();(workers||[]).filter(ezelexIsWorkerProfile).forEach(w=>[w.user_id,w.id,w.worker_id].filter(Boolean).forEach(v=>knownWorkerKeys.add(String(v))));
+  allStockHistory=(historyRows||[]).filter(x=>knownWorkerKeys.has(String(x.worker_id||"")));
+  const select=$("historyWorkerFilter");if(select){const current=select.value;select.innerHTML='<option value="">All workers</option>'+workers.filter(ezelexIsWorkerProfile).map(w=>`<option value="${esc(w.user_id||w.id)}">${esc(w.full_name||w.worker_id||w.email||"Worker")}</option>`).join("");select.value=current;}
   renderAdminStockHistory();
  }catch(e){$("adminStockHistoryBody").innerHTML=`<tr><td colspan="10" class="empty">History unavailable: ${esc(e.message)}. Check the admin SELECT policy on worker_stock_edit_history.</td></tr>`;}
 }
@@ -1216,8 +1223,9 @@ $("purgeOrphanWorkerRecordsBtn").onclick=async()=>{
  if(!confirm("Permanently remove worker stock and financial records whose worker profile has already been deleted? Inactive workers whose records were deliberately kept will not be touched."))return;
  const result=await db.rpc("ezelex_admin_purge_orphan_worker_records");
  if(result.error){msg("workerMsg","Orphaned worker records were not cleaned: "+result.error.message,"error");return}
- const count=Number(result.data?.orphaned_workers_removed||0);
- msg("workerMsg",`Orphaned worker records cleaned. ${count} deleted worker account(s) processed.`,"ok");
+ const count=Number(result.data?.orphaned_workers_processed??result.data?.orphaned_workers_removed??0);
+ const preserved=Number(result.data?.historical_correction_references_detached||0);
+ msg("workerMsg",`Orphaned worker operational records cleaned. ${count} deleted worker account(s) processed. Historical correction audit records were preserved${preserved?` (${preserved} references detached)`:""}. Original business capital was not changed.`,"ok");
  await loadWorkers();await Promise.all([loadSales(),loadInventory(),loadStockHistory(),loadAdminCredits()]);
 };
 $("deleteSelectedDriverBtn").onclick=async()=>{
@@ -1716,7 +1724,36 @@ if(page==="Daily Sales Performance"){document.querySelector('[data-sales-tab="st
 else if(page==="Sales Reviews & Approval"||page==="Sales Review & Approval"||page==="Approve / Disapprove Sales"){document.querySelector('[data-sales-tab="reports"]')?.click();}
 else if(page==="Central Sales Management"){document.querySelector('[data-sales-tab="reports"]')?.click();}
 if(page==="Create Driver")document.querySelector('[data-employee-view="create-driver"]')?.click();if(page==="Delete Worker")document.querySelector('[data-employee-view="delete-worker"]')?.click();if(page==="Delete Driver")document.querySelector('[data-employee-view="delete-driver"]')?.click();if(page==="Create Worker")document.querySelector('[data-employee-view="create-worker"]')?.click();if(page==="Employee Directory")document.querySelector('[data-employee-view="directory"]')?.click();const panels={"Create Tricycle Contract":"triCreatePanel","Record Historical Payment":"triHistoricalPanel","Payment Ledger Calendar":"triCalendarPanel","Tricycle Contract Management":"triManagementPanel","Private Tricycle Profit":"triPrivateProfitSection","Contract Register & Balances":"triRegisterPanel","Weekly Report — Review & Approval":"triReportsPanel","Owing / Weekly Shortfalls":"triOwingPanel","Weekly Driver Payment Monitoring":"triPaymentMonitorPanel","Full Payment Ledger":"triLedgerPanel","Delete Contract":"triManagementPanel"};if(panels[page])window.openEzelexTriPanel(panels[page]);}
-window.addEventListener("message",event=>{if(event.origin!==location.origin||event.source!==window.parent)return;openEzelexRoute(event.data)});
+window.ezelexAdminFullRefresh = async function(requestId){
+ const errors = [];
+ // Refresh employee identities first because stock, sales, history and credit rows
+ // are deliberately filtered against the current live employee register.
+ try { await loadWorkers(); } catch(e) { errors.push('employee profiles: '+(e?.message||String(e))); }
+ try { await loadInventory(); } catch(e) { errors.push('stock batches and weekly books: '+(e?.message||String(e))); }
+ const tasks = [
+  ['sales records', loadSales], ['stock edit history', loadStockHistory],
+  ['on-credit sales and payments', loadAdminCredits], ['business capital', loadBusinessCapital],
+  ['communication history', loadCommunication], ['tricycle contracts, reports, payments and private ledgers', triLoadAll]
+ ];
+ const results = await Promise.allSettled(tasks.map(([,fn])=>Promise.resolve().then(()=>fn())));
+ results.forEach((result,index)=>{if(result.status==='rejected')errors.push(tasks[index][0]+': '+(result.reason?.message||String(result.reason)));});
+ try{if(typeof updateSummary==='function')updateSummary();}catch(e){errors.push('sales summary: '+e.message);}
+ try{if(typeof ezelexInitReportFilters==='function')ezelexInitReportFilters();}catch(e){errors.push('report filters: '+e.message);}
+ try{if(typeof updateInventorySummary==='function'&&inventoryLoaded)updateInventorySummary();}catch(e){errors.push('stock summary: '+e.message);}
+ const result={type:'ezelex-admin-full-refresh-complete',requestId,ok:errors.length===0,errors};
+ try{window.parent.postMessage(result,location.origin);}catch(_){}
+ return result;
+};
+window.addEventListener("message",event=>{
+ if(event.origin!==location.origin||event.source!==window.parent)return;
+ if(event.data?.type==='ezelex-admin-full-refresh'){
+  window.ezelexAdminFullRefresh(event.data.requestId).catch(error=>{
+   try{window.parent.postMessage({type:'ezelex-admin-full-refresh-complete',requestId:event.data.requestId,ok:false,errors:[error?.message||String(error)]},location.origin);}catch(_){}
+  });
+  return;
+ }
+ openEzelexRoute(event.data);
+});
 (async()=>{try{if(window.parent===window||window.parent.location.origin!==window.location.origin)throw new Error("Open this page from the authenticated Management Centre.");await adminCheck();
 // Signal readiness only after the authenticated operations workspace has completed initialisation.
 try{window.parent.postMessage({type:"ezelex-admin-frame-ready"},location.origin);}catch(_){}const p=new URLSearchParams(location.search);const s=p.get("section");if(s&&$(s))navigateAdminSection(s);
